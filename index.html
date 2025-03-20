@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factura VENTAS SURTIMAX</title>
+  <style>
+      :root {
+          --primary-color: #1c8d87;
+          --secondary-color: #f8f9fa;
+          --accent-color: #ffc107;
+          --text-color: #000000;
+          --border-color: #dee2e6;
+          --success-color: #1c8d87;
+          --danger-color: #dc3545;
+          --info-color: #1c8d87;
+      }
+      
+      body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          margin: 0;
+          padding: 20px;
+          background-color: #f5f5f5;
+          color: var(--text-color);
+          padding-top: 80px; /* Añadido padding para tener en cuenta los controles fijos */
+      }
+      
+      .invoice {
+          max-width: 800px;
+          margin: 0 auto;
+          border: none;
+          border-radius: 10px;
+          padding: 30px;
+          background-color: white;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .header {
+          text-align: center;
+          margin-bottom: 15px;
+          padding-bottom: 10px;
+          border-bottom: none;
+          position: relative;
+      }
+      
+      .header::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background-color: transparent;
+      }
+      
+      .header h1 {
+          margin: 0;
+          font-size: 28px;
+          color: var(--primary-color);
+      }
+      
+      .header p {
+          margin: 5px 0;
+          color: #000000;
+      }
+      
+      .logo-container {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 5px;
+      }
+      
+      .company-name {
+          color: var(--primary-color);
+          font-weight: bold;
+          letter-spacing: 0.5px;
+      }
+      
+      .info {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          padding: 15px;
+          background-color: var(--secondary-color);
+          border-radius: 8px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      .info-left, .info-right {
+          width: 50%;
+      }
+      
+      .info-label {
+          font-weight: bold;
+          color: var(--primary-color);
+          margin-right: 5px;
+      }
+      
+      .info input[type="text"],
+      .info input[type="date"],
+      .info input[type="email"] {
+          border: 1px solid var(--border-color);
+          border-radius: 4px;
+          padding: 5px;
+          width: 50%;
+          font-size: 14px;
+          transition: border-color 0.3s;
+      }
+      
+      .info input:focus {
+          border-color: var(--primary-color);
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+      }
+      
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      thead {
+          background-color: var(--primary-color);
+          color: white;
+      }
+      
+      th {
+          padding: 12px;
+          text-align: left;
+          font-weight: 600;
+      }
+      
+      td {
+          padding: 12px;
+          border-bottom: 1px solid #ddd;
+      }
+      
+      tbody tr:nth-child(even) {
+          background-color: var(--secondary-color);
+      }
+      
+      tbody tr:hover {
+          background-color: rgba(0, 86, 179, 0.05);
+      }
+      
+      .totals {
+          margin-top: 30px;
+          text-align: right;
+          padding: 20px;
+          background-color: var(--secondary-color);
+          border-radius: 8px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      .totals p {
+          margin: 8px 0;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+      }
+      
+      .total-label {
+          font-weight: bold;
+          margin-right: -30px; /* Espacio entre los sub-totales */
+          min-width: 90px;
+          text-align: right;
+      }
+      .total-total {
+          font-weight: bold;
+          margin-right: -25px; /* Espacio entre los totales */
+          min-width: 90px;
+          text-align: right;
+      }
+      
+      .total-value {
+          min-width: 100px;
+          text-align: right;
+          font-weight: 500;
+      }
+      
+      .grand-total {
+          font-size: 18px;
+          font-weight: bold;
+          color: #dc3545;
+          padding-top: 10px;
+          margin-top: 10px;
+          border-top: none;
+      }
+      
+      .signature {
+          /* Reducido el espacio antes de "Recibido por" */
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: none;
+      }
+      
+      .signature p {
+          /* Color de "Recibido por" */
+          margin-bottom: 5px;
+          color: #000000;
+      }
+      
+      .signature-line {
+          display: block;
+          width: 60%;
+          height: 1px;
+          background-color: #999;
+          margin: 10px 0;
+      }
+      
+      #product-form, #controls, #adjustment-form {
+          margin-bottom: 20px;
+          padding: 15px;
+          background-color: var(--secondary-color);
+          border-radius: 8px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Panel de controles fijo - ahora semi-transparente */
+      #controls {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          background-color: rgba(255, 255, 255, 0.8);
+          padding: 10px 20px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+      }
+      
+      #product-form input, 
+      #product-form button, 
+      #product-form select, 
+      #controls button,
+      #adjustment-form input,
+      #adjustment-form select,
+      #adjustment-form button {
+          margin: 5px;
+          padding: 8px 12px;
+          border: 1px solid var(--border-color);
+          border-radius: 4px;
+          font-size: 14px;
+      }
+      
+      #product-form input:focus, 
+      #product-form select:focus,
+      #adjustment-form input:focus,
+      #adjustment-form select:focus {
+          border-color: var(--primary-color);
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+      }
+      
+      /* Hacer que el campo de descripción del producto sea más ancho */
+      #product-description {
+          width: 300px;
+      }
+      
+      #product-select, #category-select, #adjustment-type {
+          max-width: 200px;
+      }
+      
+      .print-only {
+          display: none;
+      }
+
+      #deposit, #discount {
+          width: 80px;
+          text-align: right;
+          font-weight: 500;
+      }
+      
+      .action-btn {
+          background-color: var(--primary-color);
+          border: none;
+          border-radius: 4px;
+          color: white;
+          padding: 8px 12px;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          font-size: 14px;
+          margin: 2px 2px;
+          cursor: pointer;
+          transition: background-color 0.3s, transform 0.2s;
+      }
+      
+      .action-btn:hover {
+          background-color: #004494; /* Cambio de color imprimir */
+          transform: translateY(-2px);
+      }
+      
+      .action-btn:active {
+          transform: translateY(0);
+      }
+      
+      .delete-btn {
+          background-color: var(--danger-color);
+      }
+      
+      .delete-btn:hover {
+          background-color: #c82333;
+      }
+      
+      .save-load-btn {
+          background-color: var(--info-color);
+      }
+      
+      .save-load-btn:hover {
+          background-color: #004494; /* Cambio de color cargar/guardar */
+      }
+      
+      .add-btn {
+          background-color: var(--success-color);
+      }
+      
+      .add-btn:hover {
+          background-color: #004494; /* Cambio de color agregar */
+      }
+      
+      .invoice-number {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 5px 10px;
+          background-color: var(--accent-color);
+          color: #000000;
+          font-weight: bold;
+          border-radius: 4px;
+          font-size: 14px;
+      }
+      
+      .payment-method {
+          display: flex;
+          align-items: center;
+          margin-bottom: 10px;
+      }
+      
+      .payment-method label {
+          margin-right: 15px;
+          display: flex;
+          align-items: center;
+      }
+      
+      .payment-method input[type="checkbox"] {
+          margin-right: 5px;
+          width: 16px;
+          height: 16px;
+      }
+      
+      .watermark {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(-45deg);
+          font-size: 100px;
+          color: rgba(0, 0, 0, 0.03);
+          pointer-events: none;
+          z-index: 0;
+          font-weight: bold;
+          white-space: nowrap;
+      }
+
+      /* Ocultar filas de descuento y abono cuando no tienen valor */
+      .hide-when-zero {
+          display: flex;
+      }
+      
+      /* Ocultar correo cuando está vacío */
+      .hide-when-empty {
+          display: block;
+      }
+      
+      /* Estilo personalizado para el botón de seleccionar archivo */
+      .custom-file-upload {
+          display: inline-block;
+          padding: 10px 15px;
+          background-color: var(--primary-color);
+          color: white;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+          transition: background-color 0.3s, transform 0.2s;
+          margin-top: 20px;
+          text-align: center;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      
+      .custom-file-upload:hover {
+          background-color: #166e69;
+          transform: translateY(-2px);
+      }
+      
+      .custom-file-upload:active {
+          transform: translateY(0);
+      }
+      
+      /* Ocultar el input file original */
+      .hidden-file-input {
+          display: none;
+      }
+      
+      @media print {
+          body {
+              padding: 0;
+              background-color: white;
+          }
+          
+          .invoice {
+              border: none;
+              box-shadow: none;
+              padding: 0;
+          }
+          
+          #product-form, #excel-file, #controls, #adjustment-form, .no-print, .action-btn {
+              display: none;
+          }
+          
+          .print-only {
+              display: block;
+          }
+          
+          input, select {
+              border: none !important;
+              background: none !important;
+              padding: 0 !important;
+              font-family: inherit !important;
+              font-size: inherit !important;
+              color: inherit !important;
+          }
+          
+          input[type="checkbox"] {
+              -webkit-appearance: checkbox;
+              -moz-appearance: checkbox;
+              appearance: checkbox;
+              opacity: 1;
+          }
+          
+          .info {
+              background-color: transparent;
+              box-shadow: none;
+              padding: 0;
+          }
+          
+          table {
+              box-shadow: none;
+              border: 1px solid #ddd;
+          }
+          
+          thead {
+              background-color: #f2f2f2;
+              color: black;
+          }
+          
+          th, td {
+              border: 1px solid #ddd;
+          }
+          
+          .totals {
+              background-color: transparent;
+              box-shadow: none;
+              padding: 0;
+          }
+          
+          .watermark {
+              display: block;
+              color: rgba(0, 0, 0, 0.03);
+          }
+          
+          /* Ocultar filas de descuento y abono cuando no tienen valor */
+          .hide-when-zero.zero-value {
+              display: none !important;
+          }
+          
+          /* Ocultar correo cuando está vacío */
+          .hide-when-empty.empty-value {
+              display: none !important;
+          }
+      }
+  </style>
+</head>
+<body>
+  <div id="controls" class="no-print">
+      <button onclick="document.getElementById('excel-file').click()" class="action-btn save-load-btn" style="font-size: 14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2z"/>
+              <path d="M3 12v-2h2v2H3zm0 1h2v2H4a1 1 0 0 1-1-1v-1zm3 2v-2h3v2H6zm4 0v-2h3v1a1 1 0 0 1-1 1h-2zm3-3h-3v-2h3v2zm-7 0v-2h3v2H6z"/>
+          </svg>
+          Cargar Lista de Productos
+      </button>
+      <button onclick="saveInvoiceToExcel()" class="action-btn save-load-btn" style="font-size: 14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+              <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+          </svg>
+          Guardar Factura
+      </button>
+      <input type="file" id="load-invoice-file" accept=".xlsx, .xls" style="display: none;">
+      <button onclick="document.getElementById('load-invoice-file').click()" class="action-btn save-load-btn" style="font-size: 14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+              <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+          </svg>
+          Cargar Factura
+      </button>
+      <button onclick="printInvoice()" class="action-btn" style="font-size: 14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+              <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+          </svg>
+          Imprimir Factura
+      </button>
+      <button onclick="window.location.href='catalog.html'" class="action-btn" style="font-size: 14px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+          </svg>
+          Ver Catálogo
+      </button>
+      <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
+  </div>
+
+  <div class="invoice">
+      <!--div class="watermark print-only">SURTIMAX</div-->
+      <div class="header">
+          <div class="logo-container">
+              <img src="logo.png" width="90" height="90" alt="Logo SURTIMAX">
+          </div>
+          <p class="company-name" style="font-size: 20px;">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
+          <p style="font-size: 15px;">Materiales de construcción, pinturas y más.</p>
+          <p style="font-size: 15px;">R.U.C. 155749223-2-2024    D.V. 70</p>
+          <p style="font-size: 15px;">Almirante, Bocas del Toro, Vía Chiriquí Grande, a lado del Restaurante Fortuna.</p>
+          <p style="font-size: 15px;">Correo: vsurtimaxbocas1@gmail.com</p>
+          <p style="font-size: 15px;">Tel. 6874-8881 / 6804-3388</p>
+          <div class="invoice-number" id="order-number-display">
+              Orden #<span id="order-number-text"></span>
+          </div>
+      </div>
+      
+      <div class="info">
+          <div class="info-left">
+              <p><b>Fecha:</b> <input type="date" id="invoice-date" style="font-size: 15px;"></p>
+              <p><b>Cliente:</b> <input type="text" id="client-name" style="font-size: 15px;"></p>
+              <p><b>Dirección:</b> <input type="text" id="client-address" style="font-size: 15px;"></p>
+              <p><b>Teléfono:</b> <input type="text" id="client-phone" style="font-size: 15px;"></p>
+              <p id="client-email-row" class="hide-when-empty"><b>Correo:</b> <input type="email" id="client-email" style="font-size: 14px;"></p>
+          </div>
+          <div class="info-right">
+              <p><b>Condiciones de pago:</b></p>
+              <div class="payment-method">
+                  <label><input type="checkbox" id="contado"> Contado</label>
+                  <label><input type="checkbox" id="credito"> Crédito</label>
+              </div>
+              <p><b>Vendedor:</b> <input type="text" id="seller-name" style="font-size: 15px;"></p>
+              <p class="no-print"><b>Orden de entrega No.</b> <input type="text" id="order-number" style="font-size: 15px; color: #dc3545;"></p>
+          </div>
+      </div>
+      
+      <form id="product-form" class="no-print">
+          <select id="product-select">
+              <option value="">Seleccione un producto</option>
+          </select>
+          <input type="number" id="product-quantity" placeholder="Cantidad" required min="1">
+          <input type="text" id="product-description" placeholder="Descripción" required>
+          <input type="number" id="product-price" placeholder="Precio Unitario" step="0.01" required min="0.01">
+          <button type="submit" class="action-btn add-btn" style="font-size: 15px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              Agregar Producto
+          </button>
+      </form>
+
+      <div id="adjustment-form" class="no-print">
+          <select id="adjustment-type">
+              <option value="">Seleccione ajuste</option>
+              <option value="discount">Descuento</option>
+              <option value="deposit">Abono</option>
+          </select>
+          $<input type="number" id="adjustment-amount" value="0.00" step="0.01" min="0">
+          <button id="add-adjustment-btn" class="action-btn add-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+              </svg>
+              Agregar
+          </button>
+      </div>
+
+      <table>
+          <thead>
+              <tr>
+                  <th style="font-size: 15px; width: 12%;">CANTIDAD</th>
+                  <th style="font-size: 15px; width: 45%;">DESCRIPCIÓN</th>
+                  <th style="font-size: 15px; width: 15%;">P/U</th>
+                  <th style="font-size: 15px; width: 15%;">TOTAL</th>
+                  <th style="font-size: 15px; width: 10%;" class="no-print">ACCIÓN</th>
+              </tr>
+          </thead>
+          <tbody id="invoice-items">
+              <!-- Los elementos se insertarán aquí dinámicamente -->
+          </tbody>
+      </table>
+      
+      <div class="totals">
+          <p style="font-size: 15px">
+              <span class="total-label">SUB-TOTAL:</span>
+              <span class="total-value">$<span id="subtotal">0.00</span></span>
+          </p>
+          <p style="font-size: 15px">
+              <span class="total-label">I.T.B.M.S. (7%):</span>
+              <span class="total-value">$<span id="tax">0.00</span></span>
+          </p>
+          <p style="font-size: 15px" id="discount-row" class="hide-when-zero">
+              <span class="total-label">DESCUENTO:</span>
+              <span class="total-value">$<span id="discount">0.00</span></span>
+              <button onclick="editAdjustment('discount')" class="action-btn no-print" style="margin-left: 10px;">Editar</button>
+              <button onclick="deleteAdjustment('discount')" class="action-btn delete-btn no-print">Eliminar</button>
+          </p>
+          <p style="font-size: 15px" id="deposit-row" class="hide-when-zero">
+              <span class="total-label">ABONO:</span>
+              <span class="total-value">$<span id="deposit">0.00</span></span>
+              <button onclick="editAdjustment('deposit')" class="action-btn no-print" style="margin-left: 10px;">Editar</button>
+              <button onclick="deleteAdjustment('deposit')" class="action-btn delete-btn no-print">Eliminar</button>
+          </p>
+          <p class="grand-total">
+              <span class="total-total">TOTAL:</span>
+              <span class="total-value">$<span id="total">0.00</span></span>
+          </p>
+      </div>
+      
+      <div class="signature">
+          <p>Recibido por: _____________________________________</p>
+          <!--class="signature-line"></div--> 
+          <!--p>Nombre y firma</p-->
+          <p class="print-only" style="margin-top: 20px; font-size: 12px; color: #999; text-align: center;">
+              Gracias por su compra. Para cualquier consulta, contáctenos al 6874-8881 o 6804-3388.
+          </p>
+      </div>
+      
+      
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script src="xlsx.full.min.js"></script>
+  <script src="invoice.js"></script>
+  <script>
+      // Actualizar el número de orden en el encabezado cuando cambie
+      document.getElementById('order-number').addEventListener('input', function() {
+          document.getElementById('order-number-text').textContent = this.value;
+      });
+      
+      // Establecer la fecha actual por defecto
+      document.addEventListener('DOMContentLoaded', function() {
+          const today = new Date().toISOString().split('T')[0];
+          document.getElementById('invoice-date').value = today;
+          
+          // Inicializar la visibilidad de descuento y abono
+          updateAdjustmentVisibility();
+          
+          // Inicializar la visibilidad del correo
+          updateEmailVisibility();
+          
+          // Añadir evento para detectar cambios en el campo de correo
+          document.getElementById('client-email').addEventListener('input', updateEmailVisibility);
+      });
+      
+      // Función para actualizar la visibilidad de descuento y abono
+      function updateAdjustmentVisibility() {
+          // Para descuento
+          const discountValue = parseFloat(document.getElementById('discount').textContent) || 0;
+          const discountRow = document.getElementById('discount-row');
+          
+          if (discountValue <= 0) {
+              discountRow.classList.add('zero-value');
+          } else {
+              discountRow.classList.remove('zero-value');
+          }
+          
+          // Para abono
+          const depositValue = parseFloat(document.getElementById('deposit').textContent) || 0;
+          const depositRow = document.getElementById('deposit-row');
+          
+          if (depositValue <= 0) {
+              depositRow.classList.add('zero-value');
+          } else {
+              depositRow.classList.remove('zero-value');
+          }
+      }
+      
+      // Función para actualizar la visibilidad del correo
+      function updateEmailVisibility() {
+          const emailValue = document.getElementById('client-email').value.trim();
+          const emailRow = document.getElementById('client-email-row');
+          
+          if (emailValue === '') {
+              emailRow.classList.add('empty-value');
+          } else {
+              emailRow.classList.remove('empty-value');
+          }
+      }
+      
+      // Modificar la función printInvoice para actualizar la visibilidad antes de imprimir
+      function printInvoice() {
+          updateAdjustmentVisibility();
+          updateEmailVisibility();
+          window.print();
+      }
+      
+      // Modificar las funciones existentes para actualizar la visibilidad
+      // Asumiendo que hay funciones como addAdjustment, editAdjustment, deleteAdjustment
+      // que modifican los valores de descuento y abono
+      
+      // Ejemplo: Sobrescribir la función addAdjustment si existe
+      const originalAddAdjustment = window.addAdjustment;
+      if (typeof originalAddAdjustment === 'function') {
+          window.addAdjustment = function() {
+              originalAddAdjustment.apply(this, arguments);
+              updateAdjustmentVisibility();
+          };
+      }
+      
+      // Ejemplo: Sobrescribir la función editAdjustment si existe
+      const originalEditAdjustment = window.editAdjustment;
+      if (typeof originalEditAdjustment === 'function') {
+          window.editAdjustment = function() {
+              originalEditAdjustment.apply(this, arguments);
+              updateAdjustmentVisibility();
+          };
+      }
+      
+      // Ejemplo: Sobrescribir la función deleteAdjustment si existe
+      const originalDeleteAdjustment = window.deleteAdjustment;
+      if (typeof originalDeleteAdjustment === 'function') {
+          window.deleteAdjustment = function() {
+              originalDeleteAdjustment.apply(this, arguments);
+              updateAdjustmentVisibility();
+          };
+      }
+      
+      // Observar cambios en los elementos de descuento y abono
+      const discountObserver = new MutationObserver(updateAdjustmentVisibility);
+      discountObserver.observe(document.getElementById('discount'), { childList: true, characterData: true, subtree: true });
+      
+      const depositObserver = new MutationObserver(updateAdjustmentVisibility);
+      depositObserver.observe(document.getElementById('deposit'), { childList: true, characterData: true, subtree: true });
+      
+      // Observar cambios en el campo de correo electrónico
+      const emailObserver = new MutationObserver(updateEmailVisibility);
+      emailObserver.observe(document.getElementById('client-email'), { attributes: true, attributeFilter: ['value'] });
+  </script>
+</body>
+</html>
