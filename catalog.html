@@ -183,6 +183,7 @@
             background-color: rgb(255, 255, 255);
             text-align: center;
             height: 130px;
+            cursor: pointer; /* Añadido para indicar que es clicable */
         }
         
         /* Modificar el estilo para cuando hay un solo producto */
@@ -199,6 +200,7 @@
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background-color: #f0f8ff; /* Fondo más claro al pasar el mouse */
         }
         
         .product-code {
@@ -270,6 +272,27 @@
             text-decoration: underline;
         }
         
+        /* Notificación de producto agregado */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1100;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         @media (max-width: 768px) {
             .products-container {
                 grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
@@ -294,7 +317,7 @@
                 padding: 0;
             }
             
-            .controls, .filter-container, .back-to-invoice {
+            .controls, .filter-container, .back-to-invoice, .notification {
                 display: none;
             }
             
@@ -331,7 +354,7 @@
             </svg>
             Imprimir Catálogo
         </button>
-        <a href="index.html" class="action-btn">
+        <a href="index.html" class="action-btn" onclick="localStorage.removeItem('selectedProduct')">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
                 <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
             </svg>
@@ -379,12 +402,28 @@
         </div>
     </div>
 
+    <!-- Notificación de producto agregado -->
+    <div id="notification" class="notification">
+        Producto agregado a la factura
+    </div>
+
     <script src="xlsx.full.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("excel-file").addEventListener("change", handleFile, false);
             document.getElementById("category-filter").addEventListener("change", filterProducts);
             document.getElementById("search-input").addEventListener("input", filterProducts);
+            
+            // Cargar productos desde localStorage si existen
+            if (localStorage.getItem('productList')) {
+                try {
+                    productList = JSON.parse(localStorage.getItem('productList'));
+                    populateCategories();
+                    displayProducts();
+                } catch (e) {
+                    console.error("Error al cargar productos desde localStorage:", e);
+                }
+            }
         });
 
         let productList = [];
@@ -413,6 +452,9 @@
                     return product;
                 });
 
+                // Guardar en localStorage para compartir con la página de factura
+                localStorage.setItem('productList', JSON.stringify(productList));
+                
                 populateCategories();
                 displayProducts();
             };
@@ -514,11 +556,14 @@
                 
                 sortedProducts.forEach(product => {
                     const price = parseFloat(product.Price) || 0;
+                    const productCode = product.Code || '';
+                    const productDescription = product.Description || '';
+                    
                     html += `
-                        <div class="product-card">
-                            <div class="product-code">${product.Code || ''}</div>
+                        <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                            <div class="product-code">${productCode}</div>
                             <div class="product-price">$${price.toFixed(2)}</div>
-                            <div class="product-name">${product.Description || ''}</div>
+                            <div class="product-name">${productDescription}</div>
                         </div>
                     `;
                 });
@@ -538,6 +583,48 @@
         
         function printCatalog() {
             window.print();
+        }
+        
+        // Nueva función para agregar un producto a la factura
+        function addProductToInvoice(code, description, price) {
+            // Prompt for quantity
+            let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1");
+            
+            // Validate quantity input
+            if (quantity === null) {
+                return; // User cancelled the prompt
+            }
+            
+            quantity = parseInt(quantity);
+            if (isNaN(quantity) || quantity <= 0) {
+                alert("Por favor ingrese una cantidad válida mayor que cero.");
+                return;
+            }
+            
+            // Guardar el producto seleccionado en localStorage
+            const selectedProduct = {
+                code: code,
+                description: description,
+                price: price,
+                quantity: quantity // Use the entered quantity
+            };
+            
+            localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
+            
+            // Mostrar notificación
+            const notification = document.getElementById('notification');
+            notification.textContent = `Producto "${description}" (${quantity} unidades) agregado a la factura`;
+            notification.classList.add('show');
+            
+            // Ocultar la notificación después de 3 segundos y luego redirigir
+            setTimeout(() => {
+                notification.classList.remove('show');
+                
+                // Esperar a que termine la animación de desaparición antes de redirigir
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 300); // 300ms para la transición CSS
+            }, 3000);
         }
         
         // Si hay una función loadProductList en el contexto global (desde invoice.js),

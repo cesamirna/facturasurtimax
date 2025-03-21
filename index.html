@@ -406,6 +406,27 @@
           display: none;
       }
       
+      /* Notificación de producto agregado desde el catálogo */
+      .notification {
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          background-color: var(--success-color);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 4px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+          z-index: 1100;
+          opacity: 0;
+          transform: translateY(-20px);
+          transition: opacity 0.3s, transform 0.3s;
+      }
+      
+      .notification.show {
+          opacity: 1;
+          transform: translateY(0);
+      }
+      
       @media print {
           body {
               padding: 0;
@@ -418,7 +439,7 @@
               padding: 0;
           }
           
-          #product-form, #excel-file, #controls, #adjustment-form, .no-print, .action-btn {
+          #product-form, #excel-file, #controls, #adjustment-form, .no-print, .action-btn, .notification {
               display: none;
           }
           
@@ -516,12 +537,13 @@
           </svg>
           Imprimir Factura
       </button>
-      <button onclick="window.location.href='catalog.html'" class="action-btn" style="font-size: 14px;">
+      <!-- Modificar el botón "Ver Catálogo" para que guarde los productos actuales -->
+      <button onclick="saveCurrentProducts(); window.location.href='catalog.html'" class="action-btn" style="font-size: 14px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
               <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
-          </svg>
-          Ver Catálogo
-      </button>
+    </svg>
+    Ver Catálogo
+</button>
       <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
   </div>
 
@@ -535,7 +557,7 @@
           <p style="font-size: 15px;">Materiales de construcción, pinturas y más.</p>
           <p style="font-size: 15px;">R.U.C. 155749223-2-2024    D.V. 70</p>
           <p style="font-size: 15px;">Almirante, Bocas del Toro, Vía Chiriquí Grande, a lado del Restaurante Fortuna.</p>
-          <p style="font-size: 15px;">Correo: vsurtimaxbocas1@gmail.com</p>
+          <p style="font-size: 15px;">Correo: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d2a4a1a7a0a6bbbfb3aab0bdb1b3a1e392b5bfb3bbbefcb1bdbf">[email&#160;protected]</a></p>
           <p style="font-size: 15px;">Tel. 6874-8881 / 6804-3388</p>
           <div class="invoice-number" id="order-number-display">
               Orden #<span id="order-number-text"></span>
@@ -641,11 +663,14 @@
               Gracias por su compra. Para cualquier consulta, contáctenos al 6874-8881 o 6804-3388.
           </p>
       </div>
-      
-      
   </div>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <!-- Notificación de producto agregado desde el catálogo -->
+  <div id="notification" class="notification">
+      Producto agregado a la factura
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
   <script src="xlsx.full.min.js"></script>
   <script src="invoice.js"></script>
   <script>
@@ -667,6 +692,16 @@
           
           // Añadir evento para detectar cambios en el campo de correo
           document.getElementById('client-email').addEventListener('input', updateEmailVisibility);
+          
+          // Verificar si hay un producto seleccionado desde el catálogo
+          if (localStorage.getItem('selectedProduct')) {
+              // Esperar un momento para asegurar que todos los scripts se han cargado
+              setTimeout(function() {
+                  if (typeof checkForSelectedProduct === 'function') {
+                      checkForSelectedProduct();
+                  }
+              }, 500);
+          }
       });
       
       // Función para actualizar la visibilidad de descuento y abono
@@ -711,37 +746,6 @@
           window.print();
       }
       
-      // Modificar las funciones existentes para actualizar la visibilidad
-      // Asumiendo que hay funciones como addAdjustment, editAdjustment, deleteAdjustment
-      // que modifican los valores de descuento y abono
-      
-      // Ejemplo: Sobrescribir la función addAdjustment si existe
-      const originalAddAdjustment = window.addAdjustment;
-      if (typeof originalAddAdjustment === 'function') {
-          window.addAdjustment = function() {
-              originalAddAdjustment.apply(this, arguments);
-              updateAdjustmentVisibility();
-          };
-      }
-      
-      // Ejemplo: Sobrescribir la función editAdjustment si existe
-      const originalEditAdjustment = window.editAdjustment;
-      if (typeof originalEditAdjustment === 'function') {
-          window.editAdjustment = function() {
-              originalEditAdjustment.apply(this, arguments);
-              updateAdjustmentVisibility();
-          };
-      }
-      
-      // Ejemplo: Sobrescribir la función deleteAdjustment si existe
-      const originalDeleteAdjustment = window.deleteAdjustment;
-      if (typeof originalDeleteAdjustment === 'function') {
-          window.deleteAdjustment = function() {
-              originalDeleteAdjustment.apply(this, arguments);
-              updateAdjustmentVisibility();
-          };
-      }
-      
       // Observar cambios en los elementos de descuento y abono
       const discountObserver = new MutationObserver(updateAdjustmentVisibility);
       discountObserver.observe(document.getElementById('discount'), { childList: true, characterData: true, subtree: true });
@@ -755,3 +759,4 @@
   </script>
 </body>
 </html>
+

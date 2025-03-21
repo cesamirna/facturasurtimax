@@ -1,4 +1,107 @@
 /* global XLSX */
+// Modificar la función checkForSelectedProduct para que no borre los datos del cliente
+function checkForSelectedProduct() {
+  const selectedProductJson = localStorage.getItem("selectedProduct")
+  // Only process selected product if we have one and we're not in a "just saved" state
+  if (selectedProductJson) {
+    try {
+      const selectedProduct = JSON.parse(selectedProductJson)
+
+      // Agregar el producto a la factura sin borrar los datos del cliente
+      document.getElementById("product-quantity").value = selectedProduct.quantity || 1
+      document.getElementById("product-description").value = selectedProduct.description || ""
+      document.getElementById("product-price").value = selectedProduct.price || 0
+
+      // Simular clic en el botón de agregar producto
+      const form = document.getElementById("product-form")
+      const submitEvent = new Event("submit", { cancelable: true })
+      form.dispatchEvent(submitEvent)
+
+      // Limpiar el producto seleccionado para evitar duplicados
+      localStorage.removeItem("selectedProduct")
+
+      // Restaurar los datos del cliente si existen en localStorage
+      restoreClientData()
+    } catch (e) {
+      console.error("Error al procesar el producto seleccionado:", e)
+    }
+  }
+}
+
+// Nueva función para guardar los datos del cliente
+function saveClientData() {
+  const clientData = {
+    clientName: document.getElementById("client-name").value,
+    clientAddress: document.getElementById("client-address").value,
+    clientPhone: document.getElementById("client-phone").value,
+    clientEmail: document.getElementById("client-email").value,
+    sellerName: document.getElementById("seller-name").value,
+    orderNumber: document.getElementById("order-number").value,
+    contado: document.getElementById("contado").checked,
+    credito: document.getElementById("credito").checked,
+    deposit: document.getElementById("deposit").textContent,
+    discount: document.getElementById("discount").textContent,
+  }
+  localStorage.setItem("currentClientData", JSON.stringify(clientData))
+}
+
+// Nueva función para restaurar los datos del cliente
+function restoreClientData() {
+  const savedClientDataJson = localStorage.getItem("currentClientData")
+  if (savedClientDataJson) {
+    try {
+      const clientData = JSON.parse(savedClientDataJson)
+
+      // Restaurar solo si los campos están vacíos o si hay datos guardados
+      if (clientData.clientName) document.getElementById("client-name").value = clientData.clientName
+      if (clientData.clientAddress) document.getElementById("client-address").value = clientData.clientAddress
+      if (clientData.clientPhone) document.getElementById("client-phone").value = clientData.clientPhone
+      if (clientData.clientEmail) document.getElementById("client-email").value = clientData.clientEmail
+      if (clientData.sellerName) document.getElementById("seller-name").value = clientData.sellerName
+      if (clientData.orderNumber) {
+        document.getElementById("order-number").value = clientData.orderNumber
+        document.getElementById("order-number-text").textContent = clientData.orderNumber
+      }
+
+      // Restaurar checkboxes
+      document.getElementById("contado").checked = clientData.contado
+      document.getElementById("credito").checked = clientData.credito
+
+      // Restaurar descuento y abono si existen
+      if (clientData.deposit) document.getElementById("deposit").textContent = clientData.deposit
+      if (clientData.discount) document.getElementById("discount").textContent = clientData.discount
+
+      // Actualizar la visualización de los checkboxes
+      updatePaymentMethodVisibility()
+    } catch (e) {
+      console.error("Error al restaurar datos del cliente:", e)
+    }
+  }
+}
+
+// Modificar la función saveCurrentProducts para también guardar los datos del cliente
+function saveCurrentProducts() {
+  localStorage.setItem("currentInvoiceProducts", JSON.stringify(products))
+  saveClientData() // Guardar también los datos del cliente
+}
+
+// Agregar una nueva función para guardar los productos actuales en localStorage
+
+// Agregar una nueva función para cargar los productos guardados
+
+function loadSavedProducts() {
+  const savedProductsJson = localStorage.getItem("currentInvoiceProducts")
+  if (savedProductsJson) {
+    try {
+      products = JSON.parse(savedProductsJson)
+      updateInvoiceTable()
+      updateTotals()
+    } catch (e) {
+      console.error("Error al cargar productos guardados:", e)
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("excel-file").addEventListener("change", handleFile, false)
   document.getElementById("product-form").addEventListener("submit", addProduct)
@@ -8,11 +111,47 @@ document.addEventListener("DOMContentLoaded", () => {
   // Agregar evento para el botón de ajuste (abono o descuento)
   document.getElementById("add-adjustment-btn").addEventListener("click", addAdjustment)
 
+  // Restaurar datos del cliente primero
+  restoreClientData()
+
+  // Cargar productos guardados
+  loadSavedProducts()
+
+  // Verificar si hay un producto seleccionado desde el catálogo
+  checkForSelectedProduct()
+
+  // Agregar evento para guardar productos al hacer clic en "Ver Catálogo"
+  const catalogButton = document.querySelector("button[onclick*='catalog.html']")
+  if (catalogButton) {
+    catalogButton.addEventListener("click", (e) => {
+      // Guardar los productos actuales y datos del cliente antes de ir al catálogo
+      saveCurrentProducts()
+      saveClientData()
+    })
+  }
+
   // Cargar automáticamente el archivo Excel
   setTimeout(() => {
-    document.getElementById("excel-file").click()
+    // Verificar si hay productos en localStorage
+    if (localStorage.getItem("productList")) {
+      try {
+        const storedProducts = JSON.parse(localStorage.getItem("productList"))
+        if (Array.isArray(storedProducts) && storedProducts.length > 0) {
+          loadProductList(storedProducts)
+        } else {
+          document.getElementById("excel-file").click()
+        }
+      } catch (e) {
+        console.error("Error al cargar productos desde localStorage:", e)
+        document.getElementById("excel-file").click()
+      }
+    } else {
+      document.getElementById("excel-file").click()
+    }
   }, 500)
 })
+
+// Nueva función para verificar si hay un producto seleccionado desde el catálogo
 
 // Función para asegurar que los checkboxes de condiciones de pago se visualicen correctamente
 function updatePaymentMethodVisibility() {
@@ -208,6 +347,9 @@ function handleFile(e) {
 
     populateInvoice(json[0]) // Asumiendo que la primera fila contiene los datos de la factura
     loadProductList(productsWithCategories) // Cargar productos con categorías
+
+    // Guardar en localStorage para compartir con la página de catálogo
+    localStorage.setItem("productList", JSON.stringify(productsWithCategories))
   }
   reader.readAsArrayBuffer(file)
 }
@@ -257,7 +399,12 @@ function loadProductList(productData) {
   // Insertar el selector de categorías antes del selector de productos
   const productForm = document.getElementById("product-form")
   const productSelect = document.getElementById("product-select")
-  productForm.insertBefore(categorySelect, productSelect)
+
+  // Verificar si ya existe un selector de categorías
+  const existingCategorySelect = document.getElementById("category-select")
+  if (!existingCategorySelect) {
+    productForm.insertBefore(categorySelect, productSelect)
+  }
 
   // Agregar evento para filtrar productos por categoría
   categorySelect.addEventListener("change", filterProductsByCategory)
@@ -281,6 +428,8 @@ function updateProductSelect(filteredProducts) {
     option.value = index
     option.textContent = product.Description
     option.dataset.originalIndex = productList.indexOf(product) // Guardar el índice original
+    option.dataset.price = product.Price || 0 // Guardar el precio para mostrar
+    option.dataset.code = product.Code || "" // Guardar el código
     select.appendChild(option)
   })
 }
@@ -302,7 +451,7 @@ function filterProductsByCategory() {
   updateProductSelect(filteredProducts)
 }
 
-// Modificar la función updateProductDetails para usar el índice original
+// Modificar la función updateProductDetails para usar el índice original y mostrar el precio
 function updateProductDetails() {
   const select = document.getElementById("product-select")
   const selectedOption = select.options[select.selectedIndex]
@@ -328,6 +477,7 @@ function updateTotal() {
   updateTotals()
 }
 
+// Modify the saveInvoice function to clear products after saving
 function saveInvoice() {
   const invoiceData = {
     date: document.getElementById("invoice-date").value,
@@ -346,41 +496,47 @@ function saveInvoice() {
 
   const invoiceJson = JSON.stringify(invoiceData)
   localStorage.setItem("savedInvoice", invoiceJson)
+
+  // Clear all products after saving
+  products = []
+  updateInvoiceTable()
+  updateTotals()
+
+  // Clear all client data
+  clearClientData()
+
+  // Remove any selected product from localStorage to prevent it from being added on page reload
+  localStorage.removeItem("selectedProduct")
+
+  // Also clear currentInvoiceProducts to prevent them from being loaded again
+  localStorage.removeItem("currentInvoiceProducts")
+
+  // Remove client data from localStorage
+  localStorage.removeItem("currentClientData")
+
   alert("Factura guardada correctamente")
 }
 
-function loadInvoice() {
-  const savedInvoice = localStorage.getItem("savedInvoice")
-  if (savedInvoice) {
-    const invoiceData = JSON.parse(savedInvoice)
-    document.getElementById("invoice-date").value = invoiceData.date
-    document.getElementById("client-name").value = invoiceData.clientName
-    document.getElementById("client-address").value = invoiceData.clientAddress
-    document.getElementById("client-phone").value = invoiceData.clientPhone
-    document.getElementById("client-email").value = invoiceData.clientEmail
-    document.getElementById("seller-name").value = invoiceData.sellerName
-    document.getElementById("order-number").value = invoiceData.orderNumber
-    document.getElementById("contado").checked = invoiceData.contado
-    document.getElementById("credito").checked = invoiceData.credito
-    document.getElementById("deposit").textContent = invoiceData.deposit
-    document.getElementById("discount").textContent = invoiceData.discount || "0.00"
-
-    products = invoiceData.products.map((product) => ({
-      ...product,
-      total: (Number(product.quantity) * Number(product.price)).toFixed(2),
-    }))
-
-    updateInvoiceTable()
-    updateTotals()
-    alert("Factura cargada correctamente")
-  } else {
-    alert("No hay factura guardada")
-  }
-}
-
+// Also ensure saveInvoiceToExcel properly clears all localStorage related to products
+// Modify the saveInvoiceToExcel function to not clear customer data
 function saveInvoiceToExcel() {
   const orderNumber = document.getElementById("order-number").value || "SinNumero"
   const clientName = document.getElementById("client-name").value || "Cliente"
+
+  // Save current customer data before clearing products
+  const customerData = {
+    date: document.getElementById("invoice-date").value,
+    clientName: document.getElementById("client-name").value,
+    clientAddress: document.getElementById("client-address").value,
+    clientPhone: document.getElementById("client-phone").value,
+    clientEmail: document.getElementById("client-email").value,
+    sellerName: document.getElementById("seller-name").value,
+    orderNumber: document.getElementById("order-number").value,
+    contado: document.getElementById("contado").checked,
+    credito: document.getElementById("credito").checked,
+    deposit: document.getElementById("deposit").textContent,
+    discount: document.getElementById("discount").textContent,
+  }
 
   const invoiceData = [
     ["Fecha", document.getElementById("invoice-date").value],
@@ -417,6 +573,64 @@ function saveInvoiceToExcel() {
   const sanitizedClientName = clientName.replace(/[\\/:*?"<>|]/g, "_").substring(0, 30) // Eliminar caracteres no válidos para nombre de archivo
   const fileName = `Factura_${orderNumber}_${sanitizedClientName}.xlsx`
   XLSX.writeFile(wb, fileName)
+
+  // Clear products after saving to Excel
+  products = []
+  updateInvoiceTable()
+  updateTotals()
+
+  // Clear all client data
+  clearClientData()
+
+  // Remove any selected product from localStorage to prevent it from being added on page reload
+  localStorage.removeItem("selectedProduct")
+
+  // Also clear currentInvoiceProducts to prevent them from being loaded again
+  localStorage.removeItem("currentInvoiceProducts")
+
+  // Remove client data from localStorage
+  localStorage.removeItem("currentClientData")
+
+  // Save the empty invoice state to localStorage
+  localStorage.setItem(
+    "savedInvoice",
+    JSON.stringify({
+      products: [], // Save with empty products array
+      // No client data
+    }),
+  )
+
+  alert("Factura guardada correctamente")
+}
+
+// Nueva función para limpiar todos los datos del cliente
+function clearClientData() {
+  // Limpiar campos de texto
+  document.getElementById("client-name").value = ""
+  document.getElementById("client-address").value = ""
+  document.getElementById("client-phone").value = ""
+  document.getElementById("client-email").value = ""
+  document.getElementById("seller-name").value = ""
+  document.getElementById("order-number").value = ""
+  document.getElementById("order-number-text").textContent = ""
+
+  // Establecer la fecha actual
+  const currentDate = new Date().toISOString().split("T")[0]
+  document.getElementById("invoice-date").value = currentDate
+
+  // Desmarcar checkboxes
+  document.getElementById("contado").checked = false
+  document.getElementById("credito").checked = false
+
+  // Actualizar visualización de checkboxes
+  updatePaymentMethodVisibility()
+
+  // Reiniciar descuento y abono
+  document.getElementById("deposit").textContent = "0.00"
+  document.getElementById("discount").textContent = "0.00"
+
+  // Actualizar totales
+  updateTotals()
 }
 
 function loadInvoiceFromExcel(e) {
