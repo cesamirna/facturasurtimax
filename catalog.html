@@ -182,7 +182,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 130px;
+            height: 150px; /* Aumentado para acomodar el costo */
             cursor: pointer; /* Añadido para indicar que es clicable */
         }
         
@@ -206,7 +206,7 @@
         .product-code {
             font-size: 12px;
             color: #666;
-            margin-bottom: 8px;
+            margin-top: 5px;
             width: 100%;
             text-align: center;
         }
@@ -215,7 +215,17 @@
             font-size: 28px;
             font-weight: bold;
             color: var(--primary-color);
-            margin: 8px 0;
+            margin: 8px 0 2px 0; /* Reducido el margen inferior */
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* Nuevo estilo para el costo del producto */
+        .product-cost {
+            font-size: 16px;
+            font-weight: bold;
+            color: #dc3545; /* Rojo */
+            margin: 0 0 8px 0;
             width: 100%;
             text-align: center;
         }
@@ -305,6 +315,7 @@
             }
         }
         
+        /* Modificar la sección @media print para ocultar el costo al imprimir */
         @media print {
             body {
                 padding: 0;
@@ -318,6 +329,11 @@
             }
             
             .controls, .filter-container, .back-to-invoice, .notification {
+                display: none;
+            }
+            
+            /* Ocultar el costo del producto al imprimir */
+            .product-cost {
                 display: none;
             }
             
@@ -350,7 +366,7 @@
         <button onclick="printCatalog()" class="action-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
                 <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
-                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
             </svg>
             Imprimir Catálogo
         </button>
@@ -419,7 +435,7 @@
                 try {
                     productList = JSON.parse(localStorage.getItem('productList'));
                     populateCategories();
-                    displayProducts();
+                    // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
                 } catch (e) {
                     console.error("Error al cargar productos desde localStorage:", e);
                 }
@@ -450,6 +466,7 @@
                     if (!product.Category) {
                         product.Category = "Sin Categoría";
                     }
+                    // Ya no calculamos el costo automáticamente
                     return product;
                 });
 
@@ -457,7 +474,7 @@
                 localStorage.setItem('productList', JSON.stringify(productList));
                 
                 populateCategories();
-                displayProducts();
+                // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
             };
             reader.readAsArrayBuffer(file);
         }
@@ -557,14 +574,17 @@
                 
                 sortedProducts.forEach(product => {
                     const price = parseFloat(product.Price) || 0;
+                    // Usar el costo directamente del producto sin calcular
+                    const cost = parseFloat(product.Cost) || 0;
                     const productCode = product.Code || '';
                     const productDescription = product.Description || '';
                     
                     html += `
                         <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
-                            <div class="product-code">${productCode}</div>
                             <div class="product-price">$${price.toFixed(2)}</div>
+                            <div class="product-cost">$${cost.toFixed(2)}</div>
                             <div class="product-name">${productDescription}</div>
+                            <div class="product-code">${productCode}</div>
                         </div>
                     `;
                 });
@@ -635,10 +655,10 @@
             notification.textContent = `Producto "${description}" (${quantity} unidades) agregado a la factura`;
             notification.classList.add('show');
             
-            // Ocultar la notificación después de 3 segundos
+            // Ocultar la notificación después de 1 segundos
             setTimeout(() => {
                 notification.classList.remove('show');
-            }, 3000);
+            }, 1000);
         }
         
         // Si hay una función loadProductList en el contexto global (desde invoice.js),
@@ -646,7 +666,7 @@
         if (typeof window.loadProductList === 'function' && Array.isArray(window.productList) && window.productList.length > 0) {
             productList = window.productList;
             populateCategories();
-            displayProducts();
+            // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
         }
     </script>
 </body>
