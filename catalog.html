@@ -582,7 +582,7 @@
                     html += `
                         <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
                             <div class="product-price">$${price.toFixed(2)}</div>
-                            <div class="product-cost">$${cost.toFixed(2)}</div>
+                            ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ''}
                             <div class="product-name">${productDescription}</div>
                             <div class="product-code">${productCode}</div>
                         </div>
