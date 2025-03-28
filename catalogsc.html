@@ -182,7 +182,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 150px; /* Aumentado para acomodar el costo */
+            height: 150px; /* Mantenemos la altura para consistencia */
             cursor: pointer; /* Añadido para indicar que es clicable */
         }
         
@@ -215,17 +215,7 @@
             font-size: 28px;
             font-weight: bold;
             color: #dc3545;
-            margin: 8px 0 2px 0; /* Reducido el margen inferior */
-            width: 100%;
-            text-align: center;
-        }
-        
-        /* Nuevo estilo para el costo del producto */
-        .product-cost {
-            font-size: 16px;
-            font-weight: bold;
-            color: #1c8d87; /* Rojo */
-            margin: 0 0 8px 0;
+            margin: 8px 0;
             width: 100%;
             text-align: center;
         }
@@ -315,7 +305,7 @@
             }
         }
         
-        /* Modificar la sección @media print para ocultar el costo al imprimir */
+        /* Modificar la sección @media print para imprimir */
         @media print {
             body {
                 padding: 0;
@@ -329,11 +319,6 @@
             }
             
             .controls, .filter-container, .back-to-invoice, .notification {
-                display: none;
-            }
-            
-            /* Ocultar el costo del producto al imprimir */
-            .product-cost {
                 display: none;
             }
             
@@ -623,15 +608,12 @@
 
             sortedProducts.forEach((product) => {
               const price = Number.parseFloat(product.Price) || 0
-              // Usar el costo directamente del producto sin calcular
-              const cost = Number.parseFloat(product.Cost) || 0
               const productCode = product.Code || ""
               const productDescription = product.Description || ""
 
               html += `
                         <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
                             <div class="product-price">$${price.toFixed(2)}</div>
-                            ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                             <div class="product-name">${productDescription}</div>
                             <div class="product-code">${productCode}</div>
                         </div>
