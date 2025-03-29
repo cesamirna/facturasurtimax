@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Margen Utilidad - VENTAS SURTIMAX</title>
+    <link rel="icon" href="calc.png" type="image/png">
+    <style>
+        :root {
+            --primary-color: #1c8d87;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --text-color: #000000;
+            --border-color: #dee2e6;
+            --success-color: #1c8d87;
+            --danger-color: #dc3545;
+            --info-color: #1c8d87;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            padding-top: 80px; /* Added padding to account for fixed controls */
+        }
+        
+        .calculator-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: none;
+            border-radius: 10px;
+            padding: 30px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px; /* Reducido de 25px a 10px */
+            padding-bottom: 0; /* Eliminado el padding inferior */
+            border-bottom: none;
+            position: relative;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+        
+        .header p {
+            margin: 5px 0;
+            color: #000000;
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .company-name {
+            color: var(--primary-color);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 2px 2px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .action-btn:hover {
+            background-color: #004494;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Estilos específicos para la calculadora, más parecidos a la imagen */
+        .calculator-form {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 0 auto 30px auto; /* Sin margen superior */
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+            max-width: 270px;
+        }
+        
+        .input-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .input-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .reset-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            align-self: flex-start;
+        }
+
+        .reset-btn:hover {
+            background-color: #17756f;
+        }
+        
+        .calculate-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            align-self: flex-end;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #17756f;
+        }
+        
+        .results {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .results-table th {
+            background-color: #f0f0f0;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .results-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        .price-value, .profit-value, .margin-value {
+            font-size: 30px;
+            font-weight: "";
+            color: #1c8d87;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .input-field {
+                max-width: 100%;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .reset-btn, .calculate-btn {
+                align-self: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <a href="catalogsc.html" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Volver al Catálogo
+        </a>
+    </div>
+
+    <div class="calculator-container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="logo.png" width="80" height="80" alt="Logo SURTIMAX">
+            </div>
+            <p class="company-name" style="font-size: 14px;">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
+            <h1>CALCULADORA DE MARGEN</h1>
+        </div>
+        
+        <div class="calculator-form">
+            <div class="input-group">
+                <div class="input-field">
+                    <label for="cost">Costo del producto ($)</label>
+                    <input type="number" id="cost" step="0.01" min="0.01" placeholder="Costo del producto">
+                </div>
+                <div class="input-field">
+                    <label for="markup">Marcado (%)</label>
+                    <input type="number" id="markup" step="0.1" min="0" placeholder="Porcentaje">
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="reset-btn" onclick="resetForm()">Resetear</button>
+                <button class="calculate-btn" onclick="calculateMargin()">Calcular ganancia</button>
+            </div>
+        </div>
+        
+        <div id="results" class="results">
+            <h2 style="text-align: center; color: #666; font-size: 16px; margin-bottom: 15px;">RESULTADOS DE LA CALCULADORA DE MARGEN DE BENEFICIOS</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Tu precio de venta</th>
+                        <th>Tu ganancia</th>
+                        <th>Margen bruto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div id="sale-price" class="price-value">$0.00</div></td>
+                        <td><div id="profit" class="profit-value">$0.00</div></td>
+                        <td><div id="margin" class="margin-value">0.00%</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function calculateMargin() {
+            // Obtener valores de entrada
+            const cost = parseFloat(document.getElementById('cost').value);
+            const markup = parseFloat(document.getElementById('markup').value);
+            
+            // Validar entradas
+            if (isNaN(cost) || cost <= 0) {
+                alert('Por favor ingrese un costo válido mayor que cero.');
+                return;
+            }
+            
+            if (isNaN(markup) || markup < 0) {
+                alert('Por favor ingrese un porcentaje de marcado válido (mayor o igual a cero).');
+                return;
+            }
+            
+            // Calcular precio de venta
+            const salePrice = cost * (1 + markup / 100);
+            
+            // Calcular ganancia
+            const profit = salePrice - cost;
+            
+            // Calcular margen bruto (como porcentaje de precio de venta)
+            const marginPercent = (profit / salePrice) * 100;
+            
+            // Mostrar resultados
+            document.getElementById('sale-price').textContent = '$' + salePrice.toFixed(2);
+            document.getElementById('profit').textContent = '$' + profit.toFixed(2);
+            document.getElementById('margin').textContent = marginPercent.toFixed(2) + '%';
+            
+            // Mostrar sección de resultados
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function resetForm() {
+            // Limpiar campos de entrada
+            document.getElementById('cost').value = '';
+            document.getElementById('markup').value = '';
+            
+            // Ocultar resultados
+            document.getElementById('results').style.display = 'none';
+        }
+
+        // Event listener para la tecla Enter
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                calculateMargin();
+            }
+        });
+
+        // Agregar event listeners para los campos de entrada
+        document.getElementById('cost').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evitar comportamiento predeterminado
+                document.getElementById('markup').focus(); // Mover al siguiente campo
+            }
+        });
+
+        document.getElementById('markup').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Evitar comportamiento predeterminado
+                calculateMargin(); // Calcular al presionar Enter en el último campo
+            }
+        });
+    </script>
+</body>
+</html>
+
