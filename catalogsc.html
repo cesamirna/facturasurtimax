@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Precios - VENTAS SURTIMAX</title>
-    <link rel="icon" href="icon.png" type="image/png">
     <style>
         :root {
             --primary-color: #1c8d87;
@@ -183,7 +182,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 150px; /* Aumentado para acomodar el costo */
+            height: 150px; /* Mantenemos la altura para consistencia */
             cursor: pointer; /* Añadido para indicar que es clicable */
         }
         
@@ -216,14 +215,9 @@
             font-size: 28px;
             font-weight: bold;
             color: #dc3545;
-            margin: 8px 0 2px 0; /* Reducido el margen inferior */
+            margin: 8px 0;
             width: 100%;
             text-align: center;
-        }
-        
-        /* Nuevo estilo para el costo del producto */
-        .product-cost {
-            display: none; /* Ocultar el costo del producto */
         }
         
         .product-name { /* Nombre del producto */
@@ -311,7 +305,7 @@
             }
         }
         
-        /* Modificar la sección @media print para ocultar el costo al imprimir */
+        /* Modificar la sección @media print para imprimir */
         @media print {
             body {
                 padding: 0;
@@ -325,11 +319,6 @@
             }
             
             .controls, .filter-container, .back-to-invoice, .notification {
-                display: none;
-            }
-            
-            /* Ocultar el costo del producto al imprimir */
-            .product-cost {
                 display: none;
             }
             
@@ -360,12 +349,12 @@
             Cargar Lista de Productos
         </button>
         <a href="calcmargen.html" class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
-                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                <path d="M8 13.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm0 .5A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/>
-                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-            </svg>
-            Calculadora de Margen
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M8 13.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm0 .5A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/>
+              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+          </svg>
+          Calculadora de Margen
         </a>
         <button onclick="printCatalog()" class="action-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
@@ -381,12 +370,12 @@
             Volver a Facturación
         </a>
     </div>
-    <input type="file" id="excel-file" accept=".xlsx, .xls" style="display: none;">
+    <input type="file" id="excel-file" accept=".xlsx, .xls, .json" style="display: none;">
 
     <div class="catalog-container">
         <div class="header">
             <div class="logo-container">
-                <img src="logo.png" width="80" height="80" alt="Logo SURTIMAX">
+                <img src="logo.png" width="90" height="90" alt="Logo SURTIMAX">
             </div>
             <p class="company-name" style="font-size: 14px;">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
             <!--p style="font-size: 15px;">Materiales de construcción, pinturas y más.</p-->
@@ -430,244 +419,297 @@
     <script src="xlsx.full.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("excel-file").addEventListener("change", handleFile, false);
-            document.getElementById("category-filter").addEventListener("change", filterProducts);
-            document.getElementById("search-input").addEventListener("input", filterProducts);
-            
-            // Cargar productos desde localStorage si existen
-            if (localStorage.getItem('productList')) {
-                try {
-                    productList = JSON.parse(localStorage.getItem('productList'));
-                    populateCategories();
-                    // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
-                } catch (e) {
-                    console.error("Error al cargar productos desde localStorage:", e);
-                }
-            }
-        });
+          document.getElementById("excel-file").addEventListener("change", handleFile, false)
+          document.getElementById("category-filter").addEventListener("change", filterProducts)
+          document.getElementById("search-input").addEventListener("input", filterProducts)
 
-        let productList = [];
-        
-        // Modificar la función handleFile para preservar productos existentes al cargar un nuevo archivo
+          // Cargar productos desde localStorage si existen
+          if (localStorage.getItem("productList")) {
+            try {
+              productList = JSON.parse(localStorage.getItem("productList"))
+              populateCategories()
+              // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
+            } catch (e) {
+              console.error("Error al cargar productos desde localStorage:", e)
+            }
+          }
+        })
+
+        let productList = []
+
+        // Modificar la función handleFile para soportar archivos JSON
         function handleFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+          const file = e.target.files[0]
+          if (!file) return
 
-            const reader = new FileReader();
+          const reader = new FileReader()
+
+          // Determinar si es un archivo JSON o Excel basado en la extensión
+          const isJsonFile = file.name.toLowerCase().endsWith(".json")
+
+          if (isJsonFile) {
+            // Manejar archivo JSON
             reader.onload = (e) => {
-                if (typeof XLSX === "undefined") {
-                    console.error("XLSX no está definido. Asegúrese de que la biblioteca esté cargada.");
-                    return;
-                }
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: "array" });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet);
+              try {
+                const jsonData = JSON.parse(e.target.result)
 
-                // Asegurarse de que cada producto tenga una categoría
-                productList = json.slice(1).map((product) => {
+                // Verificar si el JSON tiene la estructura esperada
+                if (Array.isArray(jsonData)) {
+                  // Si es un array, asumimos que son productos directamente
+                  productList = jsonData.map((product) => {
                     if (!product.Category) {
-                        product.Category = "Sin Categoría";
+                      product.Category = "Sin Categoría"
                     }
-                    // Ya no calculamos el costo automáticamente
-                    return product;
-                });
+                    return product
+                  })
 
-                // Guardar en localStorage para compartir con la página de factura
-                localStorage.setItem('productList', JSON.stringify(productList));
-                
-                populateCategories();
-                // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        
-        function populateCategories() {
-            // Extraer categorías únicas de los productos
-            const categories = [...new Set(productList.map((product) => product.Category || "Sin Categoría"))];
-            
-            // Ordenar categorías alfabéticamente
-            categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
-            
-            // Crear el selector de categorías
-            const categorySelect = document.getElementById("category-filter");
-            categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-            
-            categories.forEach((category) => {
-                const option = document.createElement("option");
-                option.value = category;
-                option.textContent = category;
-                categorySelect.appendChild(option);
-            });
-            
-            // Actualizar el contenido del catálogo para mostrar el mensaje inicial
-            const catalogContent = document.getElementById("catalog-content");
-            if (productList.length > 0) {
-                catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>';
-            } else {
-                catalogContent.innerHTML = '<div class="no-products">Cargue la lista de productos para ver el catálogo.</div>';
-            }
-        }
-        
-        function displayProducts() {
-            const catalogContent = document.getElementById("catalog-content");
-            const categoryFilter = document.getElementById("category-filter").value;
-            const searchTerm = document.getElementById("search-input").value.toLowerCase();
-            
-            // Si no hay categoría seleccionada, mostrar un mensaje pidiendo al usuario que seleccione una categoría
-            if (!categoryFilter) {
-                catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>';
-                return;
-            }
-            
-            // Filtrar productos según los criterios
-            let filteredProducts = productList;
-            
-            // Aplicar filtro de categoría (ahora requerido)
-            filteredProducts = filteredProducts.filter(product => 
-                product.Category === categoryFilter
-            );
-            
-            // Aplicar filtro de búsqueda si está presente
-            if (searchTerm) {
-                filteredProducts = filteredProducts.filter(product => 
-                    (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
-                    (product.Code && product.Code.toString().toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            // Agrupar productos por categoría (ahora solo tendrá una categoría)
-            const productsByCategory = {};
-            
-            filteredProducts.forEach(product => {
-                const category = product.Category || "Sin Categoría";
-                if (!productsByCategory[category]) {
-                    productsByCategory[category] = [];
+                  // Guardar en localStorage para compartir con la página de factura
+                  localStorage.setItem("productList", JSON.stringify(productList))
+
+                  populateCategories()
+                } else if (jsonData.products && Array.isArray(jsonData.products)) {
+                  // Si tiene una propiedad 'products' que es un array
+                  productList = jsonData.products.map((product) => {
+                    if (!product.Category) {
+                      product.Category = "Sin Categoría"
+                    }
+                    return product
+                  })
+
+                  // Guardar en localStorage para compartir con la página de factura
+                  localStorage.setItem("productList", JSON.stringify(productList))
+
+                  populateCategories()
+                } else {
+                  alert(
+                    "El formato del archivo JSON no es compatible. Debe contener un array de productos o un objeto con una propiedad 'products' que sea un array.",
+                  )
                 }
-                productsByCategory[category].push(product);
-            });
-            
-            // Ordenar categorías alfabéticamente
-            const sortedCategories = Object.keys(productsByCategory).sort((a, b) => 
-                a.localeCompare(b, "es", { sensitivity: "base" })
-            );
-            
-            // Generar HTML para cada categoría y sus productos
-            if (sortedCategories.length === 0) {
-                catalogContent.innerHTML = '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>';
-                return;
+              } catch (error) {
+                console.error("Error al procesar el archivo JSON:", error)
+                alert("Error al procesar el archivo JSON. Verifique que el formato sea correcto.")
+              }
             }
-            
-            let html = '';
-            
-            sortedCategories.forEach(category => {
-                // Ordenar productos alfabéticamente por descripción
-                const sortedProducts = productsByCategory[category].sort((a, b) => 
-                    a.Description.localeCompare(b.Description, "es", { sensitivity: "base" })
-                );
-                
-                // Determinar si hay un solo producto en esta categoría
-                const isSingleProduct = sortedProducts.length === 1;
-                
-                html += `
+            reader.readAsText(file)
+          } else {
+            // Manejar archivo Excel (código original)
+            reader.onload = (e) => {
+              if (typeof XLSX === "undefined") {
+                console.error("XLSX no está definido. Asegúrese de que la biblioteca esté cargada.")
+                return
+              }
+              const data = new Uint8Array(e.target.result)
+              const workbook = XLSX.read(data, { type: "array" })
+              const firstSheetName = workbook.SheetNames[0]
+              const worksheet = workbook.Sheets[firstSheetName]
+              const json = XLSX.utils.sheet_to_json(worksheet)
+
+              // Asegurarse de que cada producto tenga una categoría
+              productList = json.slice(1).map((product) => {
+                if (!product.Category) {
+                  product.Category = "Sin Categoría"
+                }
+                return product
+              })
+
+              // Guardar en localStorage para compartir con la página de factura
+              localStorage.setItem("productList", JSON.stringify(productList))
+
+              populateCategories()
+            }
+            reader.readAsArrayBuffer(file)
+          }
+        }
+
+        function populateCategories() {
+          // Extraer categorías únicas de los productos
+          const categories = [...new Set(productList.map((product) => product.Category || "Sin Categoría"))]
+
+          // Ordenar categorías alfabéticamente
+          categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
+
+          // Crear el selector de categorías
+          const categorySelect = document.getElementById("category-filter")
+          categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>'
+
+          categories.forEach((category) => {
+            const option = document.createElement("option")
+            option.value = category
+            option.textContent = category
+            categorySelect.appendChild(option)
+          })
+
+          // Actualizar el contenido del catálogo para mostrar el mensaje inicial
+          const catalogContent = document.getElementById("catalog-content")
+          if (productList.length > 0) {
+            catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>'
+          } else {
+            catalogContent.innerHTML = '<div class="no-products">Cargue la lista de productos para ver el catálogo.</div>'
+          }
+        }
+
+        function displayProducts() {
+          const catalogContent = document.getElementById("catalog-content")
+          const categoryFilter = document.getElementById("category-filter").value
+          const searchTerm = document.getElementById("search-input").value.toLowerCase()
+
+          // Si no hay categoría seleccionada, mostrar un mensaje pidiendo al usuario que seleccione una categoría
+          if (!categoryFilter) {
+            catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>'
+            return
+          }
+
+          // Filtrar productos según los criterios
+          let filteredProducts = productList
+
+          // Aplicar filtro de categoría (ahora requerido)
+          filteredProducts = filteredProducts.filter((product) => product.Category === categoryFilter)
+
+          // Aplicar filtro de búsqueda si está presente
+          if (searchTerm) {
+            filteredProducts = filteredProducts.filter(
+              (product) =>
+                (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
+                (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)),
+            )
+          }
+
+          // Agrupar productos por categoría (ahora solo tendrá una categoría)
+          const productsByCategory = {}
+
+          filteredProducts.forEach((product) => {
+            const category = product.Category || "Sin Categoría"
+            if (!productsByCategory[category]) {
+              productsByCategory[category] = []
+            }
+            productsByCategory[category].push(product)
+          })
+
+          // Ordenar categorías alfabéticamente
+          const sortedCategories = Object.keys(productsByCategory).sort((a, b) =>
+            a.localeCompare(b, "es", { sensitivity: "base" }),
+          )
+
+          // Generar HTML para cada categoría y sus productos
+          if (sortedCategories.length === 0) {
+            catalogContent.innerHTML =
+              '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>'
+            return
+          }
+
+          let html = ""
+
+          sortedCategories.forEach((category) => {
+            // Ordenar productos alfabéticamente por descripción
+            const sortedProducts = productsByCategory[category].sort((a, b) =>
+              a.Description.localeCompare(b.Description, "es", { sensitivity: "base" }),
+            )
+
+            // Determinar si hay un solo producto en esta categoría
+            const isSingleProduct = sortedProducts.length === 1
+
+            html += `
                     <div class="category-section">
                         <div class="category-header">${category}</div>
-                        <div class="products-container ${isSingleProduct ? 'single-product' : ''}">
-                `;
-                
-                sortedProducts.forEach(product => {
-                    const price = parseFloat(product.Price) || 0;
-                    const productCode = product.Code || '';
-                    const productDescription = product.Description || '';
-                    
-                    html += `
+                        <div class="products-container ${isSingleProduct ? "single-product" : ""}">
+                `
+
+            sortedProducts.forEach((product) => {
+              const price = Number.parseFloat(product.Price) || 0
+              const productCode = product.Code || ""
+              const productDescription = product.Description || ""
+
+              html += `
                         <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
                             <div class="product-price">$${price.toFixed(2)}</div>
                             <div class="product-name">${productDescription}</div>
                             <div class="product-code">${productCode}</div>
                         </div>
-                    `;
-                });
-                
-                html += `
+                    `
+            })
+
+            html += `
                         </div>
                     </div>
-                `;
-            });
-            
-            catalogContent.innerHTML = html;
+                `
+          })
+
+          catalogContent.innerHTML = html
         }
-        
+
         function filterProducts() {
-            displayProducts();
+          displayProducts()
         }
-        
+
         function printCatalog() {
-            window.print();
+          window.print()
         }
-        
+
         // Modificar la función addProductToInvoice para no redirigir inmediatamente
         function addProductToInvoice(code, description, price) {
-            // Solicitar cantidad
-            let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1");
-            
-            // Validar entrada de cantidad
-            if (quantity === null) {
-                return; // Usuario canceló el prompt
+          // Solicitar cantidad
+          let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1")
+
+          // Validar entrada de cantidad
+          if (quantity === null) {
+            return // Usuario canceló el prompt
+          }
+
+          quantity = Number.parseInt(quantity)
+          if (isNaN(quantity) || quantity <= 0) {
+            alert("Por favor ingrese una cantidad válida mayor que cero.")
+            return
+          }
+
+          // Guardar el producto seleccionado en localStorage
+          const selectedProduct = {
+            code: code,
+            description: description,
+            price: price,
+            quantity: quantity, // Usar la cantidad ingresada
+          }
+
+          // Obtener array de productos seleccionados existente o crear uno nuevo
+          let selectedProducts = []
+          try {
+            const existingProducts = localStorage.getItem("selectedProducts")
+            if (existingProducts) {
+              selectedProducts = JSON.parse(existingProducts)
             }
-            
-            quantity = parseInt(quantity);
-            if (isNaN(quantity) || quantity <= 0) {
-                alert("Por favor ingrese una cantidad válida mayor que cero.");
-                return;
-            }
-            
-            // Guardar el producto seleccionado en localStorage
-            const selectedProduct = {
-                code: code,
-                description: description,
-                price: price,
-                quantity: quantity // Usar la cantidad ingresada
-            };
-            
-            // Obtener array de productos seleccionados existente o crear uno nuevo
-            let selectedProducts = [];
-            try {
-                const existingProducts = localStorage.getItem('selectedProducts');
-                if (existingProducts) {
-                    selectedProducts = JSON.parse(existingProducts);
-                }
-            } catch (e) {
-                console.error("Error al analizar productos existentes:", e);
-            }
-            
-            // Agregar el nuevo producto al array
-            selectedProducts.push(selectedProduct);
-            
-            // Guardar el array actualizado
-            localStorage.setItem('selectedProducts', JSON.stringify(selectedProducts));
-            
-            // También guardar como producto único para compatibilidad con versiones anteriores
-            localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
-            
-            // Mostrar notificación
-            const notification = document.getElementById('notification');
-            notification.textContent = `Producto "${description}" (${quantity} unidades) agregado a la factura`;
-            notification.classList.add('show');
-            
-            // Ocultar la notificación después de 1 segundos
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 1000);
+          } catch (e) {
+            console.error("Error al analizar productos existentes:", e)
+          }
+
+          // Agregar el nuevo producto al array
+          selectedProducts.push(selectedProduct)
+
+          // Guardar el array actualizado
+          localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts))
+
+          // También guardar como producto único para compatibilidad con versiones anteriores
+          localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct))
+
+          // Mostrar notificación
+          const notification = document.getElementById("notification")
+          notification.textContent = `Producto "${description}" (${quantity} unidades) agregado a la factura`
+          notification.classList.add("show")
+
+          // Ocultar la notificación después de 1 segundos
+          setTimeout(() => {
+            notification.classList.remove("show")
+          }, 1000)
         }
-        
+
         // Si hay una función loadProductList en el contexto global (desde invoice.js),
         // podemos usarla para cargar productos automáticamente
-        if (typeof window.loadProductList === 'function' && Array.isArray(window.productList) && window.productList.length > 0) {
-            productList = window.productList;
-            populateCategories();
-            // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
+        if (
+          typeof window.loadProductList === "function" &&
+          Array.isArray(window.productList) &&
+          window.productList.length > 0
+        ) {
+          productList = window.productList
+          populateCategories()
+          // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
         }
     </script>
 </body>

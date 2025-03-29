@@ -136,7 +136,7 @@ function loadSavedProducts() {
 function clearInvoiceBeforeLoad() {
   // Limpiar productos
   products = []
-  
+
   // Vaciar completamente la tabla de productos
   const tableBody = document.getElementById("invoice-items")
   tableBody.innerHTML = ""
@@ -428,38 +428,95 @@ function addDiscount() {
   }
 }
 
+// Modificar la función handleFile para soportar archivos JSON
 function handleFile(e) {
   const file = e.target.files[0]
   if (!file) return // Si no hay archivo seleccionado, salir de la función
 
   const reader = new FileReader()
-  reader.onload = (e) => {
-    /* global XLSX */
-    if (typeof XLSX === "undefined") {
-      console.error("XLSX is not defined. Make sure the library is loaded.")
-      return
-    }
-    const data = new Uint8Array(e.target.result)
-    const workbook = XLSX.read(data, { type: "array" })
-    const firstSheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[firstSheetName]
-    const json = XLSX.utils.sheet_to_json(worksheet)
 
-    // Asegurarse de que cada producto tenga una categoría
-    const productsWithCategories = json.slice(1).map((product) => {
-      if (!product.Category) {
-        product.Category = "Sin Categoría"
+  // Determinar si es un archivo JSON o Excel basado en la extensión
+  const isJsonFile = file.name.toLowerCase().endsWith(".json")
+
+  if (isJsonFile) {
+    // Manejar archivo JSON
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result)
+
+        // Verificar si el JSON tiene la estructura esperada
+        if (Array.isArray(jsonData)) {
+          // Si es un array, asumimos que son productos directamente
+          const productsWithCategories = jsonData.map((product) => {
+            if (!product.Category) {
+              product.Category = "Sin Categoría"
+            }
+            return product
+          })
+
+          loadProductList(productsWithCategories)
+
+          // Guardar en localStorage para compartir con la página de catálogo
+          localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+        } else if (jsonData.products && Array.isArray(jsonData.products.products)) {
+          // Si tiene una propiedad 'products' que es un array
+          const productsWithCategories = jsonData.products.products.map((product) => {
+            if (!product.Category) {
+              product.Category = "Sin Categoría"
+            }
+            return product
+          })
+
+          // Si hay datos de factura, cargarlos
+          if (jsonData.invoice) {
+            populateInvoice(jsonData.invoice)
+          }
+
+          loadProductList(productsWithCategories)
+
+          // Guardar en localStorage para compartir con la página de catálogo
+          localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+        } else {
+          alert(
+            "El formato del archivo JSON no es compatible. Debe contener un array de productos o un objeto con una propiedad 'products' que sea un array.",
+          )
+        }
+      } catch (error) {
+        console.error("Error al procesar el archivo JSON:", error)
+        alert("Error al procesar el archivo JSON. Verifique que el formato sea correcto.")
       }
-      return product
-    })
+    }
+    reader.readAsText(file)
+  } else {
+    // Manejar archivo Excel (código original)
+    reader.onload = (e) => {
+      /* global XLSX */
+      if (typeof XLSX === "undefined") {
+        console.error("XLSX is not defined. Make sure the library is loaded.")
+        return
+      }
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, { type: "array" })
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+      const json = XLSX.utils.sheet_to_json(worksheet)
 
-    populateInvoice(json[0]) // Asumiendo que la primera fila contiene los datos de la factura
-    loadProductList(productsWithCategories) // Cargar productos con categorías
+      // Asegurarse de que cada producto tenga una categoría
+      const productsWithCategories = json.slice(1).map((product) => {
+        if (!product.Category) {
+          product.Category = "Sin Categoría"
+        }
+        return product
+      })
 
-    // Guardar en localStorage para compartir con la página de catálogo
-    localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+      populateInvoice(json[0]) // Asumiendo que la primera fila contiene los datos de la factura
+      loadProductList(productsWithCategories) // Cargar productos con categorías
+
+      // Guardar en localStorage para compartir con la página de catálogo
+      localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+    }
+    reader.readAsArrayBuffer(file)
   }
-  reader.readAsArrayBuffer(file)
 }
 
 function populateInvoice(data) {
@@ -585,7 +642,6 @@ function updateTotal() {
   updateTotals()
 }
 
-// Modify the saveInvoice function to clear products after saving
 // Modify the saveInvoice function to only clear products after saving
 function saveInvoiceDocument() {
   const invoiceData = {
@@ -635,8 +691,6 @@ function saveInvoiceDocument() {
   }
 }
 
-// Also ensure saveInvoiceToExcel properly clears all localStorage related to products
-// Modify the saveInvoiceToExcel function to not clear customer data
 // Also modify saveInvoiceToExcel to clear localStorage only after saving
 function saveInvoiceToExcelFile() {
   const orderNumber = document.getElementById("order-number").value || "SinNumero"
@@ -736,105 +790,156 @@ function loadInvoiceFromExcel(e) {
   if (!file) return // Si no hay archivo seleccionado, salir de la función
 
   const reader = new FileReader()
-  reader.onload = (e) => {
-    const data = new Uint8Array(e.target.result)
-    const workbook = XLSX.read(data, { type: "array" })
-    const firstSheetName = workbook.SheetNames[0]
-    const worksheet = workbook.Sheets[firstSheetName]
-    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
-    // Rellenar los campos de la factura
-    document.getElementById("invoice-date").value = json[0][1] || ""
-    document.getElementById("client-name").value = json[1][1] || ""
-    document.getElementById("client-address").value = json[2][1] || ""
-    document.getElementById("client-phone").value = json[3][1] || ""
-    document.getElementById("client-email").value = json[4][1] || ""
-    document.getElementById("seller-name").value = json[5][1] || ""
-    document.getElementById("order-number").value = json[6][1] || ""
-    document.getElementById("order-number-text").textContent = json[6][1] || ""
-    document.getElementById("contado").checked = json[7][1] === "true"
-    document.getElementById("credito").checked = json[8][1] === "true"
+  // Determinar si es un archivo JSON o Excel basado en la extensión
+  const isJsonFile = file.name.toLowerCase().endsWith(".json")
 
-    // Asegurar que las opciones de pago se visualicen correctamente
-    const contadoValue = String(json[7][1]).toLowerCase()
-    const creditoValue = String(json[8][1]).toLowerCase()
+  if (isJsonFile) {
+    // Manejar archivo JSON
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result)
 
-    // Establecer los valores de los checkboxes
-    const contadoCheckbox = document.getElementById("contado")
-    const creditoCheckbox = document.getElementById("credito")
+        // Verificar si el JSON tiene la estructura esperada para una factura
+        if (jsonData.date || jsonData.clientName) {
+          // Rellenar los campos de la factura
+          document.getElementById("invoice-date").value = jsonData.date || ""
+          document.getElementById("client-name").value = jsonData.clientName || ""
+          document.getElementById("client-address").value = jsonData.clientAddress || ""
+          document.getElementById("client-phone").value = jsonData.clientPhone || ""
+          document.getElementById("client-email").value = jsonData.clientEmail || ""
+          document.getElementById("seller-name").value = jsonData.sellerName || ""
+          document.getElementById("order-number").value = jsonData.orderNumber || ""
+          document.getElementById("order-number-text").textContent = jsonData.orderNumber || ""
 
-    // Convertir cualquier valor a booleano de manera más robusta
-    contadoCheckbox.checked =
-      contadoValue === "true" || contadoValue === "1" || contadoValue === "yes" || contadoValue === "sí"
-    creditoCheckbox.checked =
-      creditoValue === "true" || creditoValue === "1" || creditoValue === "yes" || creditoValue === "sí"
+          // Establecer los valores de los checkboxes
+          document.getElementById("contado").checked = jsonData.contado || false
+          document.getElementById("credito").checked = jsonData.credito || false
 
-    // Forzar actualización visual de los checkboxes
-    setTimeout(() => {
-      // Aplicar estilos directamente si es necesario
-      if (contadoCheckbox.checked) {
-        contadoCheckbox.setAttribute("checked", "checked")
-      } else {
-        contadoCheckbox.removeAttribute("checked")
+          // Actualizar visualización de checkboxes
+          updatePaymentMethodVisibility()
+
+          // Establecer valores de depósito y descuento
+          document.getElementById("deposit").textContent = jsonData.deposit || "0.00"
+          document.getElementById("discount").textContent = jsonData.discount || "0.00"
+
+          // Cargar productos si existen
+          if (jsonData.products && Array.isArray(jsonData.products)) {
+            products = jsonData.products
+            updateInvoiceTable()
+            updateTotals()
+          }
+
+          alert("Factura cargada correctamente desde JSON")
+        } else {
+          alert("El formato del archivo JSON no es compatible con una factura.")
+        }
+      } catch (error) {
+        console.error("Error al procesar el archivo JSON:", error)
+        alert("Error al procesar el archivo JSON. Verifique que el formato sea correcto.")
       }
+    }
+    reader.readAsText(file)
+  } else {
+    // Manejar archivo Excel (código original)
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result)
+      const workbook = XLSX.read(data, { type: "array" })
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
-      if (creditoCheckbox.checked) {
-        creditoCheckbox.setAttribute("checked", "checked")
-      } else {
-        creditoCheckbox.removeAttribute("checked")
-      }
+      // Rellenar los campos de la factura
+      document.getElementById("invoice-date").value = json[0][1] || ""
+      document.getElementById("client-name").value = json[1][1] || ""
+      document.getElementById("client-address").value = json[2][1] || ""
+      document.getElementById("client-phone").value = json[3][1] || ""
+      document.getElementById("client-email").value = json[4][1] || ""
+      document.getElementById("seller-name").value = json[5][1] || ""
+      document.getElementById("order-number").value = json[6][1] || ""
+      document.getElementById("order-number-text").textContent = json[6][1] || ""
+      document.getElementById("contado").checked = json[7][1] === "true"
+      document.getElementById("credito").checked = json[8][1] === "true"
 
-      // Disparar eventos para asegurar que cualquier listener de eventos reaccione
-      contadoCheckbox.dispatchEvent(new Event("change", { bubbles: true }))
-      creditoCheckbox.dispatchEvent(new Event("change", { bubbles: true }))
-    }, 100)
+      // Asegurar que las opciones de pago se visualicen correctamente
+      const contadoValue = String(json[7][1]).toLowerCase()
+      const creditoValue = String(json[8][1]).toLowerCase()
 
-    // Asegurar que los valores de depósito y descuento sean números válidos
-    document.getElementById("deposit").textContent = Number.parseFloat(json[9][1] || 0).toFixed(2)
-    document.getElementById("discount").textContent = Number.parseFloat(json[10][1] || 0).toFixed(2)
+      // Establecer los valores de los checkboxes
+      const contadoCheckbox = document.getElementById("contado")
+      const creditoCheckbox = document.getElementById("credito")
 
-    // Cargar productos solo si hay datos válidos en el archivo
-    if (json.length > 13) {
-      // Empezar desde la fila 13 (índice 12) para evitar la fila de encabezados
-      for (let i = 13; i < json.length; i++) {
-        // Verificar que la fila tenga suficientes datos y no sea la fila de encabezados
-        if (json[i] && json[i].length >= 4) {
-          // Verificar que la cantidad y el precio sean números válidos mayores que 0
-          const quantity = Number.parseFloat(json[i][0])
-          const description = String(json[i][1] || "").trim()
-          const price = Number.parseFloat(json[i][2])
+      // Convertir cualquier valor a booleano de manera más robusta
+      contadoCheckbox.checked =
+        contadoValue === "true" || contadoValue === "1" || contadoValue === "yes" || contadoValue === "sí"
+      creditoCheckbox.checked =
+        creditoValue === "true" || creditoValue === "1" || creditoValue === "yes" || creditoValue === "sí"
 
-          // Solo agregar si todos los valores son válidos
-          if (
-            !isNaN(quantity) &&
-            quantity > 0 &&
-            description &&
-            description !== "" &&
-            description.toLowerCase() !== "descripción" &&
-            !isNaN(price) &&
-            price > 0
-          ) {
-            const total = (quantity * price).toFixed(2)
+      // Forzar actualización visual de los checkboxes
+      setTimeout(() => {
+        // Aplicar estilos directamente si es necesario
+        if (contadoCheckbox.checked) {
+          contadoCheckbox.setAttribute("checked", "checked")
+        } else {
+          contadoCheckbox.removeAttribute("checked")
+        }
 
-            products.push({
-              quantity: quantity,
-              description: description,
-              price: price,
-              total: total,
-            })
+        if (creditoCheckbox.checked) {
+          creditoCheckbox.setAttribute("checked", "checked")
+        } else {
+          creditoCheckbox.removeAttribute("checked")
+        }
+
+        // Disparar eventos para asegurar que cualquier listener de eventos reaccione
+        contadoCheckbox.dispatchEvent(new Event("change", { bubbles: true }))
+        creditoCheckbox.dispatchEvent(new Event("change", { bubbles: true }))
+      }, 100)
+
+      // Asegurar que los valores de depósito y descuento sean números válidos
+      document.getElementById("deposit").textContent = Number.parseFloat(json[9][1] || 0).toFixed(2)
+      document.getElementById("discount").textContent = Number.parseFloat(json[10][1] || 0).toFixed(2)
+
+      // Cargar productos solo si hay datos válidos en el archivo
+      if (json.length > 13) {
+        // Empezar desde la fila 13 (índice 12) para evitar la fila de encabezados
+        for (let i = 13; i < json.length; i++) {
+          // Verificar que la fila tenga suficientes datos y no sea la fila de encabezados
+          if (json[i] && json[i].length >= 4) {
+            // Verificar que la cantidad y el precio sean números válidos mayores que 0
+            const quantity = Number.parseFloat(json[i][0])
+            const description = String(json[i][1] || "").trim()
+            const price = Number.parseFloat(json[i][2])
+
+            // Solo agregar si todos los valores son válidos
+            if (
+              !isNaN(quantity) &&
+              quantity > 0 &&
+              description &&
+              description !== "" &&
+              description.toLowerCase() !== "descripción" &&
+              !isNaN(price) &&
+              price > 0
+            ) {
+              const total = (quantity * price).toFixed(2)
+
+              products.push({
+                quantity: quantity,
+                description: description,
+                price: price,
+                total: total,
+              })
+            }
           }
         }
       }
+
+      updateInvoiceTable()
+      updateTotals()
+      alert("Factura cargada correctamente desde Excel")
     }
-
-    updateInvoiceTable()
-    updateTotals()
-    alert("Factura cargada correctamente desde Excel")
+    reader.readAsArrayBuffer(file)
   }
-  reader.readAsArrayBuffer(file)
 }
-
-// Agregar estas nuevas funciones al final del archivo
 
 // Modificar la función editAdjustment para guardar los datos después de editar un ajuste
 function editAdjustment(type) {
@@ -862,12 +967,6 @@ function deleteAdjustment(type) {
   }
 }
 
-// Modificar la función saveInvoice para borrar los productos de localStorage después de guardar
-// Modificar la función saveInvoice para borrar los productos de localStorage después de guardar
-
-// Modificar la función saveInvoiceToExcel para borrar los productos de localStorage después de guardar
-// Modificar la función saveInvoiceToExcel para borrar los productos de localStorage después de guardar
-
 function updateInvoiceTable() {
   const tableBody = document.getElementById("invoice-items")
   tableBody.innerHTML = ""
@@ -893,3 +992,4 @@ function saveInvoiceToExcel() {
   // Call the existing implementation
   saveInvoiceToExcelFile()
 }
+
