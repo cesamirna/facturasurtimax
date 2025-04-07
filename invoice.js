@@ -13,6 +13,7 @@ function checkForSelectedProduct() {
         document.getElementById("product-quantity").value = selectedProduct.quantity || 1
         document.getElementById("product-description").value = selectedProduct.description || ""
         document.getElementById("product-price").value = selectedProduct.price || 0
+        document.getElementById("product-code").value = selectedProduct.code || ""
 
         // Simulate click on the add product button
         const form = document.getElementById("product-form")
@@ -40,6 +41,7 @@ function checkForSelectedProduct() {
       document.getElementById("product-quantity").value = selectedProduct.quantity || 1
       document.getElementById("product-description").value = selectedProduct.description || ""
       document.getElementById("product-price").value = selectedProduct.price || 0
+      document.getElementById("product-code").value = selectedProduct.code || ""
 
       // Simulate click on the add product button
       const form = document.getElementById("product-form")
@@ -302,7 +304,17 @@ function addProduct(e) {
   const price = document.getElementById("product-price").value
   const total = (quantity * price).toFixed(2)
 
-  products.push({ quantity, description, price, total })
+  // Get the code from the input field first, if it's empty, get it from the selected product
+  let code = document.getElementById("product-code").value
+
+  // If code input is empty, try to get it from the selected product
+  if (!code) {
+    const select = document.getElementById("product-select")
+    const selectedOption = select.options[select.selectedIndex]
+    code = selectedOption && selectedOption.dataset ? selectedOption.dataset.code || "" : ""
+  }
+
+  products.push({ quantity, description, price, total, code })
   updateInvoiceTable()
   updateTotals()
 
@@ -329,6 +341,7 @@ function editProduct(index) {
   document.getElementById("product-quantity").value = product.quantity
   document.getElementById("product-description").value = product.description
   document.getElementById("product-price").value = product.price
+  document.getElementById("product-code").value = product.code || ""
 
   // Encontrar y seleccionar el producto en el desplegable
   const select = document.getElementById("product-select")
@@ -628,9 +641,11 @@ function updateProductDetails() {
 
     document.getElementById("product-description").value = selectedProduct.Description
     document.getElementById("product-price").value = selectedProduct.Price
+    document.getElementById("product-code").value = selectedProduct.Code || ""
   } else {
     document.getElementById("product-description").value = ""
     document.getElementById("product-price").value = ""
+    document.getElementById("product-code").value = ""
   }
 }
 
@@ -974,15 +989,16 @@ function updateInvoiceTable() {
   products.forEach((product, index) => {
     const row = document.createElement("tr")
     row.innerHTML = `
-          <td>${product.quantity}</td>
-          <td>${product.description}</td>
-          <td>$${Number.parseFloat(product.price).toFixed(2)}</td>
-          <td>$${product.total}</td>
-          <td class="no-print">
-              <button class="action-btn" onclick="editProduct(${index})">Editar</button>
-              <button class="action-btn delete-btn" onclick="deleteProduct(${index})">Eliminar</button>
-          </td>
-      `
+        <td>${product.quantity}</td>
+        <td>${product.code || ""}</td>
+        <td>${product.description}</td>
+        <td>$${Number.parseFloat(product.price).toFixed(2)}</td>
+        <td>$${product.total}</td>
+        <td class="no-print">
+            <button class="action-btn" onclick="editProduct(${index})">Editar</button>
+            <button class="action-btn delete-btn" onclick="deleteProduct(${index})">Eliminar</button>
+        </td>
+    `
     tableBody.appendChild(row)
   })
 }
