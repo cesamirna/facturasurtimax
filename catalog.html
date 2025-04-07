@@ -672,7 +672,7 @@
             const productsBySubcategory = {}
 
             filteredProducts.forEach((product) => {
-              const subcategory = product.Subcategory || "Todos"
+              const subcategory = product.Subcategory || "TODOS"
               if (!productsBySubcategory[subcategory]) {
                 productsBySubcategory[subcategory] = []
               }
