@@ -161,6 +161,16 @@
             font-weight: 600;
         }
         
+        /* Estilo para subcategorías */
+        .subcategory-header {
+            background-color: #e0f2f1;
+            color: var(--primary-color);
+            padding: 8px 15px;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 1px solid #99e2dc;
+        }
+        
         /* Modificar el contenedor de productos para mostrar exactamente 3 por fila */
         .products-container {
             display: grid;
@@ -183,7 +193,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 150px; /* Mantenemos la altura para consistencia */
+            height: 150px; /* Aumentado para acomodar el costo */
             cursor: pointer; /* Añadido para indicar que es clicable */
         }
         
@@ -216,10 +226,20 @@
             font-size: 28px;
             font-weight: bold;
             color: #dc3545;
-            margin: 8px 0;
+            margin: 8px 0 2px 0; /* Reducido el margen inferior */
             width: 100%;
             text-align: center;
         }
+        
+        /* Nuevo estilo para el costo del producto */
+        /*.product-cost {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1c8d87; /* Rojo * /
+            margin: 0 0 8px 0;
+            width: 100%;
+            text-align: center;
+        }*/
         
         .product-name { /* Nombre del producto */
             font-size: 14px;
@@ -306,7 +326,7 @@
             }
         }
         
-        /* Modificar la sección @media print para imprimir */
+        /* Modificar la sección @media print para ocultar el costo al imprimir */
         @media print {
             body {
                 padding: 0;
@@ -323,6 +343,11 @@
                 display: none;
             }
             
+            /* Ocultar el costo del producto al imprimir */
+            .product-cost {
+                display: none;
+            }
+            
             .category-section {
                 break-inside: avoid;
                 box-shadow: none;
@@ -332,6 +357,12 @@
                 background-color: #f2f2f2;
                 color: black;
                 border: 1px solid #ddd;
+            }
+            
+            .subcategory-header {
+                background-color: #f8f8f8;
+                color: #333;
+                border: 1px solid #eee;
             }
             
             .products-container {
@@ -359,7 +390,7 @@
         </a>
         <button onclick="printCatalog()" class="action-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
-                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 1 0 0 0-1-1z"/>
                 <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
             </svg>
             Imprimir Catálogo
@@ -388,6 +419,11 @@
             <select id="category-filter">
                 <option value="">Todas las categorías</option>
                 <!-- Categories will be populated dynamically -->
+            </select>
+            
+            <select id="subcategory-filter">
+                <option value="">Todas las subcategorías</option>
+                <!-- Subcategories will be populated dynamically -->
             </select>
             
             <div class="search-container">
@@ -421,7 +457,8 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("excel-file").addEventListener("change", handleFile, false)
-          document.getElementById("category-filter").addEventListener("change", filterProducts)
+          document.getElementById("category-filter").addEventListener("change", handleCategoryChange)
+          document.getElementById("subcategory-filter").addEventListener("change", filterProducts)
           document.getElementById("search-input").addEventListener("input", filterProducts)
 
           // Cargar productos desde localStorage si existen
@@ -461,6 +498,10 @@
                     if (!product.Category) {
                       product.Category = "Sin Categoría"
                     }
+                    // Asegurarse de que cada producto tenga una subcategoría
+                    if (!product.Subcategory) {
+                      product.Subcategory = "TODOS"
+                    }
                     return product
                   })
 
@@ -473,6 +514,10 @@
                   productList = jsonData.products.map((product) => {
                     if (!product.Category) {
                       product.Category = "Sin Categoría"
+                    }
+                    // Asegurarse de que cada producto tenga una subcategoría
+                    if (!product.Subcategory) {
+                      product.Subcategory = "TODOS"
                     }
                     return product
                   })
@@ -505,10 +550,14 @@
               const worksheet = workbook.Sheets[firstSheetName]
               const json = XLSX.utils.sheet_to_json(worksheet)
 
-              // Asegurarse de que cada producto tenga una categoría
+              // Asegurarse de que cada producto tenga una categoría y subcategoría
               productList = json.slice(1).map((product) => {
                 if (!product.Category) {
                   product.Category = "Sin Categoría"
+                }
+                // Asegurarse de que cada producto tenga una subcategoría
+                if (!product.Subcategory) {
+                  product.Subcategory = "TODOS"
                 }
                 return product
               })
@@ -531,7 +580,7 @@
 
           // Crear el selector de categorías
           const categorySelect = document.getElementById("category-filter")
-          categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>'
+          categorySelect.innerHTML = '<option value="">Todas las categorías</option>'
 
           categories.forEach((category) => {
             const option = document.createElement("option")
@@ -549,9 +598,46 @@
           }
         }
 
+        function handleCategoryChange() {
+          const categoryFilter = document.getElementById("category-filter").value
+          populateSubcategories(categoryFilter)
+          filterProducts()
+        }
+
+        function populateSubcategories(selectedCategory) {
+          const subcategorySelect = document.getElementById("subcategory-filter")
+          subcategorySelect.innerHTML = '<option value="">Todas las subcategorías</option>'
+          
+          // Si no hay categoría seleccionada, deshabilitar el selector de subcategorías
+          if (!selectedCategory) {
+            subcategorySelect.disabled = true
+            return
+          }
+          
+          subcategorySelect.disabled = false
+          
+          // Filtrar productos por la categoría seleccionada
+          const filteredProducts = productList.filter(product => product.Category === selectedCategory)
+          
+          // Extraer subcategorías únicas de los productos filtrados
+          const subcategories = [...new Set(filteredProducts.map(product => product.Subcategory || "TODOS"))]
+          
+          // Ordenar subcategorías alfabéticamente
+          subcategories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
+          
+          // Añadir opciones de subcategorías al selector
+          subcategories.forEach(subcategory => {
+            const option = document.createElement("option")
+            option.value = subcategory
+            option.textContent = subcategory
+            subcategorySelect.appendChild(option)
+          })
+        }
+
         function displayProducts() {
           const catalogContent = document.getElementById("catalog-content")
           const categoryFilter = document.getElementById("category-filter").value
+          const subcategoryFilter = document.getElementById("subcategory-filter").value
           const searchTerm = document.getElementById("search-input").value.toLowerCase()
 
           // Si no hay categoría seleccionada, mostrar un mensaje pidiendo al usuario que seleccione una categoría
@@ -563,8 +649,13 @@
           // Filtrar productos según los criterios
           let filteredProducts = productList
 
-          // Aplicar filtro de categoría (ahora requerido)
+          // Aplicar filtro de categoría
           filteredProducts = filteredProducts.filter((product) => product.Category === categoryFilter)
+
+          // Aplicar filtro de subcategoría si está seleccionada
+          if (subcategoryFilter) {
+            filteredProducts = filteredProducts.filter((product) => product.Subcategory === subcategoryFilter)
+          }
 
           // Aplicar filtro de búsqueda si está presente
           if (searchTerm) {
@@ -575,67 +666,122 @@
             )
           }
 
-          // Agrupar productos por categoría (ahora solo tendrá una categoría)
-          const productsByCategory = {}
+          // Si no hay subcategoría seleccionada, agrupar por subcategoría
+          if (!subcategoryFilter) {
+            // Agrupar productos por subcategoría
+            const productsBySubcategory = {}
 
-          filteredProducts.forEach((product) => {
-            const category = product.Category || "Sin Categoría"
-            if (!productsByCategory[category]) {
-              productsByCategory[category] = []
+            filteredProducts.forEach((product) => {
+              const subcategory = product.Subcategory || "Todos"
+              if (!productsBySubcategory[subcategory]) {
+                productsBySubcategory[subcategory] = []
+              }
+              productsBySubcategory[subcategory].push(product)
+            })
+
+            // Ordenar subcategorías alfabéticamente
+            const sortedSubcategories = Object.keys(productsBySubcategory).sort((a, b) =>
+              a.localeCompare(b, "es", { sensitivity: "base" }),
+            )
+
+            // Generar HTML para cada subcategoría y sus productos
+            if (sortedSubcategories.length === 0) {
+              catalogContent.innerHTML =
+                '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>'
+              return
             }
-            productsByCategory[category].push(product)
-          })
 
-          // Ordenar categorías alfabéticamente
-          const sortedCategories = Object.keys(productsByCategory).sort((a, b) =>
-            a.localeCompare(b, "es", { sensitivity: "base" }),
-          )
+            let html = `
+              <div class="category-section">
+                <div class="category-header">${categoryFilter}</div>
+            `
 
-          // Generar HTML para cada categoría y sus productos
-          if (sortedCategories.length === 0) {
-            catalogContent.innerHTML =
-              '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>'
-            return
-          }
+            sortedSubcategories.forEach((subcategory) => {
+              // Ordenar productos alfabéticamente por descripción
+              const sortedProducts = productsBySubcategory[subcategory].sort((a, b) =>
+                a.Description.localeCompare(b.Description, "es", { sensitivity: "base" }),
+              )
 
-          let html = ""
+              // Determinar si hay un solo producto en esta subcategoría
+              const isSingleProduct = sortedProducts.length === 1
 
-          sortedCategories.forEach((category) => {
+              html += `
+                <div class="subcategory-header">${subcategory}</div>
+                <div class="products-container ${isSingleProduct ? "single-product" : ""}">
+              `
+
+              sortedProducts.forEach((product) => {
+                const price = Number.parseFloat(product.Price) || 0
+                // Usar el costo directamente del producto sin calcular
+                const cost = Number.parseFloat(product.Cost) || 0
+                const productCode = product.Code || ""
+                const productDescription = product.Description || ""
+
+                html += `
+                  <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                      <div class="product-price">$${price.toFixed(2)}</div>
+                      <div class="product-name">${productDescription}</div>
+                      <div class="product-code">${productCode}</div>
+                  </div>
+                `
+              })
+
+              html += `
+                </div>
+              `
+            })
+
+            html += `
+              </div>
+            `
+
+            catalogContent.innerHTML = html
+          } else {
+            // Si hay una subcategoría seleccionada, mostrar solo esos productos
             // Ordenar productos alfabéticamente por descripción
-            const sortedProducts = productsByCategory[category].sort((a, b) =>
+            const sortedProducts = filteredProducts.sort((a, b) =>
               a.Description.localeCompare(b.Description, "es", { sensitivity: "base" }),
             )
 
-            // Determinar si hay un solo producto en esta categoría
+            // Determinar si hay un solo producto
             const isSingleProduct = sortedProducts.length === 1
 
-            html += `
-                    <div class="category-section">
-                        <div class="category-header">${category}</div>
-                        <div class="products-container ${isSingleProduct ? "single-product" : ""}">
-                `
+            if (sortedProducts.length === 0) {
+              catalogContent.innerHTML =
+                '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>'
+              return
+            }
+
+            let html = `
+              <div class="category-section">
+                <div class="category-header">${categoryFilter}</div>
+                <div class="subcategory-header">${subcategoryFilter}</div>
+                <div class="products-container ${isSingleProduct ? "single-product" : ""}">
+            `
 
             sortedProducts.forEach((product) => {
               const price = Number.parseFloat(product.Price) || 0
+              // Usar el costo directamente del producto sin calcular
+              const cost = Number.parseFloat(product.Cost) || 0
               const productCode = product.Code || ""
               const productDescription = product.Description || ""
 
               html += `
-                        <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
-                            <div class="product-price">$${price.toFixed(2)}</div>
-                            <div class="product-name">${productDescription}</div>
-                            <div class="product-code">${productCode}</div>
-                        </div>
-                    `
+                <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                    <div class="product-price">$${price.toFixed(2)}</div>
+                    <div class="product-name">${productDescription}</div>
+                    <div class="product-code">${productCode}</div>
+                </div>
+              `
             })
 
             html += `
-                        </div>
-                    </div>
-                `
-          })
+                </div>
+              </div>
+            `
 
-          catalogContent.innerHTML = html
+            catalogContent.innerHTML = html
+          }
         }
 
         function filterProducts() {
