@@ -735,8 +735,11 @@ function saveInvoiceToExcelFile() {
     return quantity > 0 && price > 0 && product.description && product.description.trim() !== ""
   })
 
+  // Modificar el encabezado para incluir el código
+  invoiceData[12] = ["Cantidad", "Código", "Descripción", "Precio Unitario", "Total"]
+
   validProducts.forEach((product) => {
-    invoiceData.push([product.quantity, product.description, product.price, product.total])
+    invoiceData.push([product.quantity, product.code || "", product.description, product.price, product.total])
   })
 
   const ws = XLSX.utils.aoa_to_sheet(invoiceData)
@@ -916,16 +919,36 @@ function loadInvoiceFromExcel(e) {
 
       // Cargar productos solo si hay datos válidos en el archivo
       if (json.length > 13) {
+        // Determinar si el archivo tiene el formato con código o sin código
+        // Verificamos la fila de encabezados (índice 12)
+        const hasCodeColumn =
+          json[12] &&
+          json[12].length >= 5 &&
+          (json[12][1].toString().toLowerCase().includes("código") ||
+            json[12][1].toString().toLowerCase().includes("code"))
+
         // Empezar desde la fila 13 (índice 12) para evitar la fila de encabezados
         for (let i = 13; i < json.length; i++) {
-          // Verificar que la fila tenga suficientes datos y no sea la fila de encabezados
-          if (json[i] && json[i].length >= 4) {
-            // Verificar que la cantidad y el precio sean números válidos mayores que 0
-            const quantity = Number.parseFloat(json[i][0])
-            const description = String(json[i][1] || "").trim()
-            const price = Number.parseFloat(json[i][2])
+          // Verificar que la fila tenga suficientes datos
+          if (json[i] && json[i].length >= (hasCodeColumn ? 5 : 4)) {
+            let quantity, code, description, price
 
-            // Solo agregar si todos los valores son válidos
+            // Extraer datos según el formato detectado
+            if (hasCodeColumn) {
+              // Formato con código: [Cantidad, Código, Descripción, Precio, Total]
+              quantity = Number.parseFloat(json[i][0])
+              code = String(json[i][1] || "").trim()
+              description = String(json[i][2] || "").trim()
+              price = Number.parseFloat(json[i][3])
+            } else {
+              // Formato sin código: [Cantidad, Descripción, Precio, Total]
+              quantity = Number.parseFloat(json[i][0])
+              code = "" // Sin código
+              description = String(json[i][1] || "").trim()
+              price = Number.parseFloat(json[i][2])
+            }
+
+            // Solo agregar si los valores esenciales son válidos
             if (
               !isNaN(quantity) &&
               quantity > 0 &&
@@ -939,6 +962,7 @@ function loadInvoiceFromExcel(e) {
 
               products.push({
                 quantity: quantity,
+                code: code,
                 description: description,
                 price: price,
                 total: total,
@@ -1008,4 +1032,3 @@ function saveInvoiceToExcel() {
   // Call the existing implementation
   saveInvoiceToExcelFile()
 }
-
