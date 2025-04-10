@@ -759,7 +759,88 @@
     // Observar cambios en el campo de correo electrónico
     const emailObserver = new MutationObserver(updateEmailVisibility);
     emailObserver.observe(document.getElementById('client-email'), { attributes: true, attributeFilter: ['value'] });
+    
+    // Modificar la función loadProductList para ordenar categorías alfabéticamente
+    function loadProductList(productData) {
+        productList = productData;
+
+        // Extraer categorías únicas de los productos
+        const categories = [...new Set(productData.map((product) => product.Category || "Sin Categoría"))];
+
+        // Ordenar categorías alfabéticamente usando localeCompare (igual que en catalog.html)
+        categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+
+        // Crear el selector de categorías
+        const categorySelect = document.createElement("select");
+        categorySelect.id = "category-select";
+        categorySelect.innerHTML = '<option value="">Todas las categorías</option>';
+
+        categories.forEach((category) => {
+            const option = document.createElement("option");
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
+        });
+
+        // Insertar el selector de categorías antes del selector de productos
+        const productForm = document.getElementById("product-form");
+        const productSelect = document.getElementById("product-select");
+
+        // Verificar si ya existe un selector de categorías
+        const existingCategorySelect = document.getElementById("category-select");
+        if (!existingCategorySelect) {
+            productForm.insertBefore(categorySelect, productSelect);
+        }
+
+        // Agregar evento para filtrar productos por categoría
+        categorySelect.addEventListener("change", filterProductsByCategory);
+
+        // Inicializar el selector de productos
+        updateProductSelect(productData);
+    }
+
+    // Función para filtrar productos por categoría
+    function filterProductsByCategory() {
+        const categorySelect = document.getElementById("category-select");
+        const selectedCategory = categorySelect.value;
+
+        let filteredProducts;
+        if (selectedCategory === "") {
+            // Si no hay categoría seleccionada, mostrar todos los productos
+            filteredProducts = productList;
+        } else {
+            // Filtrar productos por la categoría seleccionada
+            filteredProducts = productList.filter((product) => (product.Category || "Sin Categoría") === selectedCategory);
+        }
+
+        // Ordenar productos alfabéticamente por descripción (igual que en catalog.html)
+        const sortedProducts = [...filteredProducts].sort((a, b) =>
+            a.Description.localeCompare(b.Description, "es", { sensitivity: "base" })
+        );
+
+        updateProductSelect(sortedProducts);
+    }
+
+    // Función para actualizar el selector de productos
+    function updateProductSelect(filteredProducts) {
+        const select = document.getElementById("product-select");
+        select.innerHTML = '<option value="">Seleccione un producto</option>';
+
+        // Ordenar productos alfabéticamente por descripción (igual que en catalog.html)
+        const sortedProducts = [...filteredProducts].sort((a, b) =>
+            a.Description.localeCompare(b.Description, "es", { sensitivity: "base" })
+        );
+
+        sortedProducts.forEach((product, index) => {
+            const option = document.createElement("option");
+            option.value = index;
+            option.textContent = product.Description;
+            option.dataset.originalIndex = productList.indexOf(product); // Guardar el índice original
+            option.dataset.price = product.Price || 0; // Guardar el precio para mostrar
+            option.dataset.code = product.Code || ""; // Guardar el código
+            select.appendChild(option);
+        });
+    }
 </script>
 </body>
 </html>
-
