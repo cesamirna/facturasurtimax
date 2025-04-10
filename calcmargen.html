@@ -8,9 +8,11 @@
     <style>
         :root {
             --primary-color: #1c8d87;
+            --primary-dark: #17756f;
+            --primary-light: #e6f7f6;
             --secondary-color: #f8f9fa;
             --accent-color: #ffc107;
-            --text-color: #000000;
+            --text-color: #333333;
             --border-color: #dee2e6;
             --success-color: #1c8d87;
             --danger-color: #dc3545;
@@ -22,49 +24,71 @@
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
+            background-image: linear-gradient(135deg, #f5f5f5 0%, #e0f2f1 100%);
             color: var(--text-color);
-            padding-top: 80px; /* Added padding to account for fixed controls */
+            padding-top: 80px;
+            min-height: 100vh;
         }
         
         .calculator-container {
             max-width: 800px;
             margin: 0 auto;
             border: none;
-            border-radius: 10px;
+            border-radius: 16px;
             padding: 30px;
             background-color: white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .calculator-container:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
         
         .header {
             text-align: center;
-            margin-bottom: 10px; /* Reducido de 25px a 10px */
-            padding-bottom: 0; /* Eliminado el padding inferior */
-            border-bottom: none;
+            margin-bottom: 5px;
+            padding-bottom: 10px;
+            /*border-bottom: 1px solid var(--primary-light);*/
             position: relative;
         }
         
         .header h1 {
-            margin: 0;
+            margin: 0px 0;
             font-size: 20px;
             color: var(--primary-color);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
         .header p {
             margin: 5px 0;
-            color: #000000;
+            color: #555;
         }
         
         .logo-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        /*
+        .logo-container img {
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
         
+        .logo-container img:hover {
+            transform: scale(1.05);
+        }
+        */
         .company-name {
             color: var(--primary-color);
             font-weight: bold;
             letter-spacing: 0.5px;
+            font-size: 16px !important;
+            margin-top: 5px !important;
         }
         
         .controls {
@@ -73,53 +97,59 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 10px 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            padding: 12px 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: center;
             gap: 10px;
+            backdrop-filter: blur(10px);
         }
         
         .action-btn {
             background-color: var(--primary-color);
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             color: white;
-            padding: 8px 12px;
+            padding: 10px 16px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             font-size: 14px;
+            font-weight: 600;
             margin: 2px 2px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(28, 141, 135, 0.2);
         }
         
         .action-btn:hover {
-            background-color: #004494;
+            background-color: var(--primary-dark);
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(28, 141, 135, 0.3);
         }
         
         .action-btn:active {
             transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(28, 141, 135, 0.2);
         }
         
-        /* Estilos específicos para la calculadora, más parecidos a la imagen */
         .calculator-form {
-            background-color: #f0f0f0;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 0 auto 30px auto; /* Sin margen superior */
+            background-color: var(--primary-light);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 0 auto 30px auto;
             max-width: 600px;
             box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
         
         .input-group {
             display: flex;
             justify-content: space-between;
             gap: 30px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
         
@@ -127,61 +157,86 @@
             flex: 1;
             min-width: 200px;
             max-width: 270px;
+            position: relative;
         }
         
         .input-field label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
             font-size: 14px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
         }
         
         .input-field input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
+            transition: all 0.3s ease;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .input-field input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(28, 141, 135, 0.2);
+            outline: none;
+        }
+        
+        .input-field input:hover {
+            border-color: #bdbdbd;
         }
         
         .button-group {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            margin-top: 25px;
+            gap: 15px;
         }
         
-        .reset-btn {
+        .reset-btn, .calculate-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 25px;
-            padding: 10px 20px;
+            border-radius: 30px;
+            padding: 12px 25px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
-            align-self: flex-start;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(28, 141, 135, 0.3);
+            flex: 1;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reset-btn {
+            background-color: #6c757d;
         }
 
         .reset-btn:hover {
-            background-color: #17756f;
-        }
-        
-        .calculate-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            align-self: flex-end;
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
         }
         
         .calculate-btn:hover {
-            background-color: #17756f;
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(28, 141, 135, 0.3);
+        }
+        
+        .reset-btn:active, .calculate-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .results {
@@ -189,37 +244,124 @@
             max-width: 600px;
             margin: 0 auto;
             box-sizing: border-box;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results h2 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .results-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .results-table th {
-            background-color: #f0f0f0;
-            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
             text-align: center;
-            border: 1px solid #ddd;
             font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .results-table td {
-            padding: 15px;
+            padding: 20px 15px;
             text-align: center;
-            border: 1px solid #ddd;
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .results-table tr:hover td {
+            background-color: #f9f9f9;
         }
         
         .price-value, .profit-value, .margin-value {
-            font-size: 30px;
-            font-weight: "";
-            color: #1c8d87;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .price-value:after, .profit-value:after, .margin-value:after {
+            content: attr(data-label);
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+        
+        /* Iconos para los resultados */
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(28, 141, 135, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(28, 141, 135, 0.2);
+        }
+        
+        /* Animación para los valores calculados */
+        @keyframes highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .highlight {
+            animation: highlight 0.5s ease;
         }
         
         @media (max-width: 768px) {
+            .calculator-container {
+                padding: 20px 15px;
+                border-radius: 12px;
+            }
+            
             .input-group {
                 flex-direction: column;
-                gap: 15px;
+                gap: 20px;
             }
             
             .input-field {
@@ -229,11 +371,41 @@
             .button-group {
                 flex-direction: column;
                 gap: 15px;
-                align-items: stretch;
             }
             
             .reset-btn, .calculate-btn {
-                align-self: center;
+                width: 100%;
+            }
+            
+            .results-table th, .results-table td {
+                padding: 12px 8px;
+            }
+            
+            .price-value, .profit-value, .margin-value {
+                font-size: 24px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+        
+        /* Estilos para dispositivos muy pequeños */
+        @media (max-width: 480px) {
+            body {
+                padding: 70px 10px 20px;
+            }
+            
+            .calculator-container {
+                padding: 15px 10px;
+            }
+            
+            .calculator-form {
+                padding: 15px;
+            }
+            
+            .price-value, .profit-value, .margin-value {
+                font-size: 20px;
             }
         }
     </style>
@@ -241,7 +413,7 @@
 <body>
     <div class="controls">
         <a href="catalogsc.html" class="action-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 5px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right: 8px;">
                 <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
             </svg>
             Volver al Catálogo
@@ -253,42 +425,83 @@
             <div class="logo-container">
                 <img src="logo.png" width="80" height="80" alt="Logo SURTIMAX">
             </div>
-            <p class="company-name" style="font-size: 14px;">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
-            <h1>CALCULADORA DE MARGEN</h1>
+            <p class="company-name">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
+            <h1>Calculadora de Margen</h1>
         </div>
         
         <div class="calculator-form">
             <div class="input-group">
                 <div class="input-field">
                     <label for="cost">Costo del producto ($)</label>
-                    <input type="number" id="cost" step="0.01" min="0.01" placeholder="Costo del producto">
+                    <input type="number" id="cost" step="0.01" min="0.01" placeholder="Ingrese el costo">
                 </div>
                 <div class="input-field">
                     <label for="markup">Marcado (%)</label>
-                    <input type="number" id="markup" step="0.1" min="0" placeholder="Porcentaje">
+                    <input type="number" id="markup" step="0.1" min="0" placeholder="Ingrese el porcentaje">
                 </div>
             </div>
             <div class="button-group">
-                <button class="reset-btn" onclick="resetForm()">Resetear</button>
-                <button class="calculate-btn" onclick="calculateMargin()">Calcular ganancia</button>
+                <button class="reset-btn" onclick="resetForm()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                    </svg>
+                    Resetear
+                </button>
+                <button class="calculate-btn" onclick="calculateMargin()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                        <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
+                    </svg>
+                    Calcular
+                </button>
             </div>
         </div>
         
         <div id="results" class="results">
-            <h2 style="text-align: center; color: #666; font-size: 16px; margin-bottom: 15px;">RESULTADOS DE LA CALCULADORA DE MARGEN DE BENEFICIOS</h2>
+            <h2>Resultados del Cálculo</h2>
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th>Tu precio de venta</th>
-                        <th>Tu ganancia</th>
-                        <th>Margen bruto</th>
+                        <th>Precio de Venta</th>
+                        <th>Ganancia</th>
+                        <th>Margen Bruto</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><div id="sale-price" class="price-value">$0.00</div></td>
-                        <td><div id="profit" class="profit-value">$0.00</div></td>
-                        <td><div id="margin" class="margin-value">0.00%</div></td>
+                        <td>
+                            <div class="icon-container">
+                                <div class="icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#1c8d87" viewBox="0 0 16 16">
+                                        <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                        <path d="M0 4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V6a2 2 0 0 1-2-2H3z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="sale-price" class="price-value" data-label="Precio final">$0.00</div>
+                        </td>
+                        <td>
+                            <div class="icon-container">
+                                <div class="icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#1c8d87" viewBox="0 0 16 16">
+                                        <path d="M5.5 9.511c.076.954.83 1.697 2.182 1.785V12h.6v-.709c1.4-.098 2.218-.846 2.218-1.932 0-.987-.626-1.496-1.745-1.76l-.473-.112V5.57c.6.068.982.396 1.074.85h1.052c-.076-.919-.864-1.638-2.126-1.716V4h-.6v.719c-1.195.117-2.01.836-2.01 1.853 0 .9.606 1.472 1.613 1.707l.397.098v2.034c-.615-.093-1.022-.43-1.114-.9H5.5zm2.177-2.166c-.59-.137-.91-.416-.91-.836 0-.47.345-.822.915-.925v1.76h-.005zm.692 1.193c.717.166 1.048.435 1.048.91 0 .542-.412.914-1.135.982V8.518l.087.02z"/>
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="profit" class="profit-value" data-label="Beneficio">$0.00</div>
+                        </td>
+                        <td>
+                            <div class="icon-container">
+                                <div class="icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#1c8d87" viewBox="0 0 16 16">
+                                        <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="margin" class="margin-value" data-label="Porcentaje">0.00%</div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -322,9 +535,25 @@
             const marginPercent = (profit / salePrice) * 100;
             
             // Mostrar resultados
-            document.getElementById('sale-price').textContent = '$' + salePrice.toFixed(2);
-            document.getElementById('profit').textContent = '$' + profit.toFixed(2);
-            document.getElementById('margin').textContent = marginPercent.toFixed(2) + '%';
+            const salePriceElement = document.getElementById('sale-price');
+            const profitElement = document.getElementById('profit');
+            const marginElement = document.getElementById('margin');
+            
+            salePriceElement.textContent = '$' + salePrice.toFixed(2);
+            profitElement.textContent = '$' + profit.toFixed(2);
+            marginElement.textContent = marginPercent.toFixed(2) + '%';
+            
+            // Añadir clase para animación
+            salePriceElement.classList.add('highlight');
+            profitElement.classList.add('highlight');
+            marginElement.classList.add('highlight');
+            
+            // Quitar clase después de la animación
+            setTimeout(() => {
+                salePriceElement.classList.remove('highlight');
+                profitElement.classList.remove('highlight');
+                marginElement.classList.remove('highlight');
+            }, 500);
             
             // Mostrar sección de resultados
             document.getElementById('results').style.display = 'block';
@@ -337,6 +566,9 @@
             
             // Ocultar resultados
             document.getElementById('results').style.display = 'none';
+            
+            // Enfocar el primer campo
+            document.getElementById('cost').focus();
         }
 
         // Event listener para la tecla Enter
@@ -360,7 +592,11 @@
                 calculateMargin(); // Calcular al presionar Enter en el último campo
             }
         });
+        
+        // Enfocar el primer campo al cargar la página
+        window.onload = function() {
+            document.getElementById('cost').focus();
+        };
     </script>
 </body>
 </html>
-
