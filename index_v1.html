@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -428,11 +428,6 @@
         transform: translateY(0);
     }
     
-    /* Clase para indicar que los precios deben ser ocultados */
-    .hide-prices {
-        /* Esta clase se aplicará al body cuando se deba ocultar los precios */
-    }
-    
     @media print {
         body {
             padding: 0;
@@ -508,14 +503,6 @@
         /* Ocultar correo cuando está vacío */
         .hide-when-empty.empty-value {
             display: none !important;
-        }
-        
-        /* Ocultar columnas de precio unitario y total SOLO cuando ningún método de pago está seleccionado */
-        body.hide-prices table th:nth-child(4),
-        body.hide-prices table td:nth-child(4),
-        body.hide-prices table th:nth-child(5),
-        body.hide-prices table td:nth-child(5) {
-            display: none;
         }
     }
 </style>
@@ -705,10 +692,6 @@
         // Inicializar la visibilidad del correo
         updateEmailVisibility();
         
-        // Añadir eventos para detectar cambios en los métodos de pago
-        document.getElementById('contado').addEventListener('change', updatePaymentMethodState);
-        document.getElementById('credito').addEventListener('change', updatePaymentMethodState);
-        
         // Añadir evento para detectar cambios en el campo de correo
         document.getElementById('client-email').addEventListener('input', updateEmailVisibility);
         
@@ -758,41 +741,11 @@
         }
     }
     
-    // Función para actualizar el estado de los métodos de pago
-    function updatePaymentMethodState() {
-        const contadoChecked = document.getElementById('contado').checked;
-        const creditoChecked = document.getElementById('credito').checked;
-        
-        // Almacenar el estado en localStorage para persistir entre recargas de página
-        localStorage.setItem('contadoChecked', contadoChecked);
-        localStorage.setItem('creditoChecked', creditoChecked);
-        
-        // Verificar si ambos checkboxes están desmarcados
-        const anyPaymentSelected = contadoChecked || creditoChecked;
-        localStorage.setItem('anyPaymentSelected', anyPaymentSelected);
-    }
-    
-    // Modificar la función printInvoice para verificar estado de pago
+    // Modificar la función printInvoice para actualizar la visibilidad antes de imprimir
     function printInvoice() {
         updateAdjustmentVisibility();
         updateEmailVisibility();
-        
-        // Verificar si hay un método de pago seleccionado
-        const contadoChecked = document.getElementById('contado').checked;
-        const creditoChecked = document.getElementById('credito').checked;
-        const anyPaymentSelected = contadoChecked || creditoChecked;
-        
-        // Añadir o quitar la clase hide-prices basado en si hay un método de pago seleccionado
-        if (!anyPaymentSelected) {
-            document.body.classList.add('hide-prices');
-        } else {
-            document.body.classList.remove('hide-prices');
-        }
-        
         window.print();
-        
-        // Restaurar la vista normal después de imprimir
-        document.body.classList.remove('hide-prices');
     }
     
     // Observar cambios en los elementos de descuento y abono
@@ -887,15 +840,6 @@
             select.appendChild(option);
         });
     }
-    
-    // Verificar y cargar el estado de los métodos de pago al cargar la página
-    window.addEventListener('load', function() {
-        const contadoChecked = localStorage.getItem('contadoChecked') === 'true';
-        const creditoChecked = localStorage.getItem('creditoChecked') === 'true';
-        
-        document.getElementById('contado').checked = contadoChecked;
-        document.getElementById('credito').checked = creditoChecked;
-    });
 </script>
 </body>
 </html>
