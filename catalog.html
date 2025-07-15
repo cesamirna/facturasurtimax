@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Precios - VENTAS SURTIMAX</title>
-    <link rel="icon" href="icon/logo2x.png" type="image/png">
+    <link rel="icon" href="icon/icon.png" type="image/png">
     <style>
         :root {
             --primary-color: #1c8d87;
@@ -322,7 +322,7 @@
         
         @media (max-width: 480px) {
             .products-container {
-                grid-template-columns: 1fr; /* 1 columna en móviles */
+                grid-template-columns: repeat(2, 1fr); /* Cambiado a 2 columnas en móviles */
             }
         }
         
@@ -640,13 +640,103 @@
           const subcategoryFilter = document.getElementById("subcategory-filter").value
           const searchTerm = document.getElementById("search-input").value.toLowerCase()
 
-          // Si no hay categoría seleccionada, mostrar un mensaje pidiendo al usuario que seleccione una categoría
+          // Si no hay categoría seleccionada (Todas las categorías), mostrar todos los productos organizados por categoría
           if (!categoryFilter) {
-            catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>'
+            // Filtrar productos por término de búsqueda si existe
+            let filteredProducts = productList
+            if (searchTerm) {
+              filteredProducts = filteredProducts.filter(
+                (product) =>
+                  (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
+                  (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)),
+              )
+            }
+
+            if (filteredProducts.length === 0) {
+              catalogContent.innerHTML = searchTerm 
+                ? '<div class="no-products">No se encontraron productos que coincidan con la búsqueda.</div>'
+                : '<div class="no-products">No hay productos para mostrar.</div>'
+              return
+            }
+
+            // Agrupar productos por categoría
+            const productsByCategory = {}
+            filteredProducts.forEach((product) => {
+              const category = product.Category || "Sin Categoría"
+              if (!productsByCategory[category]) {
+                productsByCategory[category] = {}
+              }
+              
+              const subcategory = product.Subcategory || "TODOS"
+              if (!productsByCategory[category][subcategory]) {
+                productsByCategory[category][subcategory] = []
+              }
+              productsByCategory[category][subcategory].push(product)
+            })
+
+            // Ordenar categorías alfabéticamente
+            const sortedCategories = Object.keys(productsByCategory).sort((a, b) =>
+              a.localeCompare(b, "es", { sensitivity: "base" })
+            )
+
+            let html = ''
+
+            sortedCategories.forEach((category) => {
+              html += `
+                <div class="category-section">
+                  <div class="category-header">${category}</div>
+              `
+
+              // Ordenar subcategorías alfabéticamente
+              const sortedSubcategories = Object.keys(productsByCategory[category]).sort((a, b) =>
+                a.localeCompare(b, "es", { sensitivity: "base" })
+              )
+
+              sortedSubcategories.forEach((subcategory) => {
+                // Ordenar productos alfabéticamente por descripción
+                const sortedProducts = productsByCategory[category][subcategory].sort((a, b) =>
+                  a.Description.localeCompare(b.Description, "es", { sensitivity: "base" })
+                )
+
+                // Determinar si hay un solo producto en esta subcategoría
+                const isSingleProduct = sortedProducts.length === 1
+
+                html += `
+                  <div class="subcategory-header">${subcategory}</div>
+                  <div class="products-container ${isSingleProduct ? "single-product" : ""}">
+                `
+
+                sortedProducts.forEach((product) => {
+                  const price = Number.parseFloat(product.Price) || 0
+                  const cost = Number.parseFloat(product.Cost) || 0
+                  const productCode = product.Code || ""
+                  const productDescription = product.Description || ""
+
+                  html += `
+                    <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                        <div class="product-price">$${price.toFixed(2)}</div>
+                        ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
+                        <div class="product-name">${productDescription}</div>
+                        <div class="product-code">${productCode}</div>
+                    </div>
+                  `
+                })
+
+                html += `
+                  </div>
+                `
+              })
+
+              html += `
+                </div>
+              `
+            })
+
+            catalogContent.innerHTML = html
             return
           }
 
-          // Filtrar productos según los criterios
+          // Filtrar productos según los criterios (código original para categorías específicas)
           let filteredProducts = productList
 
           // Aplicar filtro de categoría
