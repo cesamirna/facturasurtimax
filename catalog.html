@@ -713,7 +713,7 @@
                   const productDescription = product.Description || ""
 
                   html += `
-                    <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                    <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
                         <div class="product-price">$${price.toFixed(2)}</div>
                         ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                         <div class="product-name">${productDescription}</div>
@@ -808,7 +808,7 @@
                 const productDescription = product.Description || ""
 
                 html += `
-                  <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                  <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
                       <div class="product-price">$${price.toFixed(2)}</div>
                       ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                       <div class="product-name">${productDescription}</div>
@@ -858,7 +858,7 @@
               const productDescription = product.Description || ""
 
               html += `
-                <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price})">
+                <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
                     <div class="product-price">$${price.toFixed(2)}</div>
                     ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                     <div class="product-name">${productDescription}</div>
@@ -884,8 +884,8 @@
           window.print()
         }
 
-        // Modificar la función addProductToInvoice para no redirigir inmediatamente
-        function addProductToInvoice(code, description, price) {
+        // Modificar la función addProductToInvoice para incluir el costo y calcular el margen
+        function addProductToInvoice(code, description, price, cost = 0) {
           // Solicitar cantidad
           let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1")
 
@@ -900,12 +900,20 @@
             return
           }
 
-          // Guardar el producto seleccionado en localStorage
+          // Calcular el margen
+          let margin = 0
+          if (cost > 0) {
+            margin = ((price - cost) / cost) * 100
+          }
+
+          // Guardar el producto seleccionado en localStorage con el costo y margen
           const selectedProduct = {
             code: code,
             description: description,
             price: price,
-            quantity: quantity, // Usar la cantidad ingresada
+            quantity: quantity,
+            cost: cost, // Incluir el costo
+            margin: margin // Incluir el margen calculado
           }
 
           // Obtener array de productos seleccionados existente o crear uno nuevo

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factura Ventas Surtimax</title>
-<link rel="icon" href="icon/logo2x.png" type="image/png">
+<title>Factura VENTAS SURTIMAX</title>
+<link rel="icon" href="icon/icon.png" type="image/png">
 <style>
     :root {
         --primary-color: #1c8d87;
@@ -433,6 +433,13 @@
         /* Esta clase se aplicará al body cuando se deba ocultar los precios */
     }
     
+    /* Estilo para la columna de margen */
+    .margin-column {
+        color: #dc3545;
+        font-weight: bold;
+        text-align: center;
+    }
+    
     @media print {
         body {
             padding: 0;
@@ -510,11 +517,13 @@
             display: none !important;
         }
         
-        /* Ocultar columnas de precio unitario y total SOLO cuando ningún método de pago está seleccionado */
+        /* Ocultar columnas de precio unitario, margen y total SOLO cuando ningún método de pago está seleccionado */
         body.hide-prices table th:nth-child(4),
         body.hide-prices table td:nth-child(4),
         body.hide-prices table th:nth-child(5),
-        body.hide-prices table td:nth-child(5) {
+        body.hide-prices table td:nth-child(5),
+        body.hide-prices table th:nth-child(6),
+        body.hide-prices table td:nth-child(6) {
             display: none;
         }
     }
@@ -632,11 +641,12 @@
         <thead>
             <tr>
                 <th style="font-size: 15px; width: 5%;">CANT.</th>
-                <th style="font-size: 15px; width: 18%;">CÓDIGO</th>
-                <th style="font-size: 15px; width: 50%;">DESCRIPCIÓN</th>
+                <th style="font-size: 15px; width: 15%;">CÓDIGO</th>
+                <th style="font-size: 15px; width: 45%;">DESCRIPCIÓN</th>
                 <th style="font-size: 15px; width: 10%;">P/U</th>
+                <th style="font-size: 15px; width: 8%;" class="no-print">MARGEN</th>
                 <th style="font-size: 15px; width: 10%;">TOTAL</th>
-                <th style="font-size: 15px; width: 10%;" class="no-print">ACCIÓN</th>
+                <th style="font-size: 15px; width: 7%;" class="no-print">ACCIÓN</th>
             </tr>
         </thead>
         <tbody id="invoice-items">
@@ -722,6 +732,39 @@
             }, 500);
         }
     });
+    
+    // Función para calcular el margen de ganancia
+    function calculateMargin(sellingPrice, cost) {
+        if (cost === 0 || cost === null || cost === undefined) {
+            return 0;
+        }
+        return ((sellingPrice - cost) / cost) * 100;
+    }
+    
+    // Función para encontrar el costo de un producto por código o descripción
+    function findProductCost(code, description) {
+        if (!productList || productList.length === 0) {
+            return 0;
+        }
+        
+        // Buscar primero por código si existe
+        if (code && code.trim() !== '') {
+            const productByCode = productList.find(p => p.Code && p.Code.toString().toLowerCase() === code.toString().toLowerCase());
+            if (productByCode && productByCode.Cost !== undefined && productByCode.Cost !== null) {
+                return parseFloat(productByCode.Cost) || 0;
+            }
+        }
+        
+        // Si no se encuentra por código, buscar por descripción
+        if (description && description.trim() !== '') {
+            const productByDescription = productList.find(p => p.Description && p.Description.toLowerCase() === description.toLowerCase());
+            if (productByDescription && productByDescription.Cost !== undefined && productByDescription.Cost !== null) {
+                return parseFloat(productByDescription.Cost) || 0;
+            }
+        }
+        
+        return 0;
+    }
     
     // Función para actualizar la visibilidad de descuento y abono
     function updateAdjustmentVisibility() {
@@ -884,6 +927,7 @@
             option.dataset.originalIndex = productList.indexOf(product); // Guardar el índice original
             option.dataset.price = product.Price || 0; // Guardar el precio para mostrar
             option.dataset.code = product.Code || ""; // Guardar el código
+            option.dataset.cost = product.Cost || 0; // Guardar el costo para calcular margen
             select.appendChild(option);
         });
     }

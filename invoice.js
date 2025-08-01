@@ -10,16 +10,30 @@ function checkForSelectedProduct() {
 
       // Add each product to the invoice without clearing client data
       selectedProducts.forEach((selectedProduct) => {
-        document.getElementById("product-quantity").value = selectedProduct.quantity || 1
-        document.getElementById("product-description").value = selectedProduct.description || ""
-        document.getElementById("product-price").value = selectedProduct.price || 0
-        document.getElementById("product-code").value = selectedProduct.code || ""
+        // Usar directamente los valores del catálogo si están disponibles
+        const quantity = selectedProduct.quantity || 1
+        const description = selectedProduct.description || ""
+        const price = parseFloat(selectedProduct.price) || 0
+        const code = selectedProduct.code || ""
+        const cost = parseFloat(selectedProduct.cost) || 0
+        const margin = parseFloat(selectedProduct.margin) || 0
+        const total = (quantity * price).toFixed(2)
 
-        // Simulate click on the add product button
-        const form = document.getElementById("product-form")
-        const submitEvent = new Event("submit", { cancelable: true })
-        form.dispatchEvent(submitEvent)
+        // Agregar directamente al array de productos con los valores del catálogo
+        products.push({ 
+          quantity, 
+          description, 
+          price, 
+          total, 
+          code, 
+          cost, 
+          margin 
+        })
       })
+
+      // Update the invoice table and totals
+      updateInvoiceTable()
+      updateTotals()
 
       // Clear the selected products to avoid duplicates
       localStorage.removeItem("selectedProducts")
@@ -37,16 +51,29 @@ function checkForSelectedProduct() {
     try {
       const selectedProduct = JSON.parse(selectedProductJson)
 
-      // Add the product to the invoice without clearing client data
-      document.getElementById("product-quantity").value = selectedProduct.quantity || 1
-      document.getElementById("product-description").value = selectedProduct.description || ""
-      document.getElementById("product-price").value = selectedProduct.price || 0
-      document.getElementById("product-code").value = selectedProduct.code || ""
+      // Usar directamente los valores del catálogo si están disponibles
+      const quantity = selectedProduct.quantity || 1
+      const description = selectedProduct.description || ""
+      const price = parseFloat(selectedProduct.price) || 0
+      const code = selectedProduct.code || ""
+      const cost = parseFloat(selectedProduct.cost) || 0
+      const margin = parseFloat(selectedProduct.margin) || 0
+      const total = (quantity * price).toFixed(2)
 
-      // Simulate click on the add product button
-      const form = document.getElementById("product-form")
-      const submitEvent = new Event("submit", { cancelable: true })
-      form.dispatchEvent(submitEvent)
+      // Agregar directamente al array de productos con los valores del catálogo
+      products.push({ 
+        quantity, 
+        description, 
+        price, 
+        total, 
+        code, 
+        cost, 
+        margin 
+      })
+
+      // Update the invoice table and totals
+      updateInvoiceTable()
+      updateTotals()
 
       // Clear the selected product to avoid duplicates
       localStorage.removeItem("selectedProduct")
@@ -296,12 +323,45 @@ document.addEventListener("DOMContentLoaded", () => {
 let products = []
 let productList = []
 
-// Modificar la función addProduct para guardar los productos en localStorage después de agregar uno nuevo
+// Función para calcular el margen de ganancia
+function calculateMargin(sellingPrice, cost) {
+  if (cost === 0 || cost === null || cost === undefined) {
+    return 0;
+  }
+  return ((sellingPrice - cost) / cost) * 100;
+}
+
+// Función para encontrar el costo de un producto por código o descripción
+function findProductCost(code, description) {
+  if (!productList || productList.length === 0) {
+    return 0;
+  }
+  
+  // Buscar primero por código si existe
+  if (code && code.trim() !== '') {
+    const productByCode = productList.find(p => p.Code && p.Code.toString().toLowerCase() === code.toString().toLowerCase());
+    if (productByCode && productByCode.Cost !== undefined && productByCode.Cost !== null) {
+      return parseFloat(productByCode.Cost) || 0;
+    }
+  }
+  
+  // Si no se encuentra por código, buscar por descripción
+  if (description && description.trim() !== '') {
+    const productByDescription = productList.find(p => p.Description && p.Description.toLowerCase() === description.toLowerCase());
+    if (productByDescription && productByDescription.Cost !== undefined && productByDescription.Cost !== null) {
+      return parseFloat(productByDescription.Cost) || 0;
+    }
+  }
+  
+  return 0;
+}
+
+// Modificar la función addProduct para incluir el cálculo del margen y guardar los productos en localStorage después de agregar uno nuevo
 function addProduct(e) {
   e.preventDefault()
   const quantity = document.getElementById("product-quantity").value
   const description = document.getElementById("product-description").value
-  const price = document.getElementById("product-price").value
+  const price = parseFloat(document.getElementById("product-price").value)
   const total = (quantity * price).toFixed(2)
 
   // Get the code from the input field first, if it's empty, get it from the selected product
@@ -314,7 +374,11 @@ function addProduct(e) {
     code = selectedOption && selectedOption.dataset ? selectedOption.dataset.code || "" : ""
   }
 
-  products.push({ quantity, description, price, total, code })
+  // Calcular el margen
+  const cost = findProductCost(code, description);
+  const margin = calculateMargin(price, cost);
+
+  products.push({ quantity, description, price, total, code, cost, margin })
   updateInvoiceTable()
   updateTotals()
 
@@ -335,7 +399,7 @@ function deleteProduct(index) {
   saveCurrentProducts()
 }
 
-// Modificar la función editProduct para guardar los productos en localStorage después de editar uno
+// Modificar la función editProduct para incluir el recálculo del margen y guardar los productos en localStorage después de editar uno
 function editProduct(index) {
   const product = products[index]
   document.getElementById("product-quantity").value = product.quantity
@@ -608,6 +672,7 @@ function updateProductSelect(filteredProducts) {
     option.dataset.originalIndex = productList.indexOf(product) // Guardar el índice original
     option.dataset.price = product.Price || 0 // Guardar el precio para mostrar
     option.dataset.code = product.Code || "" // Guardar el código
+    option.dataset.cost = product.Cost || 0 // Guardar el costo para calcular margen
     select.appendChild(option)
   })
 }
@@ -959,6 +1024,10 @@ function loadInvoiceFromExcel(e) {
               price > 0
             ) {
               const total = (quantity * price).toFixed(2)
+              
+              // Calcular el margen
+              const cost = findProductCost(code, description);
+              const margin = calculateMargin(price, cost);
 
               products.push({
                 quantity: quantity,
@@ -966,6 +1035,8 @@ function loadInvoiceFromExcel(e) {
                 description: description,
                 price: price,
                 total: total,
+                cost: cost,
+                margin: margin
               })
             }
           }
@@ -1006,17 +1077,27 @@ function deleteAdjustment(type) {
   }
 }
 
+// Modificar la función updateInvoiceTable para incluir la columna de margen
 function updateInvoiceTable() {
   const tableBody = document.getElementById("invoice-items")
   tableBody.innerHTML = ""
 
   products.forEach((product, index) => {
     const row = document.createElement("tr")
+    
+    // Calcular el margen si no existe
+    let margin = product.margin;
+    if (margin === undefined || margin === null) {
+      const cost = product.cost || findProductCost(product.code, product.description);
+      margin = calculateMargin(parseFloat(product.price), cost);
+    }
+    
     row.innerHTML = `
         <td>${product.quantity}</td>
         <td>${product.code || ""}</td>
         <td>${product.description}</td>
         <td>$${Number.parseFloat(product.price).toFixed(2)}</td>
+        <td class="margin-column no-print">${margin.toFixed(1)}%</td>
         <td>$${product.total}</td>
         <td class="no-print">
             <button class="action-btn" onclick="editProduct(${index})">Editar</button>
