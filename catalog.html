@@ -193,8 +193,8 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 150px; /* Aumentado para acomodar el costo */
-            cursor: pointer; /* Añadido para indicar que es clicable */
+            height: 170px; /* Aumentado para mejor visualización */
+            cursor: pointer;
         }
         
         /* Modificar el estilo para cuando hay un solo producto */
@@ -226,7 +226,17 @@
             font-size: 28px;
             font-weight: bold;
             color: #dc3545;
-            margin: 8px 0 2px 0; /* Reducido el margen inferior */
+            margin: 4px 0; /* Ajustado margen */
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* Modificado para mostrar el precio con 7% arriba del precio principal */
+        .product-price-with-tax {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1c8d87; /* Azul */
+            margin: 0 0 2px 0; /* Margen inferior pequeño */
             width: 100%;
             text-align: center;
         }
@@ -235,12 +245,12 @@
         .product-cost {
             font-size: 16px;
             font-weight: bold;
-            color: #1c8d87; /* Rojo */
-            margin: 0 0 8px 0;
+            color: #1c8d87;
+            margin: 4px 0 8px 0; /* Ajustado margen */
             width: 100%;
             text-align: center;
         }
-        
+
         .product-name { /* Nombre del producto */
             font-size: 14px;
             text-align: center;
@@ -714,6 +724,7 @@
 
                   html += `
                     <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                        <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                         <div class="product-price">$${price.toFixed(2)}</div>
                         ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                         <div class="product-name">${productDescription}</div>
@@ -809,6 +820,7 @@
 
                 html += `
                   <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                      <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                       <div class="product-price">$${price.toFixed(2)}</div>
                       ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                       <div class="product-name">${productDescription}</div>
@@ -859,6 +871,7 @@
 
               html += `
                 <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                    <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                     <div class="product-price">$${price.toFixed(2)}</div>
                     ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
                     <div class="product-name">${productDescription}</div>
