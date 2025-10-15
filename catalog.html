@@ -23,12 +23,11 @@
             padding: 20px;
             background-color: #f5f5f5;
             color: var(--text-color);
-            padding-top: 80px; /* Added padding to account for fixed controls */
+            padding-top: 80px;
         }
         
-        /* Modificar el estilo del contenedor principal para hacerlo menos ancho */
         .catalog-container {
-            max-width: 900px; /* Reducido de 1200px */
+            max-width: 900px;
             margin: 0 auto;
             border: none;
             border-radius: 10px;
@@ -161,7 +160,6 @@
             font-weight: 600;
         }
         
-        /* Estilo para subcategorías */
         .subcategory-header {
             background-color: #e0f2f1;
             color: var(--primary-color);
@@ -171,10 +169,9 @@
             border-bottom: 1px solid #b2dfdb;
         }
         
-        /* Modificar el contenedor de productos para mostrar exactamente 3 por fila */
         .products-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* Exactamente 3 columnas */
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             padding: 20px;
             background-color: white;
@@ -193,25 +190,40 @@
             transition: transform 0.2s, box-shadow 0.2s;
             background-color: rgb(255, 255, 255);
             text-align: center;
-            height: 170px; /* Aumentado para mejor visualización */
+            height: 170px;
             cursor: pointer;
+            position: relative;
         }
         
-        /* Modificar el estilo para cuando hay un solo producto */
+        /* <CHANGE> Added margin badge styling */
+        .margin-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        /* </CHANGE> */
+        
         .products-container.single-product {
-            display: block; /* Cambiado de grid a block */
+            display: block;
         }
         
         .products-container.single-product .product-card {
             width: 250px;
-            margin-left: 0; /* Alinear a la izquierda */
+            margin-left: 0;
             margin-right: auto;
         }
         
         .product-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            background-color: #f0f8ff; /* Fondo más claro al pasar el mouse */
+            background-color: #f0f8ff;
         }
         
         .product-code {
@@ -226,32 +238,30 @@
             font-size: 28px;
             font-weight: bold;
             color: #dc3545;
-            margin: 4px 0; /* Ajustado margen */
+            margin: 4px 0;
             width: 100%;
             text-align: center;
         }
         
-        /* Modificado para mostrar el precio con 7% arriba del precio principal */
         .product-price-with-tax {
             font-size: 16px;
             font-weight: bold;
-            color: #1c8d87; /* Azul */
-            margin: 0 0 2px 0; /* Margen inferior pequeño */
+            color: #1c8d87;
+            margin: 0 0 2px 0;
             width: 100%;
             text-align: center;
         }
         
-        /* Nuevo estilo para el costo del producto */
         .product-cost {
             font-size: 16px;
             font-weight: bold;
             color: #1c8d87;
-            margin: 4px 0 8px 0; /* Ajustado margen */
+            margin: 4px 0 8px 0;
             width: 100%;
             text-align: center;
         }
 
-        .product-name { /* Nombre del producto */
+        .product-name {
             font-size: 14px;
             text-align: center;
             margin-top: 8px;
@@ -303,7 +313,6 @@
             text-decoration: underline;
         }
         
-        /* Notificación de producto agregado */
         .notification {
             position: fixed;
             top: 80px;
@@ -326,17 +335,16 @@
         
         @media (max-width: 768px) {
             .products-container {
-                grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 480px) {
             .products-container {
-                grid-template-columns: repeat(2, 1fr); /* Cambiado a 2 columnas en móviles */
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
-        /* Modificar la sección @media print para ocultar el costo al imprimir */
         @media print {
             body {
                 padding: 0;
@@ -353,10 +361,15 @@
                 display: none;
             }
             
-            /* Ocultar el costo del producto al imprimir */
             .product-cost {
                 display: none;
             }
+            
+            /* <CHANGE> Hide margin badge when printing */
+            .margin-badge {
+                display: none;
+            }
+            /* </CHANGE> */
             
             .category-section {
                 break-inside: avoid;
@@ -376,7 +389,7 @@
             }
             
             .products-container {
-                grid-template-columns: repeat(3, 1fr); /* Mantener 3 columnas al imprimir */
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
@@ -420,7 +433,6 @@
                 <img src="icon/logo.png" width="80" height="80" alt="Logo SURTIMAX">
             </div>
             <p class="company-name" style="font-size: 14px;">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
-            <!--p style="font-size: 15px;">Materiales de construcción, pinturas y más.</p-->
             <h1>CATALOGO DE PRECIOS</h1>
         </div>
         
@@ -428,12 +440,10 @@
             <div class="filter-label">Filtrar por:</div>
             <select id="category-filter">
                 <option value="">Todas las categorías</option>
-                <!-- Categories will be populated dynamically -->
             </select>
             
             <select id="subcategory-filter">
                 <option value="">Todas las subcategorías</option>
-                <!-- Subcategories will be populated dynamically -->
             </select>
             
             <div class="search-container">
@@ -447,18 +457,15 @@
         </div>
         
         <div id="catalog-content">
-            <!-- Product categories and listings will be inserted here dynamically -->
             <div class="no-products">
                 Cargue la lista de productos para ver el catálogo.
             </div>
         </div>
         
         <div class="back-to-invoice">
-            <!--a href="index.html">Volver a la página de facturación</a-->
         </div>
     </div>
 
-    <!-- Notificación de producto agregado -->
     <div id="notification" class="notification">
         Producto agregado a la factura
     </div>
@@ -471,12 +478,10 @@
           document.getElementById("subcategory-filter").addEventListener("change", filterProducts)
           document.getElementById("search-input").addEventListener("input", filterProducts)
 
-          // Cargar productos desde localStorage si existen
           if (localStorage.getItem("productList")) {
             try {
               productList = JSON.parse(localStorage.getItem("productList"))
               populateCategories()
-              // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
             } catch (e) {
               console.error("Error al cargar productos desde localStorage:", e)
             }
@@ -485,54 +490,44 @@
 
         let productList = []
 
-        // Modificar la función handleFile para soportar archivos JSON
         function handleFile(e) {
           const file = e.target.files[0]
           if (!file) return
 
           const reader = new FileReader()
 
-          // Determinar si es un archivo JSON o Excel basado en la extensión
           const isJsonFile = file.name.toLowerCase().endsWith(".json")
 
           if (isJsonFile) {
-            // Manejar archivo JSON
             reader.onload = (e) => {
               try {
                 const jsonData = JSON.parse(e.target.result)
 
-                // Verificar si el JSON tiene la estructura esperada
                 if (Array.isArray(jsonData)) {
-                  // Si es un array, asumimos que son productos directamente
                   productList = jsonData.map((product) => {
                     if (!product.Category) {
                       product.Category = "Sin Categoría"
                     }
-                    // Asegurarse de que cada producto tenga una subcategoría
                     if (!product.Subcategory) {
                       product.Subcategory = "TODOS"
                     }
                     return product
                   })
 
-                  // Guardar en localStorage para compartir con la página de factura
                   localStorage.setItem("productList", JSON.stringify(productList))
 
                   populateCategories()
                 } else if (jsonData.products && Array.isArray(jsonData.products)) {
-                  // Si tiene una propiedad 'products' que es un array
                   productList = jsonData.products.map((product) => {
                     if (!product.Category) {
                       product.Category = "Sin Categoría"
                     }
-                    // Asegurarse de que cada producto tenga una subcategoría
                     if (!product.Subcategory) {
                       product.Subcategory = "TODOS"
                     }
                     return product
                   })
 
-                  // Guardar en localStorage para compartir con la página de factura
                   localStorage.setItem("productList", JSON.stringify(productList))
 
                   populateCategories()
@@ -548,7 +543,6 @@
             }
             reader.readAsText(file)
           } else {
-            // Manejar archivo Excel (código original)
             reader.onload = (e) => {
               if (typeof XLSX === "undefined") {
                 console.error("XLSX no está definido. Asegúrese de que la biblioteca esté cargada.")
@@ -560,19 +554,16 @@
               const worksheet = workbook.Sheets[firstSheetName]
               const json = XLSX.utils.sheet_to_json(worksheet)
 
-              // Asegurarse de que cada producto tenga una categoría y subcategoría
               productList = json.slice(1).map((product) => {
                 if (!product.Category) {
                   product.Category = "Sin Categoría"
                 }
-                // Asegurarse de que cada producto tenga una subcategoría
                 if (!product.Subcategory) {
                   product.Subcategory = "TODOS"
                 }
                 return product
               })
 
-              // Guardar en localStorage para compartir con la página de factura
               localStorage.setItem("productList", JSON.stringify(productList))
 
               populateCategories()
@@ -582,13 +573,10 @@
         }
 
         function populateCategories() {
-          // Extraer categorías únicas de los productos
           const categories = [...new Set(productList.map((product) => product.Category || "Sin Categoría"))]
 
-          // Ordenar categorías alfabéticamente
           categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
 
-          // Crear el selector de categorías
           const categorySelect = document.getElementById("category-filter")
           categorySelect.innerHTML = '<option value="">Todas las categorías</option>'
 
@@ -599,7 +587,6 @@
             categorySelect.appendChild(option)
           })
 
-          // Actualizar el contenido del catálogo para mostrar el mensaje inicial
           const catalogContent = document.getElementById("catalog-content")
           if (productList.length > 0) {
             catalogContent.innerHTML = '<div class="no-products">Seleccione una categoría para ver los productos.</div>'
@@ -618,7 +605,6 @@
           const subcategorySelect = document.getElementById("subcategory-filter")
           subcategorySelect.innerHTML = '<option value="">Todas las subcategorías</option>'
           
-          // Si no hay categoría seleccionada, deshabilitar el selector de subcategorías
           if (!selectedCategory) {
             subcategorySelect.disabled = true
             return
@@ -626,16 +612,12 @@
           
           subcategorySelect.disabled = false
           
-          // Filtrar productos por la categoría seleccionada
           const filteredProducts = productList.filter(product => product.Category === selectedCategory)
           
-          // Extraer subcategorías únicas de los productos filtrados
           const subcategories = [...new Set(filteredProducts.map(product => product.Subcategory || "TODOS"))]
           
-          // Ordenar subcategorías alfabéticamente
           subcategories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
           
-          // Añadir opciones de subcategorías al selector
           subcategories.forEach(subcategory => {
             const option = document.createElement("option")
             option.value = subcategory
@@ -650,9 +632,7 @@
           const subcategoryFilter = document.getElementById("subcategory-filter").value
           const searchTerm = document.getElementById("search-input").value.toLowerCase()
 
-          // Si no hay categoría seleccionada (Todas las categorías), mostrar todos los productos organizados por categoría
           if (!categoryFilter) {
-            // Filtrar productos por término de búsqueda si existe
             let filteredProducts = productList
             if (searchTerm) {
               filteredProducts = filteredProducts.filter(
@@ -669,7 +649,6 @@
               return
             }
 
-            // Agrupar productos por categoría
             const productsByCategory = {}
             filteredProducts.forEach((product) => {
               const category = product.Category || "Sin Categoría"
@@ -684,7 +663,6 @@
               productsByCategory[category][subcategory].push(product)
             })
 
-            // Ordenar categorías alfabéticamente
             const sortedCategories = Object.keys(productsByCategory).sort((a, b) =>
               a.localeCompare(b, "es", { sensitivity: "base" })
             )
@@ -697,18 +675,15 @@
                   <div class="category-header">${category}</div>
               `
 
-              // Ordenar subcategorías alfabéticamente
               const sortedSubcategories = Object.keys(productsByCategory[category]).sort((a, b) =>
                 a.localeCompare(b, "es", { sensitivity: "base" })
               )
 
               sortedSubcategories.forEach((subcategory) => {
-                // Ordenar productos alfabéticamente por descripción
                 const sortedProducts = productsByCategory[category][subcategory].sort((a, b) =>
                   a.Description.localeCompare(b.Description, "es", { sensitivity: "base" })
                 )
 
-                // Determinar si hay un solo producto en esta subcategoría
                 const isSingleProduct = sortedProducts.length === 1
 
                 html += `
@@ -721,9 +696,17 @@
                   const cost = Number.parseFloat(product.Cost) || 0
                   const productCode = product.Code || ""
                   const productDescription = product.Description || ""
+                  
+                  // <CHANGE> Calculate margin percentage
+                  let marginPercent = 0
+                  if (cost > 0) {
+                    marginPercent = ((price - cost) / cost) * 100
+                  }
+                  // </CHANGE>
 
                   html += `
                     <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                        ${cost > 0 ? `<div class="margin-badge">${marginPercent.toFixed(0)}%</div>` : ""}
                         <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                         <div class="product-price">$${price.toFixed(2)}</div>
                         ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
@@ -747,18 +730,14 @@
             return
           }
 
-          // Filtrar productos según los criterios (código original para categorías específicas)
           let filteredProducts = productList
 
-          // Aplicar filtro de categoría
           filteredProducts = filteredProducts.filter((product) => product.Category === categoryFilter)
 
-          // Aplicar filtro de subcategoría si está seleccionada
           if (subcategoryFilter) {
             filteredProducts = filteredProducts.filter((product) => product.Subcategory === subcategoryFilter)
           }
 
-          // Aplicar filtro de búsqueda si está presente
           if (searchTerm) {
             filteredProducts = filteredProducts.filter(
               (product) =>
@@ -767,9 +746,7 @@
             )
           }
 
-          // Si no hay subcategoría seleccionada, agrupar por subcategoría
           if (!subcategoryFilter) {
-            // Agrupar productos por subcategoría
             const productsBySubcategory = {}
 
             filteredProducts.forEach((product) => {
@@ -780,12 +757,10 @@
               productsBySubcategory[subcategory].push(product)
             })
 
-            // Ordenar subcategorías alfabéticamente
             const sortedSubcategories = Object.keys(productsBySubcategory).sort((a, b) =>
               a.localeCompare(b, "es", { sensitivity: "base" }),
             )
 
-            // Generar HTML para cada subcategoría y sus productos
             if (sortedSubcategories.length === 0) {
               catalogContent.innerHTML =
                 '<div class="no-products">No se encontraron productos que coincidan con los criterios de búsqueda.</div>'
@@ -798,12 +773,10 @@
             `
 
             sortedSubcategories.forEach((subcategory) => {
-              // Ordenar productos alfabéticamente por descripción
               const sortedProducts = productsBySubcategory[subcategory].sort((a, b) =>
                 a.Description.localeCompare(b.Description, "es", { sensitivity: "base" }),
               )
 
-              // Determinar si hay un solo producto en esta subcategoría
               const isSingleProduct = sortedProducts.length === 1
 
               html += `
@@ -813,13 +786,20 @@
 
               sortedProducts.forEach((product) => {
                 const price = Number.parseFloat(product.Price) || 0
-                // Usar el costo directamente del producto sin calcular
                 const cost = Number.parseFloat(product.Cost) || 0
                 const productCode = product.Code || ""
                 const productDescription = product.Description || ""
+                
+                // <CHANGE> Calculate margin percentage
+                let marginPercent = 0
+                if (cost > 0) {
+                  marginPercent = ((price - cost) / cost) * 100
+                }
+                // </CHANGE>
 
                 html += `
                   <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                      ${cost > 0 ? `<div class="margin-badge">${marginPercent.toFixed(0)}%</div>` : ""}
                       <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                       <div class="product-price">$${price.toFixed(2)}</div>
                       ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
@@ -840,13 +820,10 @@
 
             catalogContent.innerHTML = html
           } else {
-            // Si hay una subcategoría seleccionada, mostrar solo esos productos
-            // Ordenar productos alfabéticamente por descripción
             const sortedProducts = filteredProducts.sort((a, b) =>
               a.Description.localeCompare(b.Description, "es", { sensitivity: "base" }),
             )
 
-            // Determinar si hay un solo producto
             const isSingleProduct = sortedProducts.length === 1
 
             if (sortedProducts.length === 0) {
@@ -864,13 +841,20 @@
 
             sortedProducts.forEach((product) => {
               const price = Number.parseFloat(product.Price) || 0
-              // Usar el costo directamente del producto sin calcular
               const cost = Number.parseFloat(product.Cost) || 0
               const productCode = product.Code || ""
               const productDescription = product.Description || ""
+              
+              // <CHANGE> Calculate margin percentage
+              let marginPercent = 0
+              if (cost > 0) {
+                marginPercent = ((price - cost) / cost) * 100
+              }
+              // </CHANGE>
 
               html += `
                 <div class="product-card" onclick="addProductToInvoice('${productCode}', '${productDescription.replace(/'/g, "\\'")}', ${price}, ${cost})">
+                    ${cost > 0 ? `<div class="margin-badge">${marginPercent.toFixed(0)}%</div>` : ""}
                     <div class="product-price-with-tax">$${(price * 1.07).toFixed(2)}</div>
                     <div class="product-price">$${price.toFixed(2)}</div>
                     ${cost > 0 ? `<div class="product-cost">$${cost.toFixed(2)}</div>` : ""}
@@ -897,14 +881,11 @@
           window.print()
         }
 
-        // Modificar la función addProductToInvoice para incluir el costo y calcular el margen
         function addProductToInvoice(code, description, price, cost = 0) {
-          // Solicitar cantidad
           let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1")
 
-          // Validar entrada de cantidad
           if (quantity === null) {
-            return // Usuario canceló el prompt
+            return
           }
 
           quantity = Number.parseInt(quantity)
@@ -913,23 +894,20 @@
             return
           }
 
-          // Calcular el margen
           let margin = 0
           if (cost > 0) {
             margin = ((price - cost) / cost) * 100
           }
 
-          // Guardar el producto seleccionado en localStorage con el costo y margen
           const selectedProduct = {
             code: code,
             description: description,
             price: price,
             quantity: quantity,
-            cost: cost, // Incluir el costo
-            margin: margin // Incluir el margen calculado
+            cost: cost,
+            margin: margin
           }
 
-          // Obtener array de productos seleccionados existente o crear uno nuevo
           let selectedProducts = []
           try {
             const existingProducts = localStorage.getItem("selectedProducts")
@@ -940,28 +918,21 @@
             console.error("Error al analizar productos existentes:", e)
           }
 
-          // Agregar el nuevo producto al array
           selectedProducts.push(selectedProduct)
 
-          // Guardar el array actualizado
           localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts))
 
-          // También guardar como producto único para compatibilidad con versiones anteriores
           localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct))
 
-          // Mostrar notificación
           const notification = document.getElementById("notification")
           notification.textContent = `Producto "${description}" (${quantity} unidades) agregado a la factura`
           notification.classList.add("show")
 
-          // Ocultar la notificación después de 1 segundos
           setTimeout(() => {
             notification.classList.remove("show")
           }, 1000)
         }
 
-        // Si hay una función loadProductList en el contexto global (desde invoice.js),
-        // podemos usarla para cargar productos automáticamente
         if (
           typeof window.loadProductList === "function" &&
           Array.isArray(window.productList) &&
@@ -969,7 +940,6 @@
         ) {
           productList = window.productList
           populateCategories()
-          // No mostrar productos automáticamente, esperar a que el usuario seleccione una categoría
         }
     </script>
 </body>
