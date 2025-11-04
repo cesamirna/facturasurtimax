@@ -13,21 +13,21 @@ function checkForSelectedProduct() {
         // Usar directamente los valores del catálogo si están disponibles
         const quantity = selectedProduct.quantity || 1
         const description = selectedProduct.description || ""
-        const price = parseFloat(selectedProduct.price) || 0
+        const price = Number.parseFloat(selectedProduct.price) || 0
         const code = selectedProduct.code || ""
-        const cost = parseFloat(selectedProduct.cost) || 0
-        const margin = parseFloat(selectedProduct.margin) || 0
+        const cost = Number.parseFloat(selectedProduct.cost) || 0
+        const margin = Number.parseFloat(selectedProduct.margin) || 0
         const total = (quantity * price).toFixed(2)
 
         // Agregar directamente al array de productos con los valores del catálogo
-        products.push({ 
-          quantity, 
-          description, 
-          price, 
-          total, 
-          code, 
-          cost, 
-          margin 
+        products.push({
+          quantity,
+          description,
+          price,
+          total,
+          code,
+          cost,
+          margin,
         })
       })
 
@@ -54,21 +54,21 @@ function checkForSelectedProduct() {
       // Usar directamente los valores del catálogo si están disponibles
       const quantity = selectedProduct.quantity || 1
       const description = selectedProduct.description || ""
-      const price = parseFloat(selectedProduct.price) || 0
+      const price = Number.parseFloat(selectedProduct.price) || 0
       const code = selectedProduct.code || ""
-      const cost = parseFloat(selectedProduct.cost) || 0
-      const margin = parseFloat(selectedProduct.margin) || 0
+      const cost = Number.parseFloat(selectedProduct.cost) || 0
+      const margin = Number.parseFloat(selectedProduct.margin) || 0
       const total = (quantity * price).toFixed(2)
 
       // Agregar directamente al array de productos con los valores del catálogo
-      products.push({ 
-        quantity, 
-        description, 
-        price, 
-        total, 
-        code, 
-        cost, 
-        margin 
+      products.push({
+        quantity,
+        description,
+        price,
+        total,
+        code,
+        cost,
+        margin,
       })
 
       // Update the invoice table and totals
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Agregar evento para limpiar la factura antes de cargar una nueva
   const loadInvoiceButtonOld = document.querySelector("button[onclick*='load-invoice-file']")
   if (loadInvoiceButtonOld) {
-    loadInvoiceButtonOld.addEventListener("click", (e) => {
+    loadInvoiceButtonOld.addEventListener("click", () => {
       clearInvoiceBeforeLoad()
     })
   }
@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // También podemos agregar el evento directamente al input file
   const loadInvoiceFile = document.getElementById("load-invoice-file")
   if (loadInvoiceFile) {
-    loadInvoiceFile.addEventListener("click", (e) => {
+    loadInvoiceFile.addEventListener("click", () => {
       clearInvoiceBeforeLoad()
     })
   }
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Agregar evento para guardar productos al hacer clic en "Ver Catálogo"
   const catalogButton = document.querySelector("button[onclick*='catalog.html']")
   if (catalogButton) {
-    catalogButton.addEventListener("click", (e) => {
+    catalogButton.addEventListener("click", () => {
       // Guardar los productos actuales y datos del cliente antes de ir al catálogo
       saveCurrentProducts()
       saveClientData()
@@ -326,34 +326,46 @@ let productList = []
 // Función para calcular el margen de ganancia
 function calculateMargin(sellingPrice, cost) {
   if (cost === 0 || cost === null || cost === undefined) {
-    return 0;
+    return 0
   }
-  return ((sellingPrice - cost) / cost) * 100;
+  return ((sellingPrice - cost) / cost) * 100
+}
+
+function calculateProductProfit(sellingPrice, cost, quantity) {
+  if (cost === 0 || cost === null || cost === undefined) {
+    return 0
+  }
+  const profitPerUnit = sellingPrice - cost
+  return profitPerUnit * quantity
 }
 
 // Función para encontrar el costo de un producto por código o descripción
 function findProductCost(code, description) {
   if (!productList || productList.length === 0) {
-    return 0;
+    return 0
   }
-  
+
   // Buscar primero por código si existe
-  if (code && code.trim() !== '') {
-    const productByCode = productList.find(p => p.Code && p.Code.toString().toLowerCase() === code.toString().toLowerCase());
+  if (code && code.trim() !== "") {
+    const productByCode = productList.find(
+      (p) => p.Code && p.Code.toString().toLowerCase() === code.toString().toLowerCase(),
+    )
     if (productByCode && productByCode.Cost !== undefined && productByCode.Cost !== null) {
-      return parseFloat(productByCode.Cost) || 0;
+      return Number.parseFloat(productByCode.Cost) || 0
     }
   }
-  
+
   // Si no se encuentra por código, buscar por descripción
-  if (description && description.trim() !== '') {
-    const productByDescription = productList.find(p => p.Description && p.Description.toLowerCase() === description.toLowerCase());
+  if (description && description.trim() !== "") {
+    const productByDescription = productList.find(
+      (p) => p.Description && p.Description.toLowerCase() === description.toLowerCase(),
+    )
     if (productByDescription && productByDescription.Cost !== undefined && productByDescription.Cost !== null) {
-      return parseFloat(productByDescription.Cost) || 0;
+      return Number.parseFloat(productByDescription.Cost) || 0
     }
   }
-  
-  return 0;
+
+  return 0
 }
 
 // Modificar la función addProduct para incluir el cálculo del margen y guardar los productos en localStorage después de agregar uno nuevo
@@ -361,7 +373,7 @@ function addProduct(e) {
   e.preventDefault()
   const quantity = document.getElementById("product-quantity").value
   const description = document.getElementById("product-description").value
-  const price = parseFloat(document.getElementById("product-price").value)
+  const price = Number.parseFloat(document.getElementById("product-price").value)
   const total = (quantity * price).toFixed(2)
 
   // Get the code from the input field first, if it's empty, get it from the selected product
@@ -374,11 +386,12 @@ function addProduct(e) {
     code = selectedOption && selectedOption.dataset ? selectedOption.dataset.code || "" : ""
   }
 
-  // Calcular el margen
-  const cost = findProductCost(code, description);
-  const margin = calculateMargin(price, cost);
+  // Calcular el margen y las ganancias
+  const cost = findProductCost(code, description)
+  const margin = calculateMargin(price, cost)
+  const profit = calculateProductProfit(price, cost, quantity)
 
-  products.push({ quantity, description, price, total, code, cost, margin })
+  products.push({ quantity, description, price, total, code, cost, margin, profit })
   updateInvoiceTable()
   updateTotals()
 
@@ -456,7 +469,6 @@ function addAdjustment() {
   saveClientData()
 }
 
-// Modificar la función updateTotals para manejar correctamente los valores de abono y descuento
 function updateTotals() {
   const subtotal = products.reduce((sum, product) => sum + Number(product.total), 0)
   const tax = (subtotal * 0.07).toFixed(2) // Redondear el 7% ITBMS a 2 decimales
@@ -472,9 +484,16 @@ function updateTotals() {
   // El total es subtotal + impuesto - descuento - abono
   const total = (subtotal + Number(tax) - discount - deposit).toFixed(2) // Redondear el total a 2 decimales
 
+  const totalProfit = products.reduce((sum, product) => {
+    const cost = product.cost || findProductCost(product.code, product.description)
+    const profit = calculateProductProfit(Number.parseFloat(product.price), cost, Number.parseFloat(product.quantity))
+    return sum + profit
+  }, 0)
+
   document.getElementById("subtotal").textContent = subtotal.toFixed(2)
   document.getElementById("tax").textContent = tax
   document.getElementById("total").textContent = total
+  document.getElementById("total-profit").textContent = totalProfit.toFixed(2)
 }
 
 // Nueva función para agregar abono
@@ -567,16 +586,15 @@ function handleFile(e) {
   } else {
     // Manejar archivo Excel (código original)
     reader.onload = (e) => {
-      /* global XLSX */
-      if (typeof XLSX === "undefined") {
+      if (typeof window.XLSX === "undefined") {
         console.error("XLSX is not defined. Make sure the library is loaded.")
         return
       }
       const data = new Uint8Array(e.target.result)
-      const workbook = XLSX.read(data, { type: "array" })
+      const workbook = window.XLSX.read(data, { type: "array" })
       const firstSheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[firstSheetName]
-      const json = XLSX.utils.sheet_to_json(worksheet)
+      const json = window.XLSX.utils.sheet_to_json(worksheet)
 
       // Asegurarse de que cada producto tenga una categoría
       const productsWithCategories = json.slice(1).map((product) => {
@@ -807,14 +825,14 @@ function saveInvoiceToExcelFile() {
     invoiceData.push([product.quantity, product.code || "", product.description, product.price, product.total])
   })
 
-  const ws = XLSX.utils.aoa_to_sheet(invoiceData)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, "Factura")
+  const ws = window.XLSX.utils.aoa_to_sheet(invoiceData)
+  const wb = window.XLSX.utils.book_new()
+  window.XLSX.utils.book_append_sheet(wb, ws, "Factura")
 
   // Crear un nombre de archivo con el número de orden y el nombre del cliente
   const sanitizedClientName = clientName.replace(/[\\/:*?"<>|]/g, "_").substring(0, 30) // Eliminar caracteres no válidos para nombre de archivo
   const fileName = `Factura_${orderNumber}_${sanitizedClientName}.xlsx`
-  XLSX.writeFile(wb, fileName)
+  window.XLSX.writeFile(wb, fileName)
 
   // Clear products after saving to Excel
   products = []
@@ -927,10 +945,10 @@ function loadInvoiceFromExcel(e) {
     // Manejar archivo Excel (código original)
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result)
-      const workbook = XLSX.read(data, { type: "array" })
+      const workbook = window.XLSX.read(data, { type: "array" })
       const firstSheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[firstSheetName]
-      const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+      const json = window.XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 
       // Rellenar los campos de la factura
       document.getElementById("invoice-date").value = json[0][1] || ""
@@ -1024,10 +1042,11 @@ function loadInvoiceFromExcel(e) {
               price > 0
             ) {
               const total = (quantity * price).toFixed(2)
-              
-              // Calcular el margen
-              const cost = findProductCost(code, description);
-              const margin = calculateMargin(price, cost);
+
+              // Calcular el margen y las ganancias
+              const cost = findProductCost(code, description)
+              const margin = calculateMargin(price, cost)
+              const profit = calculateProductProfit(price, cost, quantity)
 
               products.push({
                 quantity: quantity,
@@ -1036,7 +1055,8 @@ function loadInvoiceFromExcel(e) {
                 price: price,
                 total: total,
                 cost: cost,
-                margin: margin
+                margin: margin,
+                profit: profit,
               })
             }
           }
@@ -1077,26 +1097,29 @@ function deleteAdjustment(type) {
   }
 }
 
-// Modificar la función updateInvoiceTable para incluir la columna de margen
 function updateInvoiceTable() {
   const tableBody = document.getElementById("invoice-items")
   tableBody.innerHTML = ""
 
   products.forEach((product, index) => {
     const row = document.createElement("tr")
-    
-    // Calcular el margen si no existe
-    let margin = product.margin;
-    if (margin === undefined || margin === null) {
-      const cost = product.cost || findProductCost(product.code, product.description);
-      margin = calculateMargin(parseFloat(product.price), cost);
+
+    // Calcular el margen y las ganancias si no existen
+    let margin = product.margin
+    let profit = product.profit
+
+    if (margin === undefined || margin === null || profit === undefined || profit === null) {
+      const cost = product.cost || findProductCost(product.code, product.description)
+      margin = calculateMargin(Number.parseFloat(product.price), cost)
+      profit = calculateProductProfit(Number.parseFloat(product.price), cost, Number.parseFloat(product.quantity))
     }
-    
+
     row.innerHTML = `
         <td>${product.quantity}</td>
         <td>${product.code || ""}</td>
         <td>${product.description}</td>
         <td>$${Number.parseFloat(product.price).toFixed(2)}</td>
+        <td class="profit-column no-print">$${profit.toFixed(2)}</td>
         <td class="margin-column no-print">${margin.toFixed(1)}%</td>
         <td>$${product.total}</td>
         <td class="no-print">
