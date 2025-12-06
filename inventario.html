@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Inventario - SURTIMAX</title>
+    <link rel="icon" href="icon/icon.png" type="image/png">
+    <style>
+        :root {
+            --primary-color: #1c8d87;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --text-color: #000000;
+            --border-color: #dee2e6;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --info-color: #1c8d87;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            padding-top: 100px;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        .action-btn:hover {
+            background-color: #0d5d58;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn:active {
+            transform: translateY(0);
+        }
+        
+        .action-btn.secondary {
+            background-color: #6c757d;
+        }
+        
+        .action-btn.secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .action-btn.danger {
+            background-color: var(--danger-color);
+        }
+        
+        .action-btn.danger:hover {
+            background-color: #c82333;
+        }
+        
+        .inventory-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .filter-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .filter-container select,
+        .filter-container input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .filter-container select:focus,
+        .filter-container input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(28, 141, 135, 0.2);
+        }
+        
+        .search-container {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        
+        .search-container input {
+            width: 100%;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        .product-code {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            max-width: 250px;
+        }
+        
+        .quantity-input {
+            width: 80px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .quantity-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(28, 141, 135, 0.2);
+        }
+        
+        .low-stock {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            background-color: #e0f2f1;
+            color: var(--primary-color);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .no-data {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 110px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1100;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .filter-container {
+                flex-direction: column;
+            }
+            
+            .filter-group,
+            .search-container {
+                width: 100%;
+            }
+            
+            .filter-container select,
+            .filter-container input {
+                width: 100%;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+            
+            .quantity-input {
+                width: 60px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media print {
+            .controls, .filter-container, .stats-container {
+                display: none;
+            }
+            
+            body {
+                padding: 0;
+                background-color: white;
+            }
+            
+            .inventory-container {
+                padding: 0;
+            }
+            
+            .table-container {
+                box-shadow: none;
+            }
+            
+            .quantity-input {
+                border: none;
+                background-color: white;
+            }
+            
+            /* Ocultar columnas de precios al imprimir */
+            .price-column, .price-7-column, .total-column {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="document.getElementById('excel-file').click()" class="action-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2z"/>
+            </svg>
+            Cargar Archivo Excel
+        </button>
+        
+        <button onclick="exportToExcel()" class="action-btn secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2z"/>
+            </svg>
+            Exportar Excel
+        </button>
+        
+        <button onclick="window.print()" class="action-btn secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+            </svg>
+            Imprimir
+        </button>
+        
+        <button onclick="clearInventory()" class="action-btn danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6a.5.5 0 0 0-1-0z"/>
+            </svg>
+            Limpiar
+        </button>
+    </div>
+    
+    <input type="file" id="excel-file" accept=".xlsx, .xls, .json" style="display: none;">
+
+    <div class="inventory-container">
+        <div class="header">
+            <h1>GESTIÓN DE INVENTARIO</h1>
+            <p>VENTAS SURTIMAX - Administración de Stock</p>
+        </div>
+        
+        <div class="stats-container" id="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="total-products">0</div>
+                <div class="stat-label">Productos Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-quantity">0</div>
+                <div class="stat-label">Unidades en Stock</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="low-stock-count">0</div>
+                <div class="stat-label">Productos Bajos</div>
+            </div>
+        </div>
+        
+        <div class="filter-container">
+            <div class="filter-group">
+                <label class="filter-label">Categoría:</label>
+                <select id="category-filter">
+                    <option value="">Todas las categorías</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Subcategoría:</label>
+                <select id="subcategory-filter">
+                    <option value="">Todas las subcategorías</option>
+                </select>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Buscar por código o nombre...">
+                <span class="search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                </span>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre del Producto</th>
+                        <th>Categoría</th>
+                        <th>Subcategoría</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th class="price-column">P/U</th>
+                        <th class="price-7-column">7%</th>
+                        <th class="total-column">Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-tbody">
+                    <tr><td colspan="8" class="no-data">Cargue un archivo Excel para ver el inventario</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let inventoryData = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('excel-file').addEventListener('change', handleFile);
+            document.getElementById('category-filter').addEventListener('change', filterInventory);
+            document.getElementById('subcategory-filter').addEventListener('change', filterInventory);
+            document.getElementById('search-input').addEventListener('input', filterInventory);
+
+            // Cargar datos guardados
+            if (localStorage.getItem('inventoryData')) {
+                try {
+                    inventoryData = JSON.parse(localStorage.getItem('inventoryData'));
+                    populateFilters();
+                    displayInventory(inventoryData);
+                    updateStats();
+                } catch (e) {
+                    console.error('Error al cargar inventario:', e);
+                }
+            }
+        });
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            const isJsonFile = file.name.toLowerCase().endsWith('.json');
+
+            if (isJsonFile) {
+                reader.onload = (e) => {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        const products = Array.isArray(jsonData) ? jsonData : jsonData.products || [];
+                        
+                        inventoryData = products.map(product => ({
+                            Code: product.Code || product.Codigo || '',
+                            Name: product.Description || product.Descripcion || product.Nombre || '',
+                            Category: product.Category || product.Categoria || 'Sin Categoría',
+                            Subcategory: product.Subcategory || product.Subcategoría || 'TODOS',
+                            Quantity: product.Cant || product.cant || product.Quantity || product.Cantidad || 0,
+                            Price: product.Price || product.Precio || 0,
+                            CostPrice: product.CostPrice || product.PrecioConImpuesto || 0
+                        }));
+                        
+                        localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+                        populateFilters();
+                        displayInventory(inventoryData);
+                        updateStats();
+                        showNotification('Archivo cargado exitosamente', false);
+                    } catch (error) {
+                        showNotification('Error al procesar el archivo JSON', true);
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const json = XLSX.utils.sheet_to_json(worksheet);
+
+                        inventoryData = json.map(product => ({
+                            Code: product.Code || product.Codigo || '',
+                            Name: product.Description || product.Descripcion || product.Nombre || '',
+                            Category: product.Category || product.Categoria || 'Sin Categoría',
+                            Subcategory: product.Subcategory || product.Subcategoría || 'TODOS',
+                            Quantity: parseInt(product.Cant || product.cant || product.Quantity || product.Cantidad || 0),
+                            Price: parseFloat(product.Price || product.Precio || 0),
+                            CostPrice: parseFloat(product.CostPrice || product.PrecioConImpuesto || 0)
+                        }));
+
+                        localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+                        populateFilters();
+                        displayInventory(inventoryData);
+                        updateStats();
+                        showNotification('Archivo Excel cargado exitosamente', false);
+                    } catch (error) {
+                        showNotification('Error al procesar el archivo Excel', true);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function populateFilters() {
+            const categories = [...new Set(inventoryData.map(p => p.Category))].sort();
+            const categorySelect = document.getElementById('category-filter');
+            categorySelect.innerHTML = '<option value="">Todas las categorías</option>';
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function filterInventory() {
+            const categoryFilter = document.getElementById('category-filter').value;
+            const subcategoryFilter = document.getElementById('subcategory-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            // Actualizar subcategorías
+            if (categoryFilter) {
+                const subcategories = [...new Set(
+                    inventoryData
+                        .filter(p => p.Category === categoryFilter)
+                        .map(p => p.Subcategory)
+                )].sort();
+                
+                const subcategorySelect = document.getElementById('subcategory-filter');
+                subcategorySelect.innerHTML = '<option value="">Todas las subcategorías</option>';
+                subcategories.forEach(subcat => {
+                    const option = document.createElement('option');
+                    option.value = subcat;
+                    option.textContent = subcat;
+                    subcategorySelect.appendChild(option);
+                });
+            }
+
+            const filtered = inventoryData.filter(product => {
+                const matchCategory = !categoryFilter || product.Category === categoryFilter;
+                const matchSubcategory = !subcategoryFilter || product.Subcategory === subcategoryFilter;
+                const matchSearch = !searchTerm || 
+                    product.Code.toLowerCase().includes(searchTerm) ||
+                    product.Name.toLowerCase().includes(searchTerm);
+
+                return matchCategory && matchSubcategory && matchSearch;
+            });
+
+            displayInventory(filtered);
+        }
+
+        function displayInventory(data) {
+            const tbody = document.getElementById('inventory-tbody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">No hay productos para mostrar</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map((product, index) => {
+                const totalValue = (product.Quantity || 0) * (product.Price || 0);
+                const priceWith7Percent = (product.Price || 0) * 1.07;
+                const isLowStock = (product.Quantity || 0) < 10;
+                
+                return `
+                    <tr>
+                        <td class="product-code">${product.Code}</td>
+                        <td class="product-name">${product.Name}</td>
+                        <td><span class="category-badge">${product.Category}</span></td>
+                        <td>${product.Subcategory}</td>
+                        <td style="text-align: center;">
+                            <input type="number" class="quantity-input ${isLowStock ? 'low-stock' : ''}" 
+                                   value="${product.Quantity || 0}" min="0"
+                                   onchange="updateQuantity(${index}, this.value)">
+                        </td>
+                        <td class="price-column">$${(product.Price || 0).toFixed(2)}</td>
+                        <td class="price-7-column">$${priceWith7Percent.toFixed(2)}</td>
+                        <td class="total-column">$${totalValue.toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateQuantity(index, value) {
+            inventoryData[index].Quantity = parseInt(value) || 0;
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            updateStats();
+            showNotification('Cantidad actualizada', false);
+        }
+
+        function updateStats() {
+            const totalProducts = inventoryData.length;
+            const totalQuantity = inventoryData.reduce((sum, p) => sum + (p.Quantity || 0), 0);
+            const lowStockCount = inventoryData.filter(p => (p.Quantity || 0) < 10).length;
+
+            document.getElementById('total-products').textContent = totalProducts;
+            document.getElementById('total-quantity').textContent = totalQuantity;
+            document.getElementById('low-stock-count').textContent = lowStockCount;
+        }
+
+        function exportToExcel() {
+            if (inventoryData.length === 0) {
+                showNotification('No hay datos para exportar', true);
+                return;
+            }
+
+            const ws = XLSX.utils.json_to_sheet(inventoryData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+            XLSX.writeFile(wb, 'inventario_surtimax.xlsx');
+            showNotification('Archivo exportado exitosamente', false);
+        }
+
+        function clearInventory() {
+            if (confirm('¿Está seguro de que desea limpiar todo el inventario?')) {
+                inventoryData = [];
+                localStorage.removeItem('inventoryData');
+                document.getElementById('inventory-tbody').innerHTML = 
+                    '<tr><td colspan="8" class="no-data">Cargue un archivo Excel para ver el inventario</td></tr>';
+                document.getElementById('category-filter').innerHTML = '<option value="">Todas las categorías</option>';
+                document.getElementById('subcategory-filter').innerHTML = '<option value="">Todas las subcategorías</option>';
+                updateStats();
+                showNotification('Inventario limpiado', false);
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification show' + (isError ? ' error' : '');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
