@@ -524,14 +524,12 @@
             display: none !important;
         }
         
-        /* Ocultar columnas de precio unitario, margen y total SOLO cuando ningún método de pago está seleccionado */
+        /* Ocultar precio unitario (P/U - 4ta columna) y total (7ma columna) cuando hay crédito o contado marcado */
         body.hide-prices table th:nth-child(4),
         body.hide-prices table td:nth-child(4),
-        body.hide-prices table th:nth-child(5),
-        body.hide-prices table td:nth-child(5),
-        body.hide-prices table th:nth-child(6),
-        body.hide-prices table td:nth-child(6) {
-            display: none;
+        body.hide-prices table th:nth-child(7),
+        body.hide-prices table td:nth-child(7) {
+            display: none !important;
         }
         
         /* Ocultar columna de ganancias SIEMPRE al imprimir, sin importar el método de pago */
