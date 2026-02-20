@@ -600,26 +600,29 @@
     <script>
         function calculateMargin(button) {
             const container = button.closest('.calculator-container');
+            autoCalculate(container);
+        }
+
+        function autoCalculate(container) {
             const cost = parseFloat(container.querySelector('.cost-input').value);
             const markup = parseFloat(container.querySelector('.markup-input').value);
             
-            if (isNaN(cost) || cost <= 0) {
-                alert('Por favor ingrese un costo válido mayor que cero.');
-                return;
-            }
-            
-            if (isNaN(markup) || markup < 0) {
-                alert('Por favor ingrese un porcentaje de marcado válido (mayor o igual a cero).');
+            const resultsDiv = container.querySelector('.results');
+            const salePriceElement = container.querySelector('.price-value');
+            const profitElement = container.querySelector('.profit-value');
+            const marginElement = container.querySelector('.margin-value');
+
+            if (isNaN(cost) || cost <= 0 || isNaN(markup) || markup < 0) {
+                resultsDiv.style.display = 'none';
+                salePriceElement.textContent = '$0.00';
+                profitElement.textContent = '$0.00';
+                marginElement.textContent = '0.00%';
                 return;
             }
             
             const salePrice = cost * (1 + markup / 100);
             const profit = salePrice - cost;
             const marginPercent = (profit / salePrice) * 100;
-            
-            const salePriceElement = container.querySelector('.price-value');
-            const profitElement = container.querySelector('.profit-value');
-            const marginElement = container.querySelector('.margin-value');
             
             salePriceElement.textContent = '$' + salePrice.toFixed(2);
             profitElement.textContent = '$' + profit.toFixed(2);
@@ -635,7 +638,7 @@
                 marginElement.classList.remove('highlight');
             }, 500);
             
-            container.querySelector('.results').style.display = 'block';
+            resultsDiv.style.display = 'block';
         }
         
         function resetForm(button) {
@@ -688,15 +691,23 @@
             costInput.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    calculateMargin(calculateBtn);
+                    autoCalculate(container);
                 }
             });
 
             markupInput.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    calculateMargin(calculateBtn);
+                    autoCalculate(container);
                 }
+            });
+
+            costInput.addEventListener('input', function() {
+                autoCalculate(container);
+            });
+
+            markupInput.addEventListener('input', function() {
+                autoCalculate(container);
             });
         }
 
