@@ -31,16 +31,16 @@
         }
         
         .calculator-container {
-            max-width: 800px;
-            margin: 0 auto 30px auto;
+            width: 100%;
             border: none;
             border-radius: 16px;
-            padding: 30px;
+            padding: 35px;
             background-color: white;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
             animation: slideIn 0.3s ease;
+            box-sizing: border-box;
         }
         
         @keyframes slideIn {
@@ -98,14 +98,14 @@
         
         .header h1 {
             margin: 0px 0;
-            font-size: 20px;
+            font-size: 14px;
             color: var(--primary-color);
             letter-spacing: 1px;
             text-transform: uppercase;
         }
         
         .header p {
-            margin: 5px 0;
+            margin: 10px 0;
             color: #555;
         }
         
@@ -180,10 +180,9 @@
         
         .calculator-form {
             background-color: var(--primary-light);
-            padding: 25px;
+            padding: 20px;
             border-radius: 12px;
-            margin: 0 auto 30px auto;
-            max-width: 600px;
+            margin: 0 auto 20px auto;
             box-sizing: border-box;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
@@ -198,8 +197,7 @@
         
         .input-field {
             flex: 1;
-            min-width: 200px;
-            max-width: 270px;
+            min-width: 120px;
             position: relative;
         }
         
@@ -284,7 +282,6 @@
         
         .results {
             display: none;
-            max-width: 600px;
             margin: 0 auto;
             box-sizing: border-box;
             animation: fadeIn 0.5s ease;
@@ -342,7 +339,7 @@
         }
         
         .price-value, .profit-value, .margin-value {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 700;
             color: var(--primary-color);
             display: flex;
@@ -398,22 +395,18 @@
         
         @media (max-width: 768px) {
             .calculator-container {
-                padding: 20px 15px;
+                padding: 15px;
                 border-radius: 12px;
             }
             
             .input-group {
                 flex-direction: column;
-                gap: 20px;
-            }
-            
-            .input-field {
-                max-width: 100%;
+                gap: 15px;
             }
             
             .button-group {
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
             }
             
             .reset-btn, .calculate-btn {
@@ -421,15 +414,15 @@
             }
             
             .results-table th, .results-table td {
-                padding: 12px 8px;
+                padding: 10px 5px;
             }
             
             .price-value, .profit-value, .margin-value {
-                font-size: 24px;
+                font-size: 18px;
             }
             
             .header h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
         }
         
@@ -452,8 +445,29 @@
             }
         }
 
+        #calculators-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        @media (max-width: 1200px) {
+            #calculators-wrapper {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #calculators-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .add-calculator-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 30px auto;
             text-align: center;
         }
@@ -502,7 +516,7 @@
             
             <div class="header">
                 <div class="logo-container">
-                    <img src="icon/logo.png" width="80" height="80" alt="Logo SURTIMAX">
+                    <img src="icon/logo.png" width="50" height="50" alt="Logo SURTIMAX">
                 </div>
                 <p class="company-name">VENTAS SURTIMAX, BOCAS DEL TORO, S.A.</p>
                 <h1>Calculadora de Margen</h1>
@@ -516,7 +530,7 @@
                     </div>
                     <div class="input-field">
                         <label for="markup">Marcado (%)</label>
-                        <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el porcentaje">
+                        <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el margen">
                     </div>
                 </div>
                 <div class="button-group">
