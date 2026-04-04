@@ -27,7 +27,7 @@
     }
     
     .invoice {
-        max-width: 950px; /* Aumentado de 900px a 1400px para mejor visualización */
+        max-width: 960px; /* Aumentado de 900px a 1400px para mejor visualización */
         margin: 0 auto;
         border: none;
         border-radius: 10px;
@@ -446,6 +446,231 @@
         font-weight: bold;
         text-align: center;
     }
+
+    /* Estilos para el modal de búsqueda de productos */
+    .search-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    #product-search {
+        width: 250px;
+        padding: 8px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    #product-search:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(28, 141, 135, 0.2);
+    }
+
+    /* Modal de productos */
+    .product-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .product-modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow: hidden;
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .modal-close:hover {
+        opacity: 0.8;
+    }
+
+    .modal-search-bar {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-search-input-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .modal-search-bar input {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .modal-search-bar input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(28, 141, 135, 0.2);
+    }
+
+    .modal-filters-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .modal-filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .modal-filter-group label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .modal-search-bar select {
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 14px;
+        width: 100%;
+    }
+    
+    .modal-search-bar select:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(28, 141, 135, 0.2);
+    }
+
+    .modal-body {
+        padding: 0;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .product-results {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .product-results li {
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border-color);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+    }
+
+    .product-results li:hover {
+        background-color: rgba(28, 141, 135, 0.1);
+    }
+
+    .product-results li:last-child {
+        border-bottom: none;
+    }
+
+    .product-info {
+        flex: 1;
+    }
+
+    .product-name {
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 4px;
+    }
+
+    .product-details {
+        font-size: 12px;
+        color: #666;
+    }
+
+    .product-price-tag {
+        font-weight: bold;
+        color: var(--primary-color);
+        font-size: 16px;
+        margin-left: 15px;
+    }
+
+    .no-results {
+        padding: 40px 20px;
+        text-align: center;
+        color: #666;
+    }
+
+    .results-count {
+        padding: 10px 20px;
+        background-color: var(--secondary-color);
+        font-size: 13px;
+        color: #666;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Botón para abrir el buscador */
+    .search-btn {
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 4px;
+        color: white;
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .search-btn:hover {
+        background-color: #166e69;
+    }
     
     @media print {
         body {
@@ -618,7 +843,13 @@
     </div>
     
     <form id="product-form" class="no-print">
-        <select id="product-select">
+        <button type="button" class="search-btn" onclick="openProductModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+            Buscar Producto
+        </button>
+        <select id="product-select" style="display: none;">
             <option value="">Seleccione un producto</option>
         </select>
         <input type="number" id="product-quantity" placeholder="Cantidad" required min="1">
@@ -711,6 +942,47 @@
 <!-- Notificación de producto agregado desde el catálogo -->
 <div id="notification" class="notification">
     Producto agregado a la factura
+</div>
+
+<!-- Modal de búsqueda de productos -->
+<div id="product-modal" class="product-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Buscar Producto</h3>
+            <button class="modal-close" onclick="closeProductModal()">&times;</button>
+        </div>
+        <div class="modal-search-bar">
+            <div class="modal-search-input-row">
+                <input type="text" id="modal-search-input" placeholder="Buscar por nombre, código o descripción..." autocomplete="off">
+            </div>
+            <div class="modal-filters-row">
+                <div class="modal-filter-group">
+                    <label>Categoría</label>
+                    <select id="modal-category-filter">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+                <div class="modal-filter-group">
+                    <label>Subcategoría</label>
+                    <select id="modal-subcategory-filter">
+                        <option value="">Todas las subcategorías</option>
+                    </select>
+                </div>
+                <div class="modal-filter-group">
+                    <label>Marca</label>
+                    <select id="modal-brand-filter">
+                        <option value="">Todas las marcas</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="results-count" class="results-count"></div>
+        <div class="modal-body">
+            <ul id="product-results" class="product-results">
+                <!-- Los resultados se insertarán aquí -->
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script src="xlsx.full.min.js"></script>
@@ -870,38 +1142,7 @@
     function loadProductList(productData) {
         productList = productData;
 
-        // Extraer categorías únicas de los productos
-        const categories = [...new Set(productData.map((product) => product.Category || "Sin Categoría"))];
-
-        // Ordenar categorías alfabéticamente usando localeCompare (igual que en catalog.html)
-        categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
-
-        // Crear el selector de categorías
-        const categorySelect = document.createElement("select");
-        categorySelect.id = "category-select";
-        categorySelect.innerHTML = '<option value="">Todas las categorías</option>';
-
-        categories.forEach((category) => {
-            const option = document.createElement("option");
-            option.value = category;
-            option.textContent = category;
-            categorySelect.appendChild(option);
-        });
-
-        // Insertar el selector de categorías antes del selector de productos
-        const productForm = document.getElementById("product-form");
-        const productSelect = document.getElementById("product-select");
-
-        // Verificar si ya existe un selector de categorías
-        const existingCategorySelect = document.getElementById("category-select");
-        if (!existingCategorySelect) {
-            productForm.insertBefore(categorySelect, productSelect);
-        }
-
-        // Agregar evento para filtrar productos por categoría
-        categorySelect.addEventListener("change", filterProductsByCategory);
-
-        // Inicializar el selector de productos
+        // Inicializar el selector de productos (sin el selector de categorías en la factura)
         updateProductSelect(productData);
     }
 
@@ -956,6 +1197,318 @@
         
         document.getElementById('contado').checked = contadoChecked;
         document.getElementById('credito').checked = creditoChecked;
+    });
+
+    // ============ FUNCIONES DEL MODAL DE BÚSQUEDA DE PRODUCTOS ============
+
+    // Abrir modal de búsqueda
+    function openProductModal() {
+        const modal = document.getElementById('product-modal');
+        modal.classList.add('show');
+        
+        // Actualizar categorías en el modal
+        updateModalCategories();
+        
+        // Mostrar todos los productos inicialmente
+        searchProducts('');
+        
+        // Enfocar el campo de búsqueda
+        setTimeout(() => {
+            document.getElementById('modal-search-input').focus();
+        }, 100);
+    }
+
+    // Cerrar modal de búsqueda
+    function closeProductModal() {
+        const modal = document.getElementById('product-modal');
+        modal.classList.remove('show');
+        
+        // Limpiar el campo de búsqueda y filtros
+        document.getElementById('modal-search-input').value = '';
+        document.getElementById('modal-category-filter').value = '';
+        document.getElementById('modal-subcategory-filter').value = '';
+        document.getElementById('modal-brand-filter').value = '';
+    }
+
+    // Actualizar categorías en el modal
+    function updateModalCategories() {
+        if (!productList || productList.length === 0) return;
+        
+        const categoryFilter = document.getElementById('modal-category-filter');
+        const currentValue = categoryFilter.value;
+        
+        // Extraer categorías únicas
+        const categories = [...new Set(productList.map((product) => product.Category || "Sin Categoría"))];
+        categories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+        
+        // Reconstruir opciones
+        categoryFilter.innerHTML = '<option value="">Todas las categorías</option>';
+        categories.forEach((category) => {
+            const option = document.createElement("option");
+            option.value = category;
+            option.textContent = category;
+            categoryFilter.appendChild(option);
+        });
+        
+        // Restaurar valor seleccionado
+        categoryFilter.value = currentValue;
+        
+        // Actualizar subcategorías y marcas basadas en todos los productos
+        updateDynamicFilters(productList);
+    }
+    
+    // Actualizar filtros dinámicos (subcategoría y marca) basados en los productos filtrados
+    function updateDynamicFilters(filteredProducts) {
+        const subcategoryFilter = document.getElementById('modal-subcategory-filter');
+        const brandFilter = document.getElementById('modal-brand-filter');
+        
+        const currentSubcategory = subcategoryFilter.value;
+        const currentBrand = brandFilter.value;
+        
+        // Extraer subcategorías únicas de los productos filtrados
+        const subcategories = [...new Set(filteredProducts.map((product) => product.Subcategory || product.SubCategory || "Sin Subcategoría"))];
+        subcategories.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+        
+        // Extraer marcas únicas de los productos filtrados
+        const brands = [...new Set(filteredProducts.map((product) => product.Brand || "Sin Marca"))];
+        brands.sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+        
+        // Reconstruir opciones de subcategoría
+        subcategoryFilter.innerHTML = '<option value="">Todas las subcategorías</option>';
+        subcategories.forEach((subcategory) => {
+            const option = document.createElement("option");
+            option.value = subcategory;
+            option.textContent = subcategory;
+            subcategoryFilter.appendChild(option);
+        });
+        
+        // Reconstruir opciones de marca
+        brandFilter.innerHTML = '<option value="">Todas las marcas</option>';
+        brands.forEach((brand) => {
+            const option = document.createElement("option");
+            option.value = brand;
+            option.textContent = brand;
+            brandFilter.appendChild(option);
+        });
+        
+        // Restaurar valores seleccionados si aún existen en las opciones
+        if (subcategories.includes(currentSubcategory)) {
+            subcategoryFilter.value = currentSubcategory;
+        }
+        if (brands.includes(currentBrand)) {
+            brandFilter.value = currentBrand;
+        }
+    }
+
+    // Variables para paginación infinita
+    let currentFilteredProducts = [];
+    let currentDisplayCount = 0;
+    const productsPerPage = 50;
+
+    // Buscar productos
+    function searchProducts(query, updateFilters = true) {
+        if (!productList || productList.length === 0) {
+            document.getElementById('product-results').innerHTML = '<li class="no-results">No hay productos cargados. Por favor cargue una lista de productos.</li>';
+            document.getElementById('results-count').textContent = '';
+            return;
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const categoryFilter = document.getElementById('modal-category-filter').value;
+        const subcategoryFilter = document.getElementById('modal-subcategory-filter').value;
+        const brandFilter = document.getElementById('modal-brand-filter').value;
+        
+        // Primero filtrar solo por búsqueda de texto para actualizar los filtros dinámicos
+        let textFilteredProducts = productList.filter((product) => {
+            // Si no hay término de búsqueda, mostrar todos
+            if (searchTerm === '') {
+                return true;
+            }
+            
+            // Buscar en descripción, código, categoría, subcategoría y marca
+            const description = (product.Description || '').toLowerCase();
+            const code = (product.Code || '').toString().toLowerCase();
+            const category = (product.Category || '').toLowerCase();
+            const subcategory = (product.Subcategory || product.SubCategory || '').toLowerCase();
+            const brand = (product.Brand || '').toLowerCase();
+            
+            return description.includes(searchTerm) || 
+                   code.includes(searchTerm) || 
+                   category.includes(searchTerm) ||
+                   subcategory.includes(searchTerm) ||
+                   brand.includes(searchTerm);
+        });
+        
+        // Actualizar los filtros dinámicos basados en los productos que coinciden con la búsqueda
+        if (updateFilters) {
+            updateDynamicFilters(textFilteredProducts);
+        }
+        
+        // Ahora aplicar todos los filtros (categoría, subcategoría, marca)
+        let filteredProducts = textFilteredProducts.filter((product) => {
+            // Filtrar por categoría si está seleccionada
+            if (categoryFilter && (product.Category || "Sin Categoría") !== categoryFilter) {
+                return false;
+            }
+            
+            // Filtrar por subcategoría si está seleccionada
+            if (subcategoryFilter && (product.Subcategory || product.SubCategory || "Sin Subcategoría") !== subcategoryFilter) {
+                return false;
+            }
+            
+            // Filtrar por marca si está seleccionada
+            if (brandFilter && (product.Brand || "Sin Marca") !== brandFilter) {
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Ordenar resultados alfabéticamente
+        filteredProducts.sort((a, b) => 
+            (a.Description || '').localeCompare(b.Description || '', "es", { sensitivity: "base" })
+        );
+        
+        // Guardar los productos filtrados para paginación
+        currentFilteredProducts = filteredProducts;
+        currentDisplayCount = 0;
+        
+        // Renderizar resultados iniciales
+        const resultsList = document.getElementById('product-results');
+        resultsList.innerHTML = '';
+        
+        if (filteredProducts.length === 0) {
+            resultsList.innerHTML = '<li class="no-results">No se encontraron productos con ese criterio de búsqueda.</li>';
+            document.getElementById('results-count').textContent = 'No se encontraron productos';
+            return;
+        }
+        
+        // Cargar primera página
+        loadMoreProducts();
+    }
+
+    // Función para cargar más productos
+    function loadMoreProducts() {
+        if (currentDisplayCount >= currentFilteredProducts.length) return;
+        
+        const resultsList = document.getElementById('product-results');
+        const endIndex = Math.min(currentDisplayCount + productsPerPage, currentFilteredProducts.length);
+        const productsToAdd = currentFilteredProducts.slice(currentDisplayCount, endIndex);
+        
+        productsToAdd.forEach((product) => {
+            const price = parseFloat(product.Price) || 0;
+            const priceWithTax = price * 1.07;
+            const code = product.Code || 'Sin código';
+            const category = product.Category || 'Sin categoría';
+            const brand = product.Brand || 'Sin marca';
+            
+            const li = document.createElement('li');
+            li.onclick = () => selectProductFromModal(productList.indexOf(product));
+            li.innerHTML = `
+                <div class="product-info">
+                    <div class="product-name">${product.Description || 'Sin descripción'}</div>
+                    <div class="product-details">
+                        <strong>Código:</strong> ${code} | <strong>Marca:</strong> ${brand} | <strong>Categoría:</strong> ${category}
+                    </div>
+                </div>
+                <div class="product-price-tag" style="text-align: right;">
+                    <div style="font-size: 12px; color: #666;">$${price.toFixed(2)}</div>
+                    <div style="font-size: 18px; color: #1c8d87; font-weight: bold;">$${priceWithTax.toFixed(2)}</div>
+                </div>
+            `;
+            resultsList.appendChild(li);
+        });
+        
+        currentDisplayCount = endIndex;
+        
+        // Actualizar contador de resultados
+        const resultsCountEl = document.getElementById('results-count');
+        const totalResults = currentFilteredProducts.length;
+        if (currentDisplayCount < totalResults) {
+            resultsCountEl.textContent = `Mostrando ${currentDisplayCount} de ${totalResults} productos (desplaza para ver más)`;
+        } else {
+            resultsCountEl.textContent = `${totalResults} producto${totalResults !== 1 ? 's' : ''} encontrado${totalResults !== 1 ? 's' : ''}`;
+        }
+    }
+
+    // Seleccionar producto desde el modal
+    function selectProductFromModal(productIndex) {
+        const product = productList[productIndex];
+        if (!product) return;
+        
+        // Llenar los campos del formulario
+        document.getElementById('product-description').value = product.Description || '';
+        document.getElementById('product-price').value = product.Price || 0;
+        document.getElementById('product-code').value = product.Code || '';
+        document.getElementById('product-quantity').value = 1;
+        
+        // Actualizar el select oculto para mantener compatibilidad
+        const select = document.getElementById('product-select');
+        const option = Array.from(select.options).find(opt => 
+            opt.textContent === product.Description
+        );
+        if (option) {
+            select.value = option.value;
+        }
+        
+        // Cerrar el modal
+        closeProductModal();
+        
+        // Enfocar el campo de cantidad
+        document.getElementById('product-quantity').focus();
+        document.getElementById('product-quantity').select();
+    }
+
+    // Event listeners para el modal
+    document.addEventListener('DOMContentLoaded', function() {
+        // Búsqueda en tiempo real
+        const searchInput = document.getElementById('modal-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                // Resetear filtros cuando cambia la búsqueda
+                document.getElementById('modal-category-filter').value = '';
+                document.getElementById('modal-subcategory-filter').value = '';
+                document.getElementById('modal-brand-filter').value = '';
+                searchProducts(this.value, true);
+            });
+        }
+        
+        // Filtrar por categoría
+        const categoryFilter = document.getElementById('modal-category-filter');
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', function() {
+                searchProducts(document.getElementById('modal-search-input').value, false);
+            });
+        }
+        
+        // Filtrar por subcategoría
+        const subcategoryFilter = document.getElementById('modal-subcategory-filter');
+        if (subcategoryFilter) {
+            subcategoryFilter.addEventListener('change', function() {
+                searchProducts(document.getElementById('modal-search-input').value, false);
+            });
+        }
+        
+        // Filtrar por marca
+        const brandFilter = document.getElementById('modal-brand-filter');
+        if (brandFilter) {
+            brandFilter.addEventListener('change', function() {
+                searchProducts(document.getElementById('modal-search-input').value, false);
+            });
+        }
+        
+        // Scroll infinito para cargar más productos
+        const modalBody = document.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.addEventListener('scroll', function() {
+                // Si el usuario está cerca del final, cargar más productos
+                if (modalBody.scrollTop + modalBody.clientHeight >= modalBody.scrollHeight - 100) {
+                    loadMoreProducts();
+                }
+            });
+        }
+        
+        // El modal solo se cierra con el botón X (no al hacer clic fuera ni con Escape)
     });
 </script>
 </body>

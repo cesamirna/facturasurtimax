@@ -269,24 +269,23 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
-  // Cargar automáticamente el archivo Excel
+  // Cargar automáticamente los productos desde localStorage si existen
   setTimeout(() => {
     // Verificar si hay productos en localStorage
-    if (localStorage.getItem("productList")) {
+    const storedProductList = localStorage.getItem("productList")
+    if (storedProductList) {
       try {
-        const storedProducts = JSON.parse(localStorage.getItem("productList"))
+        const storedProducts = JSON.parse(storedProductList)
         if (Array.isArray(storedProducts) && storedProducts.length > 0) {
           loadProductList(storedProducts)
-        } else {
-          document.getElementById("excel-file").click()
+          console.log("Productos cargados desde localStorage:", storedProducts.length)
         }
       } catch (e) {
         console.error("Error al cargar productos desde localStorage:", e)
-        document.getElementById("excel-file").click()
       }
-    } else {
-      document.getElementById("excel-file").click()
     }
+    // Ya no se abre automáticamente el diálogo para seleccionar archivo
+    // El usuario puede cargar manualmente si lo necesita
   }, 500)
 })
 
@@ -554,6 +553,7 @@ function handleFile(e) {
 
           // Guardar en localStorage para compartir con la página de catálogo
           localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+          console.log("Lista de productos JSON cargada y guardada:", productsWithCategories.length, "productos")
         } else if (jsonData.products && Array.isArray(jsonData.products.products)) {
           // Si tiene una propiedad 'products' que es un array
           const productsWithCategories = jsonData.products.products.map((product) => {
@@ -609,6 +609,7 @@ function handleFile(e) {
 
       // Guardar en localStorage para compartir con la página de catálogo
       localStorage.setItem("productList", JSON.stringify(productsWithCategories))
+      console.log("Lista de productos cargada y guardada:", productsWithCategories.length, "productos")
     }
     reader.readAsArrayBuffer(file)
   }
