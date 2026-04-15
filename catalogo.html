@@ -767,7 +767,7 @@
         // Procesar productos
         function processProducts(products) {
             productList = products.map((product) => ({
-                Code: product.Code || product.Codigo || product.codigo || product.CodBarra || "",
+                Code: product.Code || product.CodBarra || "",
                 Description: product.Description || product.Nombre || product.nombre || product.Descripcion || "",
                 Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
                 Subcategory: product.Subcategory || product.Subcategoria || product.subcategoria || "General",
@@ -781,6 +781,7 @@
             filterProducts();
             showNotification(`Se cargaron ${productList.length} productos correctamente`);
         }
+        //product.Codigo || product.codigo ||
 
         // Extraer marca del nombre del producto
         function extractBrandFromName(description) {
