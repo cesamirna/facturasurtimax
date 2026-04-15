@@ -773,7 +773,7 @@
                 Subcategory: product.Subcategory || product.Subcategoria || product.subcategoria || "General",
                 Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                 Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
-                Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || 0)
+                Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || 0)
             }));
 
             localStorage.setItem("productList", JSON.stringify(productList));
