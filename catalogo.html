@@ -7,10 +7,10 @@
     <link rel="icon" href="icon/icon.png" type="image/png">
     <style>
         :root {
-            --primary-color: #1c8d87;
+            --primary-color: #222121;
             --primary-light: #4db6ac;
-            --primary-dark: #00695c;
-            --secondary-color: #e0f2f1;
+            --primary-dark: #303030;
+            --secondary-color: #dddddd;
             --accent-color: #26a69a;
             --text-color: #263238;
             --text-light: #607d8b;
@@ -51,7 +51,7 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
         }
         
         .header-top {
@@ -59,13 +59,13 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
         }
         
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
         
         .logo-section h1 {
@@ -88,7 +88,7 @@
             color: white;
             padding: 10px 16px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 400;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -113,7 +113,7 @@
         /* Barra de búsqueda principal */
         .search-section {
             display: flex;
-            gap: 15px;
+            gap: 14px;
             flex-wrap: wrap;
             align-items: center;
         }
@@ -129,7 +129,7 @@
             padding: 14px 20px 14px 50px;
             border: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 14px;
             background-color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.3s ease;
@@ -171,8 +171,8 @@
         
         /* Contenido principal */
         .main-content {
-            padding-top: 180px;
-            padding-bottom: 80px;
+            padding-top: 140px;
+            padding-bottom: 50px;
             max-width: 1400px;
             margin: 0 auto;
             padding-left: 20px;
@@ -383,7 +383,7 @@
         .empty-state svg {
             width: 100px;
             height: 100px;
-            color: var(--primary-light);
+            color: var(--text-color);
             margin-bottom: 20px;
         }
         
@@ -457,7 +457,7 @@
             border-radius: 12px;
             margin-bottom: 20px;
             margin-top: 40px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             box-shadow: var(--card-shadow);
             clear: both;
@@ -610,7 +610,7 @@
             <div class="search-section">
                 <div class="search-container">
                     <span class="search-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                         </svg>
                     </span>
@@ -767,12 +767,12 @@
         // Procesar productos
         function processProducts(products) {
             productList = products.map((product) => ({
-                Code: product.Code || product.Codigo || product.codigo || "",
+                Code: product.Code || product.Codigo || product.codigo || product.CodBarra || "",
                 Description: product.Description || product.Nombre || product.nombre || product.Descripcion || "",
                 Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
                 Subcategory: product.Subcategory || product.Subcategoria || product.subcategoria || "General",
                 Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
-                Cost: parseFloat(product.Cost || product.Costo || product.costo || 0),
+                Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
                 Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || 0)
             }));
 
