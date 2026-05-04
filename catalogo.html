@@ -962,11 +962,13 @@
                 return matchesCategory && matchesSubcategory && matchesBrand && matchesSearch;
             });
 
-            // Ordenar por categoría y nombre
+            // Ordenar por categoría, subcategoría y precio de venta (menor a mayor)
             filteredProducts.sort((a, b) => {
                 const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
                 if (catCompare !== 0) return catCompare;
-                return a.Description.localeCompare(b.Description, "es", { sensitivity: "base" });
+                const subCompare = a.Subcategory.localeCompare(b.Subcategory, "es", { sensitivity: "base" });
+                if (subCompare !== 0) return subCompare;
+                return (a.Price || 0) - (b.Price || 0);
             });
 
             displayedCount = 0;
