@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Margen de Utilidad</title>
+    <link rel="icon" href="icon/icon.png" type="image/png">
+    <style>
+        :root {
+            --primary-color: #f8fafc;
+            --primary-dark: #e2e8f0;
+            --primary-light: #ffffff;
+            --secondary-color: #64748b;
+            --accent-color: #0f292a;
+            --accent-blue: #3c3c3d;
+            --text-color: #1e393b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --success-color: #0f292a;
+            --danger-color: #dc2626;
+            --card-bg: #ffffff;
+            --input-bg: #f1f5f9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Header compacto */
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .logo-placeholder {
+            width: 48px;
+            height: 48px;
+            
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .logo-placeholder svg {
+            color: var(--text-muted);
+        }
+        
+        .header-content {
+            text-align: left;
+        }
+        
+        .main-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-color);
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        
+        .main-header p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        
+        /* Grid de calculadoras */
+        #calculators-wrapper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto 30px auto;
+            padding: 0 20px;
+        }
+        
+        @media (max-width: 1200px) {
+            #calculators-wrapper {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #calculators-wrapper {
+                grid-template-columns: 1fr;
+                padding: 0;
+            }
+            
+            .main-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .header-content {
+                text-align: center;
+            }
+            
+            .main-header h1 {
+                font-size: 18px;
+            }
+        }
+        
+        /* Contenedor de calculadora */
+        .calculator-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            animation: slideIn 0.3s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .calculator-container:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 40px rgba(37, 99, 235, 0.1);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+        
+        /* Botón eliminar */
+        .remove-calculator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+        
+        .calculator-container:not(:first-of-type) .remove-calculator {
+            display: flex;
+        }
+        
+        .remove-calculator:hover {
+            background-color: #b91c1c;
+            transform: scale(1.1);
+        }
+        
+        /* Número de calculadora */
+        .calculator-number {
+            display: inline-block;
+            background-color: var(--accent-blue);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Formulario */
+        .calculator-form {
+            background-color: var(--input-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .input-field {
+            flex: 1;
+            min-width: 140px;
+        }
+        
+        .input-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        
+        .input-field input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: var(--primary-light);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .input-field input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .input-field input:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        
+        .input-field input:hover {
+            border-color: #94a3b8;
+        }
+        
+        /* Botones */
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .reset-btn, .calculate-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .reset-btn {
+            background-color: var(--primary-dark);
+            color: var(--text-color);
+        }
+        
+        .reset-btn:hover {
+            background-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        
+        .calculate-btn {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #0697a1;
+            transform: translateY(-2px);
+        }
+        
+        .reset-btn:active, .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Resultados */
+        .results {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results h2 {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        
+        .results-table th {
+            background-color: var(--input-bg);
+            color: var(--text-muted);
+            padding: 14px 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .results-table td {
+            padding: 20px 10px;
+            text-align: center;
+            background-color: var(--primary-light);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .price-value, .profit-value, .margin-value {
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .price-value {
+            color: var(--accent-color);
+        }
+        
+        .profit-value {
+            color: var(--success-color);
+        }
+        
+        .margin-value {
+            color: var(--accent-blue);
+        }
+        
+        .value-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        
+        .icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--input-bg);
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+        }
+        
+        @keyframes highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .highlight {
+            animation: highlight 0.5s ease;
+        }
+        
+        /* Botón agregar */
+        .add-calculator-container {
+            text-align: center;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .add-calculator-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .add-calculator-btn:hover {
+            border-color: var(--accent-blue);
+            background-color: var(--input-bg);
+            transform: translateY(-2px);
+            color: var(--accent-blue);
+        }
+        
+        .add-calculator-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+            
+            .main-header {
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .calculator-container {
+                padding: 20px 15px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .price-value, .profit-value, .margin-value {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado compacto con espacio para logo -->
+    <header class="main-header">
+        <div class="logo-placeholder">
+            <img src="icon/logo.png" alt="Logo" style="width: 100%; height: 100%">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
+            </svg>
+        </div>
+        <div class="header-content">
+            <h1>Calculadora de Margen de Utilidad</h1>
+            <p>Calcula el precio de venta, ganancia y margen bruto de tus productos</p>
+        </div>
+    </header>
+
+    <!-- Contenedor de calculadoras -->
+    <div id="calculators-wrapper">
+        <div class="calculator-container">
+            <button class="remove-calculator" onclick="removeCalculator(this)" title="Eliminar calculadora">×</button>
+            
+            <span class="calculator-number">Calculadora 1</span>
+            
+            <div class="calculator-form">
+                <div class="input-group">
+                    <div class="input-field">
+                        <label>Costo del producto ($)</label>
+                        <input type="number" class="cost-input" step="0.01" min="0.01" placeholder="Ingrese el costo">
+                    </div>
+                    <div class="input-field">
+                        <label>Marcado (%)</label>
+                        <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el margen">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="reset-btn" onclick="resetForm(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        Resetear
+                    </button>
+                    <button class="calculate-btn" onclick="calculateMargin(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                            <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
+                        </svg>
+                        Calcular
+                    </button>
+                </div>
+            </div>
+            
+            <div class="results">
+                <h2>Resultados del Cálculo</h2>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Precio de Venta</th>
+                            <th>Ganancia</th>
+                            <th>Margen Bruto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="icon-container">
+                                    <div class="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#15803d" viewBox="0 0 16 16">
+                                            <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                            <path d="M0 4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V6a2 2 0 0 1-2-2H3z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="price-value">
+                                    $0.00
+                                    <span class="value-label">Precio final</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icon-container">
+                                    <div class="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ff0000" viewBox="0 0 16 16">
+                                            <path d="M5.5 9.511c.076.954.83 1.697 2.182 1.785V12h.6v-.709c1.4-.098 2.218-.846 2.218-1.932 0-.987-.626-1.496-1.745-1.76l-.473-.112V5.57c.6.068.982.396 1.074.85h1.052c-.076-.919-.864-1.638-2.126-1.716V4h-.6v.719c-1.195.117-2.01.836-2.01 1.853 0 .9.606 1.472 1.613 1.707l.397.098v2.034c-.615-.093-1.022-.43-1.114-.9H5.5zm2.177-2.166c-.59-.137-.91-.416-.91-.836 0-.47.345-.822.915-.925v1.76h-.005zm.692 1.193c.717.166 1.048.435 1.048.91 0 .542-.412.914-1.135.982V8.518l.087.02z"/>
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="profit-value">
+                                    $0.00
+                                    <span class="value-label">Beneficio</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="icon-container">
+                                    <div class="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#0697a1" viewBox="0 0 16 16">
+                                            <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="margin-value">
+                                    0.00%
+                                    <span class="value-label">Porcentaje</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón agregar calculadora -->
+    <div class="add-calculator-container">
+        <button class="add-calculator-btn" onclick="addCalculator()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            Agregar Calculadora
+        </button>
+    </div>
+
+    <script>
+        let calculatorCount = 1;
+
+        function calculateMargin(button) {
+            const container = button.closest('.calculator-container');
+            autoCalculate(container);
+        }
+
+        function autoCalculate(container) {
+            const cost = parseFloat(container.querySelector('.cost-input').value);
+            const markup = parseFloat(container.querySelector('.markup-input').value);
+            
+            const resultsDiv = container.querySelector('.results');
+            const salePriceElement = container.querySelector('.price-value');
+            const profitElement = container.querySelector('.profit-value');
+            const marginElement = container.querySelector('.margin-value');
+            
+            if (isNaN(cost) || isNaN(markup) || cost <= 0) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            const salePrice = cost * (1 + markup / 100);
+            const profit = salePrice - cost;
+            const grossMargin = (profit / salePrice) * 100;
+            
+            salePriceElement.innerHTML = `$${salePrice.toFixed(2)}<span class="value-label">Precio final</span>`;
+            profitElement.innerHTML = `$${profit.toFixed(2)}<span class="value-label">Beneficio</span>`;
+            marginElement.innerHTML = `${grossMargin.toFixed(2)}%<span class="value-label">Porcentaje</span>`;
+            
+            resultsDiv.style.display = 'block';
+            
+            salePriceElement.classList.add('highlight');
+            profitElement.classList.add('highlight');
+            marginElement.classList.add('highlight');
+            
+            setTimeout(() => {
+                salePriceElement.classList.remove('highlight');
+                profitElement.classList.remove('highlight');
+                marginElement.classList.remove('highlight');
+            }, 500);
+        }
+
+        function resetForm(button) {
+            const container = button.closest('.calculator-container');
+            container.querySelector('.cost-input').value = '';
+            container.querySelector('.markup-input').value = '';
+            container.querySelector('.results').style.display = 'none';
+            
+            const salePriceElement = container.querySelector('.price-value');
+            const profitElement = container.querySelector('.profit-value');
+            const marginElement = container.querySelector('.margin-value');
+            
+            salePriceElement.innerHTML = `$0.00<span class="value-label">Precio final</span>`;
+            profitElement.innerHTML = `$0.00<span class="value-label">Beneficio</span>`;
+            marginElement.innerHTML = `0.00%<span class="value-label">Porcentaje</span>`;
+        }
+
+        function addCalculator() {
+            calculatorCount++;
+            const wrapper = document.getElementById('calculators-wrapper');
+            
+            const newCalculator = document.createElement('div');
+            newCalculator.className = 'calculator-container';
+            newCalculator.innerHTML = `
+                <button class="remove-calculator" onclick="removeCalculator(this)" title="Eliminar calculadora">×</button>
+                
+                <span class="calculator-number">Calculadora ${calculatorCount}</span>
+                
+                <div class="calculator-form">
+                    <div class="input-group">
+                        <div class="input-field">
+                            <label>Costo del producto ($)</label>
+                            <input type="number" class="cost-input" step="0.01" min="0.01" placeholder="Ingrese el costo">
+                        </div>
+                        <div class="input-field">
+                            <label>Marcado (%)</label>
+                            <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el margen">
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="reset-btn" onclick="resetForm(this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            Resetear
+                        </button>
+                        <button class="calculate-btn" onclick="calculateMargin(this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
+                            </svg>
+                            Calcular
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="results">
+                    <h2>Resultados del Cálculo</h2>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Precio de Venta</th>
+                                <th>Ganancia</th>
+                                <th>Margen Bruto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="icon-container">
+                                        <div class="icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#15803d" viewBox="0 0 16 16">
+                                                <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                                <path d="M0 4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V6a2 2 0 0 1-2-2H3z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="price-value">
+                                        $0.00
+                                        <span class="value-label">Precio final</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="icon-container">
+                                        <div class="icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ff0000" viewBox="0 0 16 16">
+                                                <path d="M5.5 9.511c.076.954.83 1.697 2.182 1.785V12h.6v-.709c1.4-.098 2.218-.846 2.218-1.932 0-.987-.626-1.496-1.745-1.76l-.473-.112V5.57c.6.068.982.396 1.074.85h1.052c-.076-.919-.864-1.638-2.126-1.716V4h-.6v.719c-1.195.117-2.01.836-2.01 1.853 0 .9.606 1.472 1.613 1.707l.397.098v2.034c-.615-.093-1.022-.43-1.114-.9H5.5zm2.177-2.166c-.59-.137-.91-.416-.91-.836 0-.47.345-.822.915-.925v1.76h-.005zm.692 1.193c.717.166 1.048.435 1.048.91 0 .542-.412.914-1.135.982V8.518l.087.02z"/>
+                                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="profit-value">
+                                        $0.00
+                                        <span class="value-label">Beneficio</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="icon-container">
+                                        <div class="icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#0697a1" viewBox="0 0 16 16">
+                                                <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="margin-value">
+                                        0.00%
+                                        <span class="value-label">Porcentaje</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            wrapper.appendChild(newCalculator);
+            updateCalculatorNumbers();
+        }
+
+        function removeCalculator(button) {
+            const container = button.closest('.calculator-container');
+            container.style.animation = 'slideOut 0.3s ease forwards';
+            
+            setTimeout(() => {
+                container.remove();
+                updateCalculatorNumbers();
+            }, 300);
+        }
+
+        function updateCalculatorNumbers() {
+            const calculators = document.querySelectorAll('.calculator-container');
+            calculators.forEach((calc, index) => {
+                calc.querySelector('.calculator-number').textContent = `Calculadora ${index + 1}`;
+            });
+            calculatorCount = calculators.length;
+        }
+
+        // Input listeners para cálculo automático
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('cost-input') || e.target.classList.contains('markup-input')) {
+                const container = e.target.closest('.calculator-container');
+                autoCalculate(container);
+            }
+        });
+    </script>
+</body>
+</html>
