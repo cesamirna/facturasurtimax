@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Margen de Utilidad</title>
+    <title>Calculadora de Margen y Descuento</title>
     <link rel="icon" href="icon/icon.png" type="image/png">
     <style>
         :root {
@@ -558,7 +558,7 @@
                         <input type="number" class="cost-input" step="0.01" min="0.01" placeholder="Ingrese el costo">
                     </div>
                     <div class="input-field">
-                        <label>Marcado (%)</label>
+                        <label>Margen (%)</label>
                         <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el margen">
                     </div>
                 </div>
@@ -827,7 +827,7 @@
                             <input type="number" class="cost-input" step="0.01" min="0.01" placeholder="Ingrese el costo">
                         </div>
                         <div class="input-field">
-                            <label>Marcado (%)</label>
+                            <label>Margen (%)</label>
                             <input type="number" class="markup-input" step="0.1" min="0" placeholder="Ingrese el margen">
                         </div>
                     </div>
@@ -960,7 +960,7 @@
                     <table class="results-table">
                         <thead>
                             <tr>
-                                <th>Precio Final</th>
+                                <th>Descuento</th>
                                 <th>Ahorro</th>
                                 <th>Precio con 7%</th>
                             </tr>
@@ -978,7 +978,7 @@
                                     </div>
                                     <div class="price-value">
                                         <span class="final-price-value">$0.00</span>
-                                        <span class="value-label">Descuento</span>
+                                        <span class="value-label">Nuevo Precio</span>
                                     </div>
                                 </td>
                                 <td>
@@ -1007,7 +1007,7 @@
                                     </div>
                                     <div class="seven-percent-value" style="color: #0f292a;">
                                         <span class="seven-percent-price-value">$0.00</span>
-                                        <span class="value-label">Con ITBMS</span>
+                                        <span class="value-label">ITBMS</span>
                                     </div>
                                 </td>
                             </tr>
