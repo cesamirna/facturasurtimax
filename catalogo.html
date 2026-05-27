@@ -900,6 +900,7 @@
         function handleCategoryChange() {
             const categoryFilter = document.getElementById("category-filter").value;
             const subcategorySelect = document.getElementById("subcategory-filter");
+            const brandSelect = document.getElementById("brand-filter");
             const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
             
             // Obtener productos base (filtrados por búsqueda si hay)
@@ -914,16 +915,35 @@
                 });
             }
             
+            // Actualizar subcategorías
             subcategorySelect.innerHTML = '<option value="">Todas las subcategorías</option>';
+            
+            // Actualizar marcas
+            brandSelect.innerHTML = '<option value="">Todas las marcas</option>';
             
             if (!categoryFilter) {
                 subcategorySelect.disabled = true;
+                
+                // Mostrar todas las marcas cuando no hay categoría seleccionada
+                const allBrands = [...new Set(baseProducts.map(p => getProductBrand(p)))]
+                    .filter(brand => brand && brand !== "Sin Marca")
+                    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+                
+                allBrands.forEach(brand => {
+                    const option = document.createElement("option");
+                    option.value = brand;
+                    option.textContent = brand;
+                    brandSelect.appendChild(option);
+                });
             } else {
                 subcategorySelect.disabled = false;
+                
+                // Filtrar productos por la categoría seleccionada
+                const categoryProducts = baseProducts.filter(p => p.Category === categoryFilter);
+                
+                // Obtener subcategorías de la categoría seleccionada
                 const subcategories = [...new Set(
-                    baseProducts
-                        .filter(p => p.Category === categoryFilter)
-                        .map(p => p.Subcategory)
+                    categoryProducts.map(p => p.Subcategory)
                 )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
                 
                 subcategories.forEach(sub => {
@@ -931,6 +951,20 @@
                     option.value = sub;
                     option.textContent = sub;
                     subcategorySelect.appendChild(option);
+                });
+                
+                // Obtener marcas disponibles en la categoría seleccionada
+                const categoryBrands = [...new Set(
+                    categoryProducts.map(p => getProductBrand(p))
+                )]
+                    .filter(brand => brand && brand !== "Sin Marca")
+                    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+                
+                categoryBrands.forEach(brand => {
+                    const option = document.createElement("option");
+                    option.value = brand;
+                    option.textContent = brand;
+                    brandSelect.appendChild(option);
                 });
             }
             
