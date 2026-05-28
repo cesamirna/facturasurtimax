@@ -691,7 +691,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("excel-file").addEventListener("change", handleFile, false);
             document.getElementById("category-filter").addEventListener("change", handleCategoryChange);
-            document.getElementById("subcategory-filter").addEventListener("change", filterProducts);
+            document.getElementById("subcategory-filter").addEventListener("change", handleSubcategoryChange);
             document.getElementById("brand-filter").addEventListener("change", filterProducts);
             document.getElementById("search-input").addEventListener("input", debounce(handleSearchInput, 300));
 
@@ -763,17 +763,40 @@
             }
         }
 
+        // Extraer subcategoría de la primera palabra del nombre del producto
+        function extractSubcategoryFromName(description) {
+            if (!description) return "General";
+            // Tomar la primera palabra del nombre como subcategoría
+            const words = description.trim().split(/\s+/);
+            if (words.length > 0 && words[0].length > 0) {
+                // Capitalizar primera letra y el resto en minúsculas
+                const firstWord = words[0];
+                return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+            }
+            return "General";
+        }
+
         // Procesar productos
         function processProducts(products) {
-            productList = products.map((product) => ({
-                Code: product.Code || product.CodBarra || "",
-                Description: product.Description || product.Nombre || product.nombre || product.Descripcion || "",
-                Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
-                Subcategory: product.Subcategory || product.Subcategoria || product.subcategoria || "General",
-                Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
-                Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
-                Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || 0)
-            }));
+            productList = products.map((product) => {
+                const description = product.Description || product.Nombre || product.nombre || product.Descripcion || "";
+                let subcategory = product.Subcategory || product.Subcategoria || product.subcategoria || "";
+                
+                // Si no hay subcategoría o es "General", usar la primera palabra del nombre
+                if (!subcategory || subcategory.trim() === "" || subcategory === "General") {
+                    subcategory = extractSubcategoryFromName(description);
+                }
+                
+                return {
+                    Code: product.Code || product.CodBarra || "",
+                    Description: description,
+                    Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
+                    Subcategory: subcategory,
+                    Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
+                    Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
+                    Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || 0)
+                };
+            });
 
             localStorage.setItem("productList", JSON.stringify(productList));
             populateFilters();
@@ -847,7 +870,7 @@
             subcategories.forEach(sub => {
                 const option = document.createElement("option");
                 option.value = sub;
-                option.textContent = sub;
+                option.textContent = sub.toUpperCase();
                 if (sub === currentSubcategory) option.selected = true;
                 subcategorySelect.appendChild(option);
             });
@@ -949,7 +972,7 @@
                 subcategories.forEach(sub => {
                     const option = document.createElement("option");
                     option.value = sub;
-                    option.textContent = sub;
+                    option.textContent = sub.toUpperCase();
                     subcategorySelect.appendChild(option);
                 });
                 
@@ -967,6 +990,52 @@
                     brandSelect.appendChild(option);
                 });
             }
+            
+            filterProducts();
+        }
+
+        // Manejar cambio de subcategoría
+        function handleSubcategoryChange() {
+            const categoryFilter = document.getElementById("category-filter").value;
+            const subcategoryFilter = document.getElementById("subcategory-filter").value;
+            const brandSelect = document.getElementById("brand-filter");
+            const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+            
+            // Obtener productos base (filtrados por búsqueda si hay)
+            let baseProducts = productList;
+            if (searchTerm) {
+                baseProducts = productList.filter(product => {
+                    const productBrand = getProductBrand(product);
+                    return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
+                           (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
+                           (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
+                           (product.Category && product.Category.toLowerCase().includes(searchTerm));
+                });
+            }
+            
+            // Filtrar por categoría si hay una seleccionada
+            if (categoryFilter) {
+                baseProducts = baseProducts.filter(p => p.Category === categoryFilter);
+            }
+            
+            // Filtrar por subcategoría si hay una seleccionada
+            if (subcategoryFilter) {
+                baseProducts = baseProducts.filter(p => p.Subcategory === subcategoryFilter);
+            }
+            
+            // Actualizar marcas disponibles
+            brandSelect.innerHTML = '<option value="">Todas las marcas</option>';
+            
+            const availableBrands = [...new Set(baseProducts.map(p => getProductBrand(p)))]
+                .filter(brand => brand && brand !== "Sin Marca")
+                .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+            
+            availableBrands.forEach(brand => {
+                const option = document.createElement("option");
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
             
             filterProducts();
         }
@@ -1086,7 +1155,7 @@
                         if (!renderedGroups[groupKey]) {
                             const subcategoryHeader = document.createElement('div');
                             subcategoryHeader.className = 'subcategory-header';
-                            subcategoryHeader.textContent = subcategory;
+                            subcategoryHeader.textContent = subcategory.toUpperCase();
                             catalogContent.appendChild(subcategoryHeader);
                             renderedGroups[groupKey] = true;
                         }
