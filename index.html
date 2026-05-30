@@ -453,7 +453,7 @@
     }
     
     .product-price-tag .price-base {
-        font-size: 12px;
+        font-size: 10px;
         color: var(--gray-500);
     }
     
@@ -831,7 +831,7 @@
     }
     
     .modal-product-price .price-label {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--gray-400);
     }
     
@@ -1386,12 +1386,13 @@
                     <div class="product-info">
                         <div class="product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="product-details">
-                            <strong>Código:</strong> ${code} | <strong>Marca:</strong> ${productBrand} | <strong>Categoría:</strong> ${category}
+                            <strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}
                         </div>
                     </div>
                     <div class="product-price-tag">
                         <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
+                        <div class="price-base">con ITBMS</div>
                     </div>
                 </div>
             `;
@@ -2217,9 +2218,7 @@
                         <div class="modal-product-info">
                             <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                             <div class="modal-product-details">
-                                <span><strong>Código:</strong>${code}</span>
-                                <span><strong>Marca:</strong>${productBrand}</span>
-                                <span><strong>Categoría</strong>${category}</span>
+                                <span><strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}</span>
                             </div>
                         </div>
                         <div class="modal-product-price">
