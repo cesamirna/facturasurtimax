@@ -9,7 +9,7 @@
     :root {
         --primary-color: #1f8e96;
         --primary-dark: #128075;
-        --secondary-color: #3d3d3d;
+        --secondary-color: #3c3c3d;
         --accent-color: #e94560;
         --bg-light: #f5f7f7;
         --text-light: #ffffff;
@@ -233,7 +233,7 @@
     }
     
     .action-btn {
-        background-color: var(--primary-color);
+        background-color: var(--secondary-color);
         border: none;
         border-radius: 8px;
         color: white;
@@ -293,9 +293,14 @@
     .add-btn:hover {
         background-color: var(--primary-dark);
     }
-    
+
+    .print-btn {
+        background-color: var(--gray-600);
+        
+    }
+
     .catalog-btn {
-        background-color: #1f969e;
+        background-color: var(--gray-600);
     }
     .invoice-number {
         position: absolute;
@@ -598,6 +603,7 @@
     
     /* Columnas especiales */
     .margin-column {
+        font-size: 14px;
         color: var(--danger-color);
         font-weight: bold;
         text-align: center;
@@ -614,11 +620,10 @@
         position: fixed;
         top: 80px;
         right: 20px;
-        background-color: var(--primary-color);
+        background-color: var(--accent-color);
         color: white;
-        padding: 14px 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 184, 169, 0.4);
+        padding: 10px 24px;
+        border-radius: 7px;
         z-index: 1100;
         opacity: 0;
         transform: translateY(-20px);
@@ -1003,7 +1008,7 @@
         </svg>
         Cargar Factura
     </button>
-    <button onclick="printInvoice()" class="action-btn">
+    <button onclick="printInvoice()" class="action-btn print-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
         </svg>
@@ -1124,9 +1129,9 @@
                 <th style="width: 12%;">CÓDIGO</th>
                 <th style="width: 40%;">DESCRIPCIÓN</th>
                 <th style="width: 10%;">P/U</th>
+                <th style="width: 10%;">TOTAL</th>
                 <th style="width: 10%;" class="no-print">GANANCIA</th>
                 <th style="width: 8%;" class="no-print">MARGEN</th>
-                <th style="width: 10%;">TOTAL</th>
                 <th style="width: 10%;" class="no-print">ACCIÓN</th>
             </tr>
         </thead>
@@ -1215,7 +1220,7 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="xlsx.full.min.js"></script>
 <script>
     // Variables globales
     let products = [];
@@ -1521,9 +1526,9 @@
                 <td>${product.code || ''}</td>
                 <td>${product.description}</td>
                 <td>$${parseFloat(product.price).toFixed(2)}</td>
+                <td>$${product.total}</td>
                 <td class="profit-column no-print">$${profit.toFixed(2)}</td>
                 <td class="margin-column no-print">${margin.toFixed(1)}%</td>
-                <td>$${product.total}</td>
                 <td class="no-print">
                     <button class="action-btn" onclick="editProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Editar</button>
                     <button class="action-btn delete-btn" onclick="deleteProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Eliminar</button>
@@ -2212,10 +2217,9 @@
                         <div class="modal-product-info">
                             <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                             <div class="modal-product-details">
-                                <span><strong>Código:</strong> ${code}</span>
-                                <span><strong>Marca:</strong> ${productBrand}</span>
+                                <span><strong>Código:</strong>${code}</span>
+                                <span><strong>Marca:</strong>${productBrand}</span>
                                 <span><strong>Categoría</strong>${category}</span>
-                                
                             </div>
                         </div>
                         <div class="modal-product-price">
