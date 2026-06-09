@@ -357,7 +357,7 @@
     
     #product-search {
         width: 100%;
-        padding: 12px 20px 12px 54px;
+        padding: 12px 54px 12px 20px;
         border: 2px solid var(--gray-200);
         border-radius: 12px;
         font-size: 16px;
@@ -378,7 +378,7 @@
     
     .search-icon {
         position: absolute;
-        left: 18px;
+        right: 18px;
         top: 50%;
         transform: translateY(-50%);
         color: var(--gray-400);
@@ -704,7 +704,7 @@
     
     .search-modal-header h2 {
         margin: 0;
-        font-size: 20px;
+        font-size: 16px;
         color: white;
         display: flex;
         align-items: center;
@@ -774,6 +774,20 @@
         justify-content: space-between;
         align-items: center;
         transition: all 0.2s;
+    }
+    
+    .modal-category-header {
+        padding: 10px 24px;
+        background-color: var(--gray-100);
+        color: var(--primary-dark);
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--gray-200);
+        position: sticky;
+        top: 0;
+        z-index: 1;
     }
     
     .modal-product-item:last-child {
@@ -1064,7 +1078,7 @@
     <div class="search-section no-print">
         <div class="search-container">
             <input type="text" id="product-search" placeholder="Buscar producto por nombre, código, marca o categoría..." autocomplete="off">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="search-icon" role="button" tabindex="0" aria-label="Mostrar todos los productos" title="Mostrar todos los productos" onclick="openSearchModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearchModal();}" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <div id="search-results" class="search-results">
@@ -2132,6 +2146,11 @@
     // ============ FUNCIONES DEL MODAL DE BÚSQUEDA ============
     let modalSelectedIndex = -1;
     let modalFilteredProducts = [];
+    // Carga progresiva (scroll infinito) del modal de búsqueda
+    const MODAL_BATCH_SIZE = 50;
+    let modalRenderedCount = 0;
+    let modalLastCategory = null;
+    let modalShowAll = false;
 
     function openSearchModal(searchTerm) {
         const modal = document.getElementById('search-modal-overlay');
@@ -2139,11 +2158,14 @@
         const resultsCountDisplay = document.getElementById('modal-results-count');
         const productListContainer = document.getElementById('modal-product-list');
         
+        // Determinar si estamos mostrando todos los productos (sin término de búsqueda)
+        const showAll = !searchTerm || searchTerm.trim() === '';
+        
         // Cerrar el dropdown de búsqueda
         document.getElementById('search-results').classList.remove('active');
         
-        // Mostrar el término de búsqueda
-        searchTermDisplay.textContent = `"${searchTerm}"`;
+        // Mostrar el término de búsqueda (o indicar que se muestran todos)
+        searchTermDisplay.textContent = showAll ? 'Todos los productos' : `"${searchTerm}"`;
         
         // Filtrar productos
         if (!productList || productList.length === 0) {
@@ -2160,9 +2182,10 @@
             return;
         }
         
-        const term = searchTerm.toLowerCase().trim();
+        const term = (searchTerm || '').toLowerCase().trim();
         
         modalFilteredProducts = productList.filter(product => {
+            if (showAll) return true;
             const description = (product.Description || '').toLowerCase();
             const code = (product.Code || '').toString().toLowerCase();
             const category = (product.Category || '').toLowerCase();
@@ -2199,31 +2222,19 @@
                 </div>
             `;
         } else {
-            productListContainer.innerHTML = modalFilteredProducts.map((product, index) => {
-                const price = parseFloat(product.Price) || 0;
-                const priceWithTax = price * 1.07;
-                const code = product.Code || 'Sin código';
-                const category = product.Category || 'Sin categoría';
-                const productBrand = getProductBrand(product);
-                const subcategory = product.Subcategory || '';
-                const originalIndex = productList.indexOf(product);
-                
-                return `
-                    <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" onclick="selectProductFromModal(${originalIndex})">
-                        <div class="modal-product-info">
-                            <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
-                            <div class="modal-product-details">
-                                <span><strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}</span>
-                            </div>
-                        </div>
-                        <div class="modal-product-price">
-                            <div class="price-base">$${price.toFixed(2)}</div>
-                            <div class="price-total">$${priceWithTax.toFixed(2)}</div>
-                            <div class="price-label">con ITBMS</div>
-                        </div>
-                    </li>
-                `;
-            }).join('');
+            // Renderizado progresivo: empezamos vacíos y cargamos de 50 en 50
+            productListContainer.innerHTML = '';
+            modalRenderedCount = 0;
+            modalLastCategory = null;
+            modalShowAll = showAll;
+            renderModalBatch();
+
+            // Listener de scroll para cargar más productos al deslizar la barra
+            const modalBody = document.querySelector('.search-modal-body');
+            if (modalBody) {
+                modalBody.removeEventListener('scroll', handleModalScroll);
+                modalBody.addEventListener('scroll', handleModalScroll);
+            }
         }
         
         // Resetear índice de selección
@@ -2235,15 +2246,72 @@
         // Agregar event listener para navegación con teclado
         document.addEventListener('keydown', handleModalKeydown);
     }
+
+    // Renderiza el siguiente lote de productos (MODAL_BATCH_SIZE)
+    function renderModalBatch() {
+        const productListContainer = document.getElementById('modal-product-list');
+        if (!productListContainer) return;
+
+        const start = modalRenderedCount;
+        const end = Math.min(start + MODAL_BATCH_SIZE, modalFilteredProducts.length);
+        if (start >= end) return;
+
+        let html = '';
+        for (let index = start; index < end; index++) {
+            const product = modalFilteredProducts[index];
+            const price = parseFloat(product.Price) || 0;
+            const priceWithTax = price * 1.07;
+            const code = product.Code || 'Sin código';
+            const category = product.Category || 'Sin categoría';
+            const productBrand = getProductBrand(product);
+            const originalIndex = productList.indexOf(product);
+
+            // Insertar encabezado de categoría cuando cambia (solo al mostrar todos)
+            let header = '';
+            if (modalShowAll && category !== modalLastCategory) {
+                modalLastCategory = category;
+                header = `<li class="modal-category-header">${category}</li>`;
+            }
+
+            html += header + `
+                <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" onclick="selectProductFromModal(${originalIndex})">
+                    <div class="modal-product-info">
+                        <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
+                        <div class="modal-product-details">
+                            <span><strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}</span>
+                        </div>
+                    </div>
+                    <div class="modal-product-price">
+                        <div class="price-base">$${price.toFixed(2)}</div>
+                        <div class="price-total">$${priceWithTax.toFixed(2)}</div>
+                        <div class="price-label">con ITBMS</div>
+                    </div>
+                </li>
+            `;
+        }
+
+        productListContainer.insertAdjacentHTML('beforeend', html);
+        modalRenderedCount = end;
+    }
+
+    // Carga más productos cuando el usuario se acerca al final del scroll
+    function handleModalScroll(e) {
+        const el = e.currentTarget;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+            renderModalBatch();
+        }
+    }
     
     function closeSearchModal() {
         const modal = document.getElementById('search-modal-overlay');
         modal.classList.remove('active');
         modalSelectedIndex = -1;
         modalFilteredProducts = [];
-        
+
         // Remover event listener
         document.removeEventListener('keydown', handleModalKeydown);
+        const modalBody = document.querySelector('.search-modal-body');
+        if (modalBody) modalBody.removeEventListener('scroll', handleModalScroll);
         
         // Enfocar de nuevo en el campo de búsqueda
         document.getElementById('product-search').focus();
@@ -2273,13 +2341,18 @@
     }
     
     function handleModalKeydown(e) {
-        const items = document.querySelectorAll('.modal-product-item');
+        let items = document.querySelectorAll('.modal-product-item');
         
         if (e.key === 'Escape') {
             e.preventDefault();
             closeSearchModal();
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
+            // Si llegamos al final de lo renderizado, cargamos el siguiente lote
+            if (modalSelectedIndex + 1 >= items.length && modalRenderedCount < modalFilteredProducts.length) {
+                renderModalBatch();
+                items = document.querySelectorAll('.modal-product-item');
+            }
             if (items.length === 0) return;
             modalSelectedIndex = Math.min(modalSelectedIndex + 1, items.length - 1);
             updateModalSelectedItem(items);
