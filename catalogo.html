@@ -243,6 +243,50 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0, 137, 123, 0.25);
         }
+
+        /* Imagen del producto: oculta por defecto, se muestra al pasar el mouse */
+        .product-bg-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            padding: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Al pasar el mouse, mostrar la imagen completa (solo si hay imagen) */
+        .product-card.has-image:hover .product-bg-image {
+            opacity: 1;
+        }
+
+        /* Asegurar que toda la info quede por encima de la imagen */
+        .product-card > .badges-container,
+        .product-card > .product-category,
+        .product-card > .product-subcategory,
+        .product-card > .product-brand,
+        .product-card > .product-name,
+        .product-card > .product-code,
+        .product-card > .price-section {
+            position: relative;
+            z-index: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Al pasar el mouse: ocultar toda la info SOLO si la tarjeta tiene imagen */
+        .product-card.has-image:hover > .badges-container,
+        .product-card.has-image:hover > .product-category,
+        .product-card.has-image:hover > .product-subcategory,
+        .product-card.has-image:hover > .product-brand,
+        .product-card.has-image:hover > .product-name,
+        .product-card.has-image:hover > .product-code,
+        .product-card.has-image:hover > .price-section {
+            opacity: 0;
+        }
         
 
         
@@ -1233,8 +1277,19 @@
             const safeCode = escapeForAttribute(product.Code);
             const safeDescription = escapeForAttribute(product.Description);
 
+            // Imagen de fondo según el código de referencia.
+            // Si el producto no tiene código, no se intenta mostrar imagen.
+            // Si la imagen no existe en la carpeta "imagenes", se oculta automáticamente (onerror).
+            const refCode = (product.Code !== undefined && product.Code !== null)
+                ? product.Code.toString().trim()
+                : '';
+            const imageTag = refCode
+                ? `<img class="product-bg-image" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
+                : '';
+
             return `
                 <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" onclick="handleProductClick(this)">
+                    ${imageTag}
                     <div class="badges-container">
                         <div>
                             ${cost > 0 ? `<span class="badge badge-cost">Costo: $${cost.toFixed(2)}</span>` : ''}
@@ -1259,9 +1314,31 @@
             `;
         } // <div class="product-subcategory">${escapeHtml(product.Subcategory)}</div>/ linea 1146
 
+        // Probar varias extensiones de imagen para el código de referencia.
+        // Si ninguna existe en la carpeta "imagenes", se elimina la imagen (no se muestra nada).
+        function handleImageError(img) {
+            const ref = img.getAttribute('data-ref');
+            const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+            let index = parseInt(img.dataset.extIndex || '0', 10);
+            index++;
+            if (index >= extensions.length) {
+                const card = img.closest('.product-card');
+                if (card) card.classList.remove('has-image');
+                img.remove();
+                return;
+            }
+            img.dataset.extIndex = index;
+            img.src = 'imagenes/' + encodeURIComponent(ref) + '.' + extensions[index];
+        }
+
+        // Cuando la imagen carga correctamente, marcar la tarjeta para ocultar la info en hover.
+        function handleImageLoad(img) {
+            const card = img.closest('.product-card');
+            if (card) card.classList.add('has-image');
+        }
+
         // Escapar HTML
-        function escapeHtml(text) {
-            if (!text) return '';
+        function escapeHtml(text) {            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
