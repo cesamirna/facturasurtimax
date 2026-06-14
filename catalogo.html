@@ -552,29 +552,82 @@
         }
         
         @media (max-width: 600px) {
-            .products-grid {
-                grid-template-columns: 1fr;
+            /* En teléfono el encabezado deja de ser fijo para no ocupar tanto espacio */
+            .header {
+                position: static;
+                padding: 10px 12px;
             }
-            
+
+            .header-content {
+                gap: 10px;
+            }
+
             .header-top {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
             }
-            
+
             .logo-section {
                 justify-content: center;
             }
-            
+
+            .logo-section h1 {
+                font-size: 18px;
+            }
+
+            /* Botones de acción: solo iconos para ahorrar espacio */
             .header-actions {
                 justify-content: center;
+                gap: 8px;
+                flex-wrap: nowrap;
             }
-            
+
+            .action-btn {
+                padding: 10px;
+                font-size: 0;
+                gap: 0;
+                flex: 1 1 auto;
+                justify-content: center;
+            }
+
+            .action-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* Búsqueda y filtros a todo el ancho, uno debajo de otro */
+            .search-section {
+                gap: 8px;
+            }
+
             .search-container {
                 min-width: 100%;
             }
-            
+
+            .filter-select {
+                min-width: 100%;
+                flex: 1 1 100%;
+            }
+
+            /* El contenido ya no necesita el gran espacio superior del header fijo */
             .main-content {
-                padding-top: 280px;
+                padding-top: 20px;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .stats-bar {
+                padding: 12px 15px;
+            }
+
+            .stats-info {
+                gap: 12px;
+            }
+
+            /* Tarjetas de producto: una sola columna, de arriba hacia abajo */
+            .products-grid {
+                grid-template-columns: 1fr;
             }
         }
         
