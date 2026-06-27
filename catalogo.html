@@ -69,7 +69,7 @@
         
         .logo-section h1 {
             color: white;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
@@ -127,7 +127,7 @@
             width: 100%;
             padding: 14px 20px 14px 50px;
             border: none;
-            border-radius: 50px;
+            border-radius: 8px;
             font-size: 14px;
             background-color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -154,7 +154,7 @@
         .filter-select {
             padding: 12px 20px;
             border: none;
-            border-radius: 50px;
+            border-radius: 8px;
             font-size: 14px;
             background-color: white;
             color: var(--text-color);
@@ -187,7 +187,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--card-shadow);
+            /*box-shadow: var(--card-shadow);*/
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -264,7 +264,7 @@
             opacity: 1;
         }
 
-        /* Asegurar que toda la info quede por encima de la imagen */
+        /* Asegurar que toda la info quede por encima de la imagen 
         .product-card > .badges-container,
         .product-card > .product-category,
         .product-card > .product-subcategory,
@@ -275,7 +275,7 @@
             position: relative;
             z-index: 1;
             transition: opacity 0.3s ease;
-        }
+        }*/
 
         /* Al pasar el mouse: ocultar toda la info SOLO si la tarjeta tiene imagen */
         .product-card.has-image:hover > .badges-container,
@@ -372,7 +372,7 @@
         .price-section {
             margin-top: auto;
             padding-top: 12px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid var(--secondary-color);
         }
         
         .price-main {
@@ -668,7 +668,7 @@
         <div class="header-content">
             <div class="header-top">
                 <div class="logo-section">
-                    <img src="icon/icon.png" width="35" height="35">
+                    <img src="icon/icon.png" width="30" height="30">
                     <h1>Catálogo de Precios</h1>
                 </div>
                 <div class="header-actions">
