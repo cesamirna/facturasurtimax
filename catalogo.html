@@ -36,7 +36,7 @@
         
         /* Header fijo con búsqueda */
         .header {
-            position: fixed;
+            position: sticky;
             top: 0;
             left: 0;
             right: 0;
@@ -58,7 +58,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 14px;
         }
         
         .logo-section {
@@ -109,17 +109,54 @@
             background-color: var(--secondary-color);
         }
         
-        /* Barra de búsqueda principal */
-        .search-section {
+        /* Barra de filtros arriba de las estadísticas */
+        .filters-bar {
             display: flex;
+            align-items: center;
             gap: 14px;
             flex-wrap: wrap;
-            align-items: center;
+            margin-bottom: 12px;
+            transition: box-shadow 0.3s ease, padding 0.3s ease, background-color 0.3s ease;
+        }
+
+        /* Barra de filtros flotante al hacer scroll hacia abajo */
+        .filters-bar.floating {
+            position: fixed;
+            /* Se coloca justo debajo del encabezado fijo (altura calculada en JS) */
+            top: var(--header-height, 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            /* Por debajo del encabezado (z-index 1000) para que nunca lo tape */
+            z-index: 999;
+            width: calc(100% - 40px);
+            max-width: 1360px;
+            margin-bottom: 0;
+            padding: 12px 20px;
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(6px);
+        }
+
+        /* Espaciador para evitar el salto del contenido cuando la barra es flotante */
+        .filters-spacer {
+            display: none;
+        }
+
+        .filters-spacer.active {
+            display: block;
+        }
+
+        .filters-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
         }
         
         .search-container {
             flex: 1;
             min-width: 300px;
+            max-width: 520px;
             position: relative;
         }
         
@@ -167,10 +204,141 @@
             outline: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
-        
+
+        /* ===== Dropdown personalizado (reemplaza la lista cuadrada nativa) ===== */
+        .custom-select {
+            position: relative;
+            min-width: 200px;
+        }
+
+        /* El <select> nativo queda oculto pero sigue funcionando para la lógica */
+        .custom-select .filter-select {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .custom-select-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            text-align: left;
+            background-color: white;
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.25s ease;
+        }
+
+        .custom-select-trigger:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        .custom-select.open .custom-select-trigger {
+            box-shadow: 0 0 0 2px var(--primary-color), 0 6px 20px rgba(0, 0, 0, 0.18);
+        }
+
+        .custom-select.disabled .custom-select-trigger {
+            opacity: 0.55;
+            cursor: not-allowed;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .cs-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cs-arrow {
+            display: flex;
+            color: var(--primary-color);
+            transition: transform 0.25s ease;
+            flex-shrink: 0;
+        }
+
+        .custom-select.open .cs-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Panel desplegable redondeado */
+        .custom-select-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            z-index: 1200;
+            background-color: white;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+            max-height: 320px;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        }
+
+        .custom-select.open .custom-select-panel {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .custom-select-option {
+            padding: 10px 14px;
+            border-radius: 9px;
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .custom-select-option:hover {
+            background-color: var(--background-color);
+        }
+
+        .custom-select-option.selected {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Scrollbar suave dentro del panel */
+        .custom-select-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-select-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-select-panel::-webkit-scrollbar-thumb {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .custom-select-panel::-webkit-scrollbar-thumb:hover {
+            background-color: var(--text-light);
+        }
+
         /* Contenido principal */
         .main-content {
-            padding-top: 140px;
+            padding-top: 25px;
             padding-bottom: 50px;
             max-width: 1400px;
             margin: 0 auto;
@@ -183,7 +351,7 @@
             background: white;
             border-radius: 12px;
             padding: 15px 25px;
-            margin-bottom: 25px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -540,14 +708,56 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+
+        /* Pantallas medianas / ventana a media pantalla:
+           la búsqueda pasa a su propia fila centrada y los botones quedan solo con iconos */
+        @media (max-width: 1060px) {
+            /* Todo en una sola fila: título, búsqueda e iconos */
+            .header-top {
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            /* El logo se mantiene a la izquierda sin ocupar toda la fila */
+            .logo-section {
+                order: 1;
+                flex: 0 0 auto;
+            }
+
+            /* La barra de búsqueda ocupa el espacio disponible al lado del título */
+            .search-container {
+                order: 2;
+                flex: 1 1 auto;
+                min-width: 0;
+                max-width: none;
+                margin: 0;
+            }
+
+            /* Los iconos de control quedan al lado de la búsqueda */
+            .header-actions {
+                order: 3;
+                flex: 0 0 auto;
+                flex-wrap: nowrap;
+            }
+
+            /* Botones de acción: solo iconos, se oculta el texto */
+            .action-btn {
+                padding: 10px;
+                font-size: 0;
+                gap: 0;
+                justify-content: center;
+            }
+
+            .action-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
         
         @media (max-width: 900px) {
             .products-grid {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .main-content {
-                padding-top: 200px;
             }
         }
         
@@ -597,15 +807,21 @@
             }
 
             /* Búsqueda y filtros a todo el ancho, uno debajo de otro */
-            .search-section {
+            .search-container {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .filters-bar {
                 gap: 8px;
             }
 
-            .search-container {
-                min-width: 100%;
+            .filters-label {
+                flex: 1 1 100%;
             }
 
-            .filter-select {
+            .filter-select,
+            .custom-select {
                 min-width: 100%;
                 flex: 1 1 100%;
             }
@@ -671,6 +887,16 @@
                     <img src="icon/icon.png" width="30" height="30">
                     <h1>Catálogo de Precios</h1>
                 </div>
+
+                <div class="search-container">
+                    <span class="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Buscar por código, nombre, marca o categoría...">
+                </div>
+
                 <div class="header-actions">
                     <button onclick="document.getElementById('excel-file').click()" class="action-btn primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
@@ -680,12 +906,11 @@
                         Cargar Excel
                     </button>
                     <a href="calculadora.html" class="action-btn" style="text-decoration: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M8 13.5a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11zm0 .5A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"/>
-                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                <path d="M4 2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-2zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3-6a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-4z"/>
                         </svg>
-                        Calculadora de Margen
+                        Calculadora
                     </a>
                     <button onclick="printCatalog()" class="action-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
@@ -702,35 +927,30 @@
                     </a>
                 </div>
             </div>
-            
-            <div class="search-section">
-                <div class="search-container">
-                    <span class="search-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                        </svg>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Buscar por código, nombre, marca o categoría...">
-                </div>
-                
-                <select id="category-filter" class="filter-select">
-                    <option value="">Todas las categorías</option>
-                </select>
-                
-                <select id="subcategory-filter" class="filter-select" disabled>
-                    <option value="">Todas las subcategorías</option>
-                </select>
-                
-                <select id="brand-filter" class="filter-select">
-                    <option value="">Todas las marcas</option>
-                </select>
-            </div>
         </div>
     </header>
     
     <input type="file" id="excel-file" accept=".xlsx, .xls, .json" style="display: none;">
     
     <main class="main-content">
+        <div class="filters-bar">
+            <span class="filters-label">Filtrar por:</span>
+
+            <select id="category-filter" class="filter-select">
+                <option value="">Todas las categorías</option>
+            </select>
+
+            <select id="subcategory-filter" class="filter-select" disabled>
+                <option value="">Todas las subcategorías</option>
+            </select>
+
+            <select id="brand-filter" class="filter-select">
+                <option value="">Todas las marcas</option>
+            </select>
+        </div>
+
+        <div class="filters-spacer" id="filters-spacer"></div>
+
         <div class="stats-bar">
             <div class="stats-info">
                 <div class="stat-item">
@@ -747,7 +967,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="catalog-content">
             <div class="empty-state">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -808,7 +1028,131 @@
             
             // Botón scroll top
             window.addEventListener("scroll", toggleScrollTopButton);
+
+            // Barra de filtros flotante
+            window.addEventListener("scroll", toggleFloatingFilters);
+
+            // Mejorar los selects de filtro con un dropdown redondeado personalizado
+            document.querySelectorAll(".filters-bar .filter-select").forEach(enhanceSelect);
         });
+
+        // Cerrar cualquier dropdown personalizado abierto
+        function closeAllCustomSelects(except) {
+            document.querySelectorAll(".custom-select.open").forEach(w => {
+                if (w !== except) w.classList.remove("open");
+            });
+        }
+        document.addEventListener("click", () => closeAllCustomSelects());
+
+        // Convierte un <select> nativo en un dropdown personalizado redondeado.
+        // El <select> original se mantiene oculto y sincronizado, por lo que
+        // toda la lógica existente (value, eventos "change", populateFilters) sigue igual.
+        function enhanceSelect(select) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "custom-select";
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+
+            const trigger = document.createElement("button");
+            trigger.type = "button";
+            trigger.className = "custom-select-trigger";
+
+            const label = document.createElement("span");
+            label.className = "cs-label";
+
+            const arrow = document.createElement("span");
+            arrow.className = "cs-arrow";
+            arrow.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>';
+
+            trigger.appendChild(label);
+            trigger.appendChild(arrow);
+            wrapper.appendChild(trigger);
+
+            const panel = document.createElement("div");
+            panel.className = "custom-select-panel";
+            wrapper.appendChild(panel);
+
+            function updateLabel() {
+                const opt = select.options[select.selectedIndex];
+                label.textContent = opt ? opt.textContent : "";
+            }
+
+            function rebuild() {
+                panel.innerHTML = "";
+                Array.from(select.options).forEach((opt, i) => {
+                    const item = document.createElement("div");
+                    item.className = "custom-select-option";
+                    item.textContent = opt.textContent;
+                    if (i === select.selectedIndex) item.classList.add("selected");
+                    item.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        select.value = opt.value;
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                        updateLabel();
+                        panel.querySelectorAll(".custom-select-option").forEach((c, j) =>
+                            c.classList.toggle("selected", j === select.selectedIndex)
+                        );
+                        wrapper.classList.remove("open");
+                    });
+                    panel.appendChild(item);
+                });
+                updateLabel();
+                wrapper.classList.toggle("disabled", select.disabled);
+            }
+
+            trigger.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (select.disabled) return;
+                const willOpen = !wrapper.classList.contains("open");
+                closeAllCustomSelects(wrapper);
+                wrapper.classList.toggle("open", willOpen);
+                if (willOpen) {
+                    const sel = panel.querySelector(".custom-select-option.selected");
+                    if (sel) sel.scrollIntoView({ block: "nearest" });
+                }
+            });
+
+            // Reconstruir cuando el <select> cambie de opciones o de estado
+            const observer = new MutationObserver(rebuild);
+            observer.observe(select, {
+                childList: true,
+                attributes: true,
+                attributeFilter: ["disabled"]
+            });
+
+            // Mantener la etiqueta sincronizada si el value cambia por código
+            select.addEventListener("change", updateLabel);
+
+            rebuild();
+        }
+
+        // Hacer flotante la barra de filtros al deslizar hacia abajo
+        function toggleFloatingFilters() {
+            const filtersBar = document.querySelector(".filters-bar");
+            const spacer = document.getElementById("filters-spacer");
+            if (!filtersBar || !spacer) return;
+
+            if (window.scrollY > 120) {
+                if (!filtersBar.classList.contains("floating")) {
+                    // Calcular la altura del encabezado fijo para que la barra
+                    // flotante quede justo debajo y no lo tape
+                    const header = document.querySelector(".header");
+                    const headerStyle = header ? getComputedStyle(header) : null;
+                    // Solo desplazar si el encabezado sigue fijo en pantalla (sticky/fixed)
+                    const headerVisible = headerStyle && (headerStyle.position === "sticky" || headerStyle.position === "fixed");
+                    const offset = headerVisible ? header.offsetHeight + 12 : 12;
+                    document.documentElement.style.setProperty("--header-height", offset + "px");
+
+                    spacer.style.height = filtersBar.offsetHeight + "px";
+                    spacer.classList.add("active");
+                    filtersBar.classList.add("floating");
+                }
+            } else {
+                filtersBar.classList.remove("floating");
+                spacer.classList.remove("active");
+                spacer.style.height = "";
+            }
+        }
 
         // Debounce para búsqueda
         function debounce(func, wait) {
