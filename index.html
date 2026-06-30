@@ -451,6 +451,29 @@
         text-align: right;
         margin-left: 15px;
     }
+
+    /* Miniatura de imagen del producto */
+    .product-thumb {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+        background-color: white;
+        margin-left: 14px;
+        flex-shrink: 0;
+    }
+
+    .modal-product-thumb {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid var(--gray-200);
+        background-color: white;
+        margin-left: 16px;
+        flex-shrink: 0;
+    }
     
     .product-price-tag .price-base {
         font-size: 10px;
@@ -1322,10 +1345,49 @@
         if (product.Brand && product.Brand !== "Sin Marca" && product.Brand.trim() !== "") {
             return product.Brand;
         }
-        return extractBrandFromName(product.Description);
-    }
+  return extractBrandFromName(product.Description);
+  }
 
-    // ============ FUNCIONES DE BÚSQUEDA (Usando lógica de catálogo) ============
+  // ============ MINIATURA DE IMAGEN DEL PRODUCTO ============
+  // Cache global de imagenes ya resueltas para evitar volver a buscar
+  // (y el parpadeo) cada vez que se re-renderiza la lista de resultados.
+  //   - valor string  -> URL de la imagen que SI existe.
+  //   - valor ''       -> ya se comprobo y NO existe imagen para ese codigo.
+  //   - undefined      -> aun no se ha comprobado.
+  window.__imageCache = window.__imageCache || {};
+
+  // Genera el HTML de una miniatura buscando la imagen en la carpeta "imagenes"
+  // segun el codigo de barra. La primera vez prueba varias extensiones; una vez
+  // resuelta, guarda el resultado en cache y las siguientes veces usa ese valor
+  // directamente, sin volver a probar (evita el parpadeo del cuadro).
+  function getProductImageHtml(code, className) {
+      if (!code) return '';
+      const cls = className || 'product-thumb';
+      const safeCode = String(code).trim().replace(/"/g, '');
+      if (!safeCode) return '';
+
+      const cached = window.__imageCache[safeCode];
+      // Ya se resolvio antes: usar el valor en cache sin volver a buscar.
+      if (cached !== undefined) {
+          if (!cached) return ''; // ya sabemos que no existe imagen
+          return `<img class="${cls}" src="${cached}" alt="" loading="lazy">`;
+      }
+
+      // Primera vez para este codigo: probar extensiones y cachear el resultado.
+      const exts = ['jpg', 'jpeg', 'png', 'webp'];
+      const first = exts[0];
+      const rest = exts.slice(1).join(',');
+      // Al cargar correctamente, guardamos la URL en cache.
+      const onload = "window.__imageCache[this.dataset.code]=this.getAttribute('src');";
+      // Al fallar, probamos la siguiente extension; si no quedan, cacheamos que no existe y ocultamos.
+      const onerror =
+          "var e=this.dataset.ext.split(',').filter(Boolean);" +
+          "if(e.length){this.src='imagenes/'+this.dataset.code+'.'+e.shift();this.dataset.ext=e.join(',');}" +
+          "else{window.__imageCache[this.dataset.code]='';this.style.display='none';}";
+      return `<img class="${cls}" src="imagenes/${safeCode}.${first}" data-code="${safeCode}" data-ext="${rest}" alt="" loading="lazy" onload="${onload}" onerror="${onerror}">`;
+  }
+
+  // ============ FUNCIONES DE BÚSQUEDA (Usando lógica de catálogo) ============
     function searchProducts(query) {
         const searchResults = document.getElementById('search-results');
         const resultsList = document.getElementById('results-list');
@@ -1403,6 +1465,7 @@
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-base">con ITBMS</div>
                     </div>
+                    ${getProductImageHtml(product.Code, 'product-thumb')}
                 </div>
             `;
         }).join('');
@@ -2286,6 +2349,7 @@
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-label">con ITBMS</div>
                     </div>
+                    ${getProductImageHtml(product.Code, 'modal-product-thumb')}
                 </li>
             `;
         }
