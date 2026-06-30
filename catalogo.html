@@ -132,6 +132,7 @@
             /* Por debajo del encabezado (z-index 1000) para que nunca lo tape */
             z-index: 999;
             flex-direction: row;
+            flex-wrap: nowrap;
             width: auto;
             max-width: none;
             align-items: center;
@@ -910,6 +911,7 @@
                 left: 50%;
                 transform: translateX(-50%);
                 flex-direction: row;
+                flex-wrap: nowrap;
                 width: auto;
                 justify-content: center;
                 align-items: center;
@@ -924,13 +926,19 @@
                 flex: 0 0 auto;
             }
 
-            /* El panel se abre hacia arriba, centrado sobre su icono */
+            /* En teléfono el panel se ancla a la pantalla (fixed) y se centra
+               sobre la barra, así los resultados de categoría y subcategoría
+               nunca quedan cortados por el borde de la pantalla */
             .filters-bar.floating .custom-select-panel {
+                position: fixed;
                 top: auto;
-                bottom: calc(100% + 12px);
+                bottom: 88px;
                 left: 50%;
                 right: auto;
-                min-width: 210px;
+                width: calc(100vw - 32px);
+                min-width: 0;
+                max-width: 360px;
+                max-height: 60vh;
                 transform: translateX(-50%) translateY(6px);
             }
 
