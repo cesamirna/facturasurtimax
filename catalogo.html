@@ -42,7 +42,7 @@
             right: 0;
             z-index: 1000;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            padding: 15px 20px;
+            padding: 15px 15px;
         }
         
         .header-content {
@@ -119,23 +119,78 @@
             transition: box-shadow 0.3s ease, padding 0.3s ease, background-color 0.3s ease;
         }
 
-        /* Barra de filtros flotante al hacer scroll hacia abajo */
+        /* Barra de filtros fija en la parte inferior, siempre visible.
+           Muestra solo los iconos de categoría, subcategoría y marca
+           centrados en una fila horizontal. */
         .filters-bar.floating {
             position: fixed;
-            /* Se coloca justo debajo del encabezado fijo (altura calculada en JS) */
-            top: var(--header-height, 12px);
+            bottom: 20px;
             left: 50%;
+            top: auto;
+            right: auto;
             transform: translateX(-50%);
             /* Por debajo del encabezado (z-index 1000) para que nunca lo tape */
             z-index: 999;
-            width: calc(100% - 40px);
-            max-width: 1360px;
+            flex-direction: row;
+            width: auto;
+            max-width: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
             margin-bottom: 0;
-            padding: 12px 20px;
+            padding: 10px 16px;
             background-color: rgba(255, 255, 255, 0.97);
-            border-radius: 12px;
+            border-radius: 18px;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
             backdrop-filter: blur(6px);
+        }
+
+        /* Ocultar la etiqueta "Filtrar por:" cuando la barra es flotante */
+        .filters-bar.floating .filters-label {
+            display: none;
+        }
+
+        /* Cada filtro se reduce a un botón cuadrado con su icono */
+        .filters-bar.floating .custom-select {
+            min-width: 0;
+        }
+
+        .filters-bar.floating .custom-select-trigger {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .filters-bar.floating .cs-label,
+        .filters-bar.floating .cs-arrow {
+            display: none;
+        }
+
+        .filters-bar.floating .cs-icon {
+            display: flex;
+        }
+
+        /* El panel se abre hacia arriba, centrado sobre su icono */
+        .filters-bar.floating .custom-select-panel {
+            top: auto;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            right: auto;
+            min-width: 220px;
+            transform: translateX(-50%) translateY(6px);
+        }
+
+        .filters-bar.floating .custom-select.open .custom-select-panel {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Icono dentro del trigger: oculto salvo en modo flotante */
+        .cs-icon {
+            display: none;
+            color: var(--primary-color);
+            flex-shrink: 0;
         }
 
         /* Espaciador para evitar el salto del contenido cuando la barra es flotante */
@@ -339,7 +394,7 @@
         /* Contenido principal */
         .main-content {
             padding-top: 25px;
-            padding-bottom: 50px;
+            padding-bottom: 110px;
             max-width: 1400px;
             margin: 0 auto;
             padding-left: 20px;
@@ -847,6 +902,43 @@
             }
         }
         
+        /* En teléfono la barra se mantiene abajo, centrada y en fila */
+        @media (max-width: 600px) {
+            .filters-bar.floating {
+                bottom: 16px;
+                top: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                flex-direction: row;
+                width: auto;
+                justify-content: center;
+                align-items: center;
+                gap: 14px;
+                padding: 10px 16px;
+                border-radius: 18px;
+            }
+
+            /* Anular el ancho completo que tienen los filtros en móvil */
+            .filters-bar.floating .custom-select {
+                min-width: 0;
+                flex: 0 0 auto;
+            }
+
+            /* El panel se abre hacia arriba, centrado sobre su icono */
+            .filters-bar.floating .custom-select-panel {
+                top: auto;
+                bottom: calc(100% + 12px);
+                left: 50%;
+                right: auto;
+                min-width: 210px;
+                transform: translateX(-50%) translateY(6px);
+            }
+
+            .filters-bar.floating .custom-select.open .custom-select-panel {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
         /* Print styles */
         @media print {
             .header {
@@ -933,7 +1025,7 @@
     <input type="file" id="excel-file" accept=".xlsx, .xls, .json" style="display: none;">
     
     <main class="main-content">
-        <div class="filters-bar">
+        <div class="filters-bar floating">
             <span class="filters-label">Filtrar por:</span>
 
             <select id="category-filter" class="filter-select">
@@ -948,8 +1040,6 @@
                 <option value="">Todas las marcas</option>
             </select>
         </div>
-
-        <div class="filters-spacer" id="filters-spacer"></div>
 
         <div class="stats-bar">
             <div class="stats-info">
@@ -1029,9 +1119,6 @@
             // Botón scroll top
             window.addEventListener("scroll", toggleScrollTopButton);
 
-            // Barra de filtros flotante
-            window.addEventListener("scroll", toggleFloatingFilters);
-
             // Mejorar los selects de filtro con un dropdown redondeado personalizado
             document.querySelectorAll(".filters-bar .filter-select").forEach(enhanceSelect);
         });
@@ -1056,6 +1143,17 @@
             const trigger = document.createElement("button");
             trigger.type = "button";
             trigger.className = "custom-select-trigger";
+
+            // Icono representativo de cada filtro (visible en modo flotante)
+            const icons = {
+                "category-filter": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/></svg>',
+                "subcategory-filter": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5z"/></svg>',
+                "brand-filter": '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M6 4.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/><path d="M0 2a2 2 0 0 1 2-2h4.586a2 2 0 0 1 1.414.586l7 7a2 2 0 0 1 0 2.828l-4.586 4.586a2 2 0 0 1-2.828 0l-7-7A2 2 0 0 1 0 6.586V2zm2-1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2z"/></svg>'
+            };
+            const icon = document.createElement("span");
+            icon.className = "cs-icon";
+            icon.innerHTML = icons[select.id] || icons["category-filter"];
+            trigger.appendChild(icon);
 
             const label = document.createElement("span");
             label.className = "cs-label";
@@ -1124,34 +1222,6 @@
             select.addEventListener("change", updateLabel);
 
             rebuild();
-        }
-
-        // Hacer flotante la barra de filtros al deslizar hacia abajo
-        function toggleFloatingFilters() {
-            const filtersBar = document.querySelector(".filters-bar");
-            const spacer = document.getElementById("filters-spacer");
-            if (!filtersBar || !spacer) return;
-
-            if (window.scrollY > 120) {
-                if (!filtersBar.classList.contains("floating")) {
-                    // Calcular la altura del encabezado fijo para que la barra
-                    // flotante quede justo debajo y no lo tape
-                    const header = document.querySelector(".header");
-                    const headerStyle = header ? getComputedStyle(header) : null;
-                    // Solo desplazar si el encabezado sigue fijo en pantalla (sticky/fixed)
-                    const headerVisible = headerStyle && (headerStyle.position === "sticky" || headerStyle.position === "fixed");
-                    const offset = headerVisible ? header.offsetHeight + 12 : 12;
-                    document.documentElement.style.setProperty("--header-height", offset + "px");
-
-                    spacer.style.height = filtersBar.offsetHeight + "px";
-                    spacer.classList.add("active");
-                    filtersBar.classList.add("floating");
-                }
-            } else {
-                filtersBar.classList.remove("floating");
-                spacer.classList.remove("active");
-                spacer.style.height = "";
-            }
         }
 
         // Debounce para búsqueda
