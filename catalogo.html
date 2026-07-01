@@ -125,15 +125,21 @@
         .filters-bar.floating {
             position: fixed;
             bottom: 20px;
-            left: 50%;
+            left: 0;
+            right: 0;
             top: auto;
-            right: auto;
-            transform: translateX(-50%);
+            /* Centrado SIN "transform": un transform en este contenedor
+               convierte a sus hijos "position: fixed" (los paneles
+               desplegables) en fixed respecto a ESTE recuadro y no
+               respecto a la pantalla. Eso descolocaba el desplegable
+               y hacía que en el teléfono los toques no acertaran los
+               botones de las opciones. */
+            width: fit-content;
+            margin: 0 auto;
             /* Por debajo del encabezado (z-index 1000) para que nunca lo tape */
             z-index: 999;
             flex-direction: row;
             flex-wrap: nowrap;
-            width: auto;
             max-width: none;
             align-items: center;
             justify-content: center;
@@ -173,13 +179,18 @@
             display: flex;
         }
 
-        /* El panel se abre hacia arriba, centrado sobre su icono */
+        /* El panel se abre hacia arriba, centrado en la pantalla (no sobre
+           el icono) para que categoría, subcategoría y marca abran siempre
+           en el mismo punto centrado, sea cual sea el ancho del botón. */
         .filters-bar.floating .custom-select-panel {
+            position: fixed;
             top: auto;
-            bottom: calc(100% + 10px);
+            bottom: 100px;
             left: 50%;
             right: auto;
-            min-width: 220px;
+            width: min(90vw, 320px);
+            min-width: 0;
+            max-width: 320px;
             transform: translateX(-50%) translateY(6px);
         }
 
@@ -297,6 +308,9 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.25s ease;
+            /* Evita el retraso de ~300ms y los "toques fantasma" en móvil */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .custom-select-trigger:hover {
@@ -362,6 +376,8 @@
             color: var(--text-color);
             cursor: pointer;
             transition: background-color 0.15s ease, color 0.15s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .custom-select-option:hover {
@@ -908,11 +924,16 @@
             .filters-bar.floating {
                 bottom: 16px;
                 top: auto;
-                left: 50%;
-                transform: translateX(-50%);
+                left: 0;
+                right: 0;
+                /* Sin transform: así el panel (position: fixed) queda
+                   anclado de verdad a la pantalla y no a este recuadro,
+                   que era la causa de que en el teléfono los toques
+                   sobre las opciones no se reconocieran bien. */
+                width: fit-content;
+                margin: 0 auto;
                 flex-direction: row;
                 flex-wrap: nowrap;
-                width: auto;
                 justify-content: center;
                 align-items: center;
                 gap: 14px;
@@ -926,9 +947,10 @@
                 flex: 0 0 auto;
             }
 
-            /* En teléfono el panel se ancla a la pantalla (fixed) y se centra
-               sobre la barra, así los resultados de categoría y subcategoría
-               nunca quedan cortados por el borde de la pantalla */
+            /* En teléfono el panel se ancla realmente a la pantalla (fixed)
+               y se centra en el centro horizontal de la pantalla, así los
+               resultados de categoría, subcategoría y marca siempre abren
+               en el mismo punto y nunca quedan cortados por el borde. */
             .filters-bar.floating .custom-select-panel {
                 position: fixed;
                 top: auto;
