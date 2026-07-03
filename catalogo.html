@@ -289,6 +289,16 @@
             clip: rect(0 0 0 0);
             white-space: nowrap;
             border: 0;
+            /* CLAVE para móvil: al ser "position: absolute" este <select>
+               se pinta en una capa por encima del botón (.custom-select-trigger),
+               aunque sea invisible. En el teléfono, el sistema le da a los
+               controles nativos como <select> una zona de toque ampliada
+               (accesibilidad) que caía justo sobre el centro del botón y se
+               robaba el toque antes de llegar al botón personalizado — por
+               eso solo el borde del icono respondía. Como este <select> ya
+               se controla 100% por JavaScript, nunca hace falta tocarlo
+               directamente: le decimos que ignore todo toque/clic. */
+            pointer-events: none;
         }
 
         .custom-select-trigger {
@@ -317,7 +327,9 @@
            capturar el toque: así cualquier toque, incluido el centro del
            botón donde está el icono, se registra siempre en el propio botón.
            Esta era la causa de que en el teléfono el centro no respondiera. */
-        .custom-select-trigger * {
+        .custom-select-trigger *,
+        .custom-select-trigger svg,
+        .custom-select-trigger svg * {
             pointer-events: none;
         }
 
