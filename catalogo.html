@@ -146,10 +146,17 @@
             gap: 12px;
             margin-bottom: 0;
             padding: 10px 16px;
-            background-color: rgba(255, 255, 255, 0.97);
+            /* Fondo TOTALMENTE opaco (sin transparencia ni "backdrop-filter").
+               El "backdrop-filter: blur()" sobre un elemento "position: fixed"
+               provoca un bug conocido en los navegadores móviles (Chrome /
+               WebView de Android): crea una capa de composición que ROMPE la
+               detección de toques de TODOS sus elementos hijos. Por eso los
+               botones respondían con el ratón en el ordenador pero no al tocar
+               con el dedo en el teléfono. Al quitarlo, los toques vuelven a
+               registrarse con normalidad. */
+            background-color: #ffffff;
             border-radius: 18px;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-            backdrop-filter: blur(6px);
         }
 
         /* Ocultar la etiqueta "Filtrar por:" cuando la barra es flotante */
@@ -711,11 +718,24 @@
             padding: 15px 25px;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0, 105, 92, 0.4);
-            z-index: 1100;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-        }
+  z-index: 1100;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  /* CLAVE: este aviso "flotante" está fijo abajo a la derecha con un
+     z-index (1100) MAYOR que la barra de filtros (999). Aunque es
+     invisible (opacity: 0), un elemento con opacity: 0 SIGUE recibiendo
+     toques/clics. En una pantalla grande queda lejos, a la derecha, y no
+     estorba; pero en el teléfono se solapa justo encima de los botones
+     de la barra de filtros y se ROBABA el toque, por eso no respondían.
+     Con "pointer-events: none" el aviso nunca intercepta toques. */
+  pointer-events: none;
+  }
+  
+> .notification.show {
+  opacity: 1;
+  transform: translateY(0);
+  }
         
         .notification.show {
             opacity: 1;
