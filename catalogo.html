@@ -1172,7 +1172,17 @@
                 if (w !== except) w.classList.remove("open");
             });
         }
-        document.addEventListener("click", () => closeAllCustomSelects());
+        // Cerrar los desplegables SOLO cuando se toca/hace clic FUERA de
+        // cualquier filtro. Usamos "pointerdown" (se dispara en el primer
+        // contacto del dedo o del ratón) en lugar de "click", porque en el
+        // teléfono el "click" sobre un botón con estados :hover dentro de una
+        // barra fija con backdrop-filter no siempre se genera. El uso de
+        // closest(".custom-select") hace que no importe si el toque cae sobre
+        // el icono, el texto o el borde del botón: siempre se resuelve igual.
+        document.addEventListener("pointerdown", (e) => {
+            const insideSelect = e.target.closest && e.target.closest(".custom-select");
+            if (!insideSelect) closeAllCustomSelects();
+        });
 
         // Convierte un <select> nativo en un dropdown personalizado redondeado.
         // El <select> original se mantiene oculto y sincronizado, por lo que
@@ -1241,8 +1251,13 @@
                 wrapper.classList.toggle("disabled", select.disabled);
             }
 
-            trigger.addEventListener("click", (e) => {
+            // Abrir/cerrar con "pointerdown": se dispara en el primer contacto
+            // del dedo (o del ratón), antes de la lógica de :hover y del
+            // "click", que en el teléfono no siempre llega al centro del botón.
+            // Así el toque reacciona igual tocando el icono, el texto o el borde.
+            function toggleOpen(e) {
                 e.stopPropagation();
+                e.preventDefault();
                 if (select.disabled) return;
                 const willOpen = !wrapper.classList.contains("open");
                 closeAllCustomSelects(wrapper);
@@ -1251,7 +1266,8 @@
                     const sel = panel.querySelector(".custom-select-option.selected");
                     if (sel) sel.scrollIntoView({ block: "nearest" });
                 }
-            });
+            }
+            trigger.addEventListener("pointerdown", toggleOpen);
 
             // Reconstruir cuando el <select> cambie de opciones o de estado
             const observer = new MutationObserver(rebuild);
