@@ -313,6 +313,14 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Los elementos internos (icono, svg, etiqueta, flecha) NO deben
+           capturar el toque: así cualquier toque, incluido el centro del
+           botón donde está el icono, se registra siempre en el propio botón.
+           Esta era la causa de que en el teléfono el centro no respondiera. */
+        .custom-select-trigger * {
+            pointer-events: none;
+        }
+
         .custom-select-trigger:hover {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
         }
@@ -916,6 +924,11 @@
             /* Tarjetas de producto: una sola columna, de arriba hacia abajo */
             .products-grid {
                 grid-template-columns: 1fr;
+            }
+
+            /* Ocultar la flecha negra (botón "volver arriba") en el teléfono */
+            .scroll-top-btn {
+                display: none !important;
             }
         }
         
