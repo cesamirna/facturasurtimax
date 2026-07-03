@@ -1269,6 +1269,11 @@
                     if (i === select.selectedIndex) item.classList.add("selected");
                     item.addEventListener("click", (e) => {
                         e.stopPropagation();
+                        // Evitar que el teclado del teléfono reaparezca al aplicar
+                        // el filtro: mantener el input de búsqueda sin foco.
+                        if (document.activeElement && typeof document.activeElement.blur === "function") {
+                            document.activeElement.blur();
+                        }
                         select.value = opt.value;
                         select.dispatchEvent(new Event("change", { bubbles: true }));
                         updateLabel();
@@ -1291,33 +1296,20 @@
                 e.stopPropagation();
                 e.preventDefault();
                 if (select.disabled) return;
-
-                // En el teléfono, si la barra de búsqueda tiene el foco, el
-                // teclado está abierto. Al tocar un botón de filtro debemos
-                // cerrar ese teclado quitándole el foco (blur). Si no, el
-                // navegador móvil mantiene/reactiva el teclado y reajusta el
-                // viewport, lo que empujaba la página hacia arriba del listado.
-                const active = document.activeElement;
-                if (active && typeof active.blur === "function" &&
-                    (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-                    active.blur();
+                // Quitar el foco del input de búsqueda (u otro campo activo) para
+                // que el teclado del teléfono se cierre y NO vuelva a abrirse al
+                // interactuar con el filtro. Como el "pointerdown" hace
+                // preventDefault, el input no se desenfoca solo, así que lo
+                // hacemos manualmente aquí.
+                if (document.activeElement && typeof document.activeElement.blur === "function") {
+                    document.activeElement.blur();
                 }
-
                 const willOpen = !wrapper.classList.contains("open");
                 closeAllCustomSelects(wrapper);
                 wrapper.classList.toggle("open", willOpen);
                 if (willOpen) {
                     const sel = panel.querySelector(".custom-select-option.selected");
-                    // "scrollIntoView" sobre una opción dentro de un panel
-                    // "position: fixed" arrastraba TODA la página hacia arriba
-                    // en el móvil. Solo desplazamos DENTRO del panel, nunca la
-                    // página, ajustando su "scrollTop" manualmente.
-                    if (sel) {
-                        panel.scrollTop = Math.max(
-                            0,
-                            sel.offsetTop - panel.clientHeight / 2 + sel.clientHeight / 2
-                        );
-                    }
+                    if (sel) sel.scrollIntoView({ block: "nearest" });
                 }
             }
             trigger.addEventListener("pointerdown", toggleOpen);
