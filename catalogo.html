@@ -41,7 +41,7 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            background: var(--primary-color);
             padding: 15px 15px;
         }
         
@@ -713,7 +713,7 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            background: var(--primary-color);
             color: white;
             padding: 15px 25px;
             border-radius: 12px;
@@ -749,7 +749,7 @@
             left: 30px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 50%;
@@ -774,7 +774,7 @@
         
         /* Category Section Header */
         .category-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            background: var(--primary-color);
             color: white;
             padding: 10px 15px;
             border-radius: 12px;
@@ -1691,11 +1691,14 @@
             displayedCount = 0;
             renderedGroups = {};
             document.getElementById("catalog-content").innerHTML = "";
-            loadMoreProducts();
+            // Render inmediato (sin retraso) para evitar el parpadeo al filtrar
+            loadMoreProducts(true);
         }
 
         // Cargar más productos (scroll infinito)
-        function loadMoreProducts() {
+        // immediate = true renderiza de forma síncrona, evitando el destello
+        // en blanco que ocurría al cambiar un filtro.
+        function loadMoreProducts(immediate = false) {
             if (isLoading || displayedCount >= filteredProducts.length) return;
             
             isLoading = true;
@@ -1706,7 +1709,7 @@
                 loadingIndicator.style.display = "block";
             }
 
-            setTimeout(() => {
+            const renderBatch = () => {
                 // Estado vacío
                 if (filteredProducts.length === 0 && displayedCount === 0) {
                     catalogContent.innerHTML = `
@@ -1812,7 +1815,16 @@
                 
                 // Actualizar contador de productos mostrados
                 document.getElementById("showing-products").textContent = `${displayedCount} de ${filteredProducts.length}`;
-            }, 100);
+            };
+
+            // Si es inmediato (cambio de filtro), renderizar en el acto para
+            // que no haya parpadeo. En el scroll infinito se mantiene el
+            // pequeño retraso para mostrar el indicador de carga.
+            if (immediate) {
+                renderBatch();
+            } else {
+                setTimeout(renderBatch, 100);
+            }
         }
 
         // Escapar para atributos HTML (maneja comillas dobles y simples)
@@ -1993,8 +2005,8 @@
             const notification = document.getElementById("notification");
             notification.textContent = message;
             notification.style.background = isError 
-                ? "linear-gradient(135deg, #e53935, #c62828)" 
-                : "linear-gradient(135deg, var(--primary-color), var(--primary-dark))";
+                ? "#e53935" 
+                : "var(--primary-color)";
             notification.classList.add("show");
             
             setTimeout(() => {
