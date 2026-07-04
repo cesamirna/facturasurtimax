@@ -774,15 +774,16 @@
         
         /* Category Section Header */
         .category-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            margin-top: 15px;
-            font-size: 16px;
+            background: #ffffff;
+            color: var(--primary-color);
+            padding: 12px 18px;
+            border-left: 6px solid var(--primary-color);
+            border-radius: 8px;
+            margin-bottom: 14px;
+            margin-top: 14px;
+            font-size: 14px;
             font-weight: 600;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             clear: both;
             width: 100%;
         }
@@ -793,16 +794,25 @@
         }
         
         .subcategory-header {
-            background: var(--secondary-color);
-            color: var(--primary-dark);
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            /* Misma apariencia de texto que la barra de categoría,
+               pero el resto de la barra es transparente (sin cuadro) */
+            background: transparent;
+            color: var(--primary-color);
+            padding: 10px 10px;
+            border-radius: 12px;
+            margin-top: 12px;
+            margin-bottom: 12px;
+            font-size: 15px;
             font-weight: 600;
-            border-left: 4px solid var(--primary-color);
             clear: both;
+            /* Icono al lado del título */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subcategory-header svg {
+            flex-shrink: 0;
         }
         
         .subcategory-header:first-of-type {
@@ -1773,7 +1783,11 @@
                         if (!renderedGroups[groupKey]) {
                             const subcategoryHeader = document.createElement('div');
                             subcategoryHeader.className = 'subcategory-header';
-                            subcategoryHeader.textContent = subcategory.toUpperCase();
+                            const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
+                            const subLabel = document.createElement('span');
+                            subLabel.textContent = subcategory.toUpperCase();
+                            subcategoryHeader.innerHTML = subIcon;
+                            subcategoryHeader.appendChild(subLabel);
                             catalogContent.appendChild(subcategoryHeader);
                             renderedGroups[groupKey] = true;
                         }
