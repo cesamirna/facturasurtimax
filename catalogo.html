@@ -1414,6 +1414,9 @@
                 
                 return {
                     Code: product.Code || product.CodBarra || "",
+                    // Referencia del producto (igual que en index). No se muestra en pantalla,
+                    // solo se usa para poder buscarla en la barra de búsqueda.
+                    Reference: (product.Reference || product.Referencia || product.referencia || product.Ref || product.ref || product.REF || "").toString(),
                     Description: description,
                     Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
                     Subcategory: subcategory,
@@ -1530,6 +1533,7 @@
                     const productBrand = getProductBrand(product);
                     return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
                            (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
+                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
                            (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
                            (product.Category && product.Category.toLowerCase().includes(searchTerm));
                 });
@@ -1558,6 +1562,7 @@
                     const productBrand = getProductBrand(product);
                     return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
                            (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
+                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
                            (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
                            (product.Category && product.Category.toLowerCase().includes(searchTerm));
                 });
@@ -1633,6 +1638,7 @@
                     const productBrand = getProductBrand(product);
                     return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
                            (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
+                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
                            (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
                            (product.Category && product.Category.toLowerCase().includes(searchTerm));
                 });
@@ -1683,6 +1689,7 @@
                 const matchesSearch = !searchTerm || 
                     (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
                     (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
+                    (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
                     (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
                     (product.Category && product.Category.toLowerCase().includes(searchTerm));
 
