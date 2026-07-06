@@ -1411,12 +1411,14 @@
         const filteredProducts = productList.filter(product => {
             const description = (product.Description || '').toLowerCase();
             const code = (product.Code || '').toString().toLowerCase();
+            const reference = (product.Reference || '').toString().toLowerCase();
             const category = (product.Category || '').toLowerCase();
             const productBrand = getProductBrand(product).toLowerCase();
             const subcategory = (product.Subcategory || '').toLowerCase();
             
             return description.includes(searchTerm) || 
                    code.includes(searchTerm) || 
+                   reference.includes(searchTerm) ||
                    category.includes(searchTerm) ||
                    productBrand.includes(searchTerm) ||
                    subcategory.includes(searchTerm);
@@ -1938,6 +1940,7 @@
             
             return {
                 Code: product.Code || product.CodBarra || "",
+                Reference: (product.Reference || product.Referencia || product.referencia || product.Ref || product.ref || product.REF || "").toString(),
                 Description: description,
                 Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
                 Subcategory: subcategory,
@@ -2251,12 +2254,14 @@
             if (showAll) return true;
             const description = (product.Description || '').toLowerCase();
             const code = (product.Code || '').toString().toLowerCase();
+            const reference = (product.Reference || '').toString().toLowerCase();
             const category = (product.Category || '').toLowerCase();
             const productBrand = getProductBrand(product).toLowerCase();
             const subcategory = (product.Subcategory || '').toLowerCase();
             
             return description.includes(term) || 
                    code.includes(term) || 
+                   reference.includes(term) ||
                    category.includes(term) ||
                    productBrand.includes(term) ||
                    subcategory.includes(term);
