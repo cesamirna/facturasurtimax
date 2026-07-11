@@ -526,8 +526,9 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Al pasar el mouse, mostrar la imagen completa (solo si hay imagen) */
-        .product-card.has-image:hover .product-bg-image {
+        /* Mostrar la imagen completa SOLO al pasar el mouse sobre la miniatura
+           de la esquina (ya no basta con pasar el mouse por toda la tarjeta) */
+        .product-card.has-image:has(.product-thumb:hover) .product-bg-image {
             opacity: 1;
         }
 
@@ -544,14 +545,44 @@
             transition: opacity 0.3s ease;
         }*/
 
-        /* Al pasar el mouse: ocultar toda la info SOLO si la tarjeta tiene imagen */
-        .product-card.has-image:hover > .badges-container,
-        .product-card.has-image:hover > .product-category,
-        .product-card.has-image:hover > .product-subcategory,
-        .product-card.has-image:hover > .product-brand,
-        .product-card.has-image:hover > .product-name,
-        .product-card.has-image:hover > .product-code,
-        .product-card.has-image:hover > .price-section {
+        /* Al pasar el mouse SOBRE LA MINIATURA: ocultar toda la info (solo si la tarjeta tiene imagen) */
+        .product-card.has-image:has(.product-thumb:hover) > .badges-container,
+        .product-card.has-image:has(.product-thumb:hover) > .product-category,
+        .product-card.has-image:has(.product-thumb:hover) > .product-subcategory,
+        .product-card.has-image:has(.product-thumb:hover) > .product-brand,
+        .product-card.has-image:has(.product-thumb:hover) > .product-name,
+        .product-card.has-image:has(.product-thumb:hover) > .product-code,
+        .product-card.has-image:has(.product-thumb:hover) > .price-section {
+            opacity: 0;
+        }
+
+        /* Miniatura de la imagen del producto en la esquina inferior derecha.
+           Solo se muestra si el producto tiene imagen (se agrega vía JS). */
+        .product-thumb {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            background-color: white;
+            border: 1px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 2px 6px rgba(82, 82, 82, 0.12);
+            z-index: 2;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+        }
+
+        .product-thumb:hover {
+            transform: scale(1.08);
+        }
+
+        /* Ocultar la miniatura mientras se muestra la imagen completa
+           (se activa al pasar el mouse sobre la propia miniatura) */
+        .product-card.has-image:has(.product-thumb:hover) .product-thumb {
             opacity: 0;
         }
         
@@ -1891,9 +1922,16 @@
                 ? `<img class="product-bg-image" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
                 : '';
 
+            // Miniatura en la esquina inferior derecha (solo si hay imagen).
+            // Si ninguna extensión existe, se elimina y no se muestra nada.
+            const thumbTag = refCode
+                ? `<img class="product-thumb" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
+                : '';
+
             return `
                 <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" onclick="handleProductClick(this)">
                     ${imageTag}
+                    ${thumbTag}
                     <div class="badges-container">
                         <div>
                             ${cost > 0 ? `<span class="badge badge-cost">Costo: $${cost.toFixed(2)}</span>` : ''}
@@ -1939,6 +1977,21 @@
         function handleImageLoad(img) {
             const card = img.closest('.product-card');
             if (card) card.classList.add('has-image');
+        }
+
+        // Probar varias extensiones para la miniatura de la esquina.
+        // Si ninguna existe, se elimina la miniatura (no se muestra nada en la esquina).
+        function handleThumbError(img) {
+            const ref = img.getAttribute('data-ref');
+            const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+            let index = parseInt(img.dataset.extIndex || '0', 10);
+            index++;
+            if (index >= extensions.length) {
+                img.remove();
+                return;
+            }
+            img.dataset.extIndex = index;
+            img.src = 'imagenes/' + encodeURIComponent(ref) + '.' + extensions[index];
         }
 
         // Escapar HTML
