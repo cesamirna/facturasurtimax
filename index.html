@@ -623,6 +623,19 @@
     #adjustment-form input:focus {
         outline: none;
     }
+
+    /* Exento de ITBMS */
+    .itbms-tachado {
+        text-decoration: line-through;
+        opacity: 0.55;
+    }
+
+    #exempt-badge {
+        color: var(--danger-color);
+        font-weight: 600;
+        font-size: 12px;
+        margin-left: 8px;
+    }
     
     /* Columnas especiales */
     .margin-column {
@@ -1138,11 +1151,12 @@
 
     <div id="adjustment-form" class="no-print">
         <span class="adjustment-label">Agregar ajuste:</span>
-        <select id="adjustment-type"> 
+        <select id="adjustment-type" onchange="handleAdjustmentTypeChange()"> 
             <option value="discount">Descuento</option>
             <option value="deposit">Abono</option>
+            <option value="exempt">Exento</option>
         </select>
-        <div class="amount-wrapper">
+        <div class="amount-wrapper" id="adjustment-amount-wrapper">
             <!--span class="currency-symbol">$</span-->
             <input type="number" id="adjustment-amount"  step="0.01" min="0" placeholder="$0.00">
         </div>
@@ -1182,9 +1196,11 @@
             <span class="total-label">SUB-TOTAL:</span>
             <span class="total-value">$<span id="subtotal">0.00</span></span>
         </p>
-        <p>
-            <span class="total-label">I.T.B.M.S. (7%):</span>
-            <span class="total-value">$<span id="tax">0.00</span></span>
+        <p id="tax-row">
+            <span id="tax-label" class="total-label">I.T.B.M.S. (7%):</span>
+            <span id="tax-value" class="total-value">$<span id="tax">0.00</span></span>
+            <span id="exempt-badge" class="no-print" style="display:none;">EXENTO</span>
+            <button id="remove-exempt-btn" onclick="removeExemption()" class="action-btn delete-btn no-print" style="display:none; margin-left: 10px; padding: 6px 10px; font-size: 12px;">Quitar</button>
         </p>
         <p id="discount-row" class="hide-when-zero">
             <span class="total-label">DESCUENTO:</span>
@@ -1257,6 +1273,7 @@
     // Variables globales
     let products = [];
     let productList = [];
+    let isExempt = false;
     let selectedSearchIndex = -1;
 
     // ============ INICIALIZACIÓN ============
@@ -1665,7 +1682,9 @@
         const deposit = depositElement && depositElement.textContent ? parseFloat(depositElement.textContent) || 0 : 0;
         const discount = discountElement && discountElement.textContent ? parseFloat(discountElement.textContent) || 0 : 0;
         
-        const total = (subtotal + Number(tax) - discount - deposit).toFixed(2);
+        // Si la factura está marcada como Exenta, el ITBMS no se suma al total
+        const taxToApply = isExempt ? 0 : Number(tax);
+        const total = (subtotal + taxToApply - discount - deposit).toFixed(2);
         
         const totalProfit = products.reduce((sum, product) => {
             const cost = product.cost || findProductCost(product.code, product.description);
@@ -1679,17 +1698,29 @@
         document.getElementById('total-profit').textContent = totalProfit.toFixed(2);
         
         updateAdjustmentVisibility();
+        updateExemptDisplay();
     }
 
     // ============ FUNCIONES DE AJUSTES ============
     function addAdjustment() {
         const adjustmentType = document.getElementById('adjustment-type').value;
-        const adjustmentAmount = parseFloat(document.getElementById('adjustment-amount').value);
         
         if (!adjustmentType) {
-            alert('Por favor seleccione un tipo de ajuste (Descuento o Abono)');
+            alert('Por favor seleccione un tipo de ajuste (Descuento, Abono o Exento)');
             return;
         }
+        
+        if (adjustmentType === 'exempt') {
+            isExempt = true;
+            document.getElementById('adjustment-type').value = '';
+            handleAdjustmentTypeChange();
+            updateTotals();
+            saveClientData();
+            showNotification('Factura marcada como Exenta de ITBMS');
+            return;
+        }
+        
+        const adjustmentAmount = parseFloat(document.getElementById('adjustment-amount').value);
         
         if (isNaN(adjustmentAmount) || adjustmentAmount < 0) {
             alert('Por favor ingrese un monto válido');
@@ -1709,6 +1740,45 @@
         
         updateTotals();
         saveClientData();
+    }
+    
+    // Muestra u oculta el campo de monto según el tipo de ajuste seleccionado
+    // (Exento no requiere monto, ya que solo tacha el ITBMS)
+    function handleAdjustmentTypeChange() {
+        const adjustmentType = document.getElementById('adjustment-type').value;
+        const amountWrapper = document.getElementById('adjustment-amount-wrapper');
+        if (adjustmentType === 'exempt') {
+            amountWrapper.style.display = 'none';
+        } else {
+            amountWrapper.style.display = 'flex';
+        }
+    }
+    
+    // Quita la exención de ITBMS de la factura
+    function removeExemption() {
+        isExempt = false;
+        updateTotals();
+        saveClientData();
+    }
+    
+    // Actualiza la visualización del ITBMS tachado cuando la factura es exenta
+    function updateExemptDisplay() {
+        const taxLabel = document.getElementById('tax-label');
+        const taxValue = document.getElementById('tax-value');
+        const exemptBadge = document.getElementById('exempt-badge');
+        const removeExemptBtn = document.getElementById('remove-exempt-btn');
+        
+        if (isExempt) {
+            taxLabel.classList.add('itbms-tachado');
+            taxValue.classList.add('itbms-tachado');
+            exemptBadge.style.display = 'inline';
+            removeExemptBtn.style.display = 'inline-block';
+        } else {
+            taxLabel.classList.remove('itbms-tachado');
+            taxValue.classList.remove('itbms-tachado');
+            exemptBadge.style.display = 'none';
+            removeExemptBtn.style.display = 'none';
+        }
     }
     
     function editAdjustment(type) {
@@ -1782,7 +1852,8 @@
             contado: document.getElementById('contado').checked,
             credito: document.getElementById('credito').checked,
             deposit: document.getElementById('deposit').textContent,
-            discount: document.getElementById('discount').textContent
+            discount: document.getElementById('discount').textContent,
+            isExempt: isExempt
         };
         localStorage.setItem('currentClientData', JSON.stringify(clientData));
     }
@@ -1808,6 +1879,8 @@
                 
                 if (clientData.deposit) document.getElementById('deposit').textContent = clientData.deposit;
                 if (clientData.discount) document.getElementById('discount').textContent = clientData.discount;
+                isExempt = !!clientData.isExempt;
+                updateExemptDisplay();
             } catch (e) {
                 console.error('Error al restaurar datos del cliente:', e);
             }
@@ -2164,6 +2237,7 @@
             document.getElementById('credito').checked = false;
             document.getElementById('deposit').textContent = '0.00';
             document.getElementById('discount').textContent = '0.00';
+            isExempt = false;
             
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('invoice-date').value = today;
