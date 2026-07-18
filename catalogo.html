@@ -849,6 +849,41 @@
         .subcategory-header:first-of-type {
             margin-top: 0;
         }
+
+        /* Etiquetas con la última palabra de cada producto, junto a la subcategoría */
+        .subcat-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-left: 4px;
+        }
+
+        .subcat-tag {
+            background: var(--secondary-color);
+            color: var(--primary-dark);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .subcat-tag:hover {
+            background: #c7c7c7;
+            color: var(--primary-dark);
+        }
+
+        .subcat-tag.active {
+            background: var(--primary-dark);
+            color: #ffffff;
+        }
+
+        /* Oculta las tarjetas de producto que no coinciden con la etiqueta activa */
+        .product-card.hidden-by-tag {
+            display: none !important;
+        }
         
         /* Asegurar que el grid de productos no afecte a la subcategoría siguiente */
         .products-grid {
@@ -1083,6 +1118,13 @@
             .badge-margin,
             .badge-profit {
                 display: none;
+            }
+
+            .subcat-tags,
+            .search-container,
+            .stats-bar,
+            .filters-bar {
+                display: none !important;
             }
         }
     </style>
@@ -1417,6 +1459,13 @@
                 };
                 reader.readAsArrayBuffer(file);
             }
+        }
+
+        // Obtener la última palabra del nombre del producto para usarla como etiqueta
+        function getLastWordTag(description) {
+            if (!description) return '';
+            const parts = String(description).trim().split(/\s+/).filter(Boolean);
+            return parts.length ? parts[parts.length - 1].toUpperCase() : '';
         }
 
         // Extraer subcategoría de la primera palabra del nombre del producto
@@ -1826,6 +1875,31 @@
                             subLabel.textContent = subcategory.toUpperCase();
                             subcategoryHeader.innerHTML = subIcon;
                             subcategoryHeader.appendChild(subLabel);
+
+                            // Etiquetas con la última palabra de cada producto de esta subcategoría
+                            const groupProducts = filteredProducts.filter(p =>
+                                p.Category === category && p.Subcategory === subcategory);
+                            const uniqueTags = [...new Set(
+                                groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                            )];
+
+                            if (uniqueTags.length > 0) {
+                                const tagsContainer = document.createElement('span');
+                                tagsContainer.className = 'subcat-tags';
+                                uniqueTags.forEach(tag => {
+                                    const tagEl = document.createElement('span');
+                                    tagEl.className = 'subcat-tag';
+                                    tagEl.textContent = tag;
+                                    tagEl.setAttribute('data-tag', tag);
+                                    tagEl.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        filterProductsByTag(groupKey, tag, tagEl);
+                                    });
+                                    tagsContainer.appendChild(tagEl);
+                                });
+                                subcategoryHeader.appendChild(tagsContainer);
+                            }
+
                             catalogContent.appendChild(subcategoryHeader);
                             renderedGroups[groupKey] = true;
                         }
@@ -1888,6 +1962,38 @@
                 .replace(/'/g, '&#39;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
+        }
+
+        // Al hacer clic en una etiqueta de subcategoría, mostrar únicamente
+        // el o los productos cuya última palabra coincide con esa etiqueta.
+        // Si se vuelve a hacer clic en la misma etiqueta activa, se restauran
+        // todos los productos de la subcategoría.
+        function filterProductsByTag(groupKey, tagValue, tagElement) {
+            const grid = document.querySelector(`[data-group="${CSS.escape(groupKey)}"]`);
+            if (!grid) return;
+
+            const wasActive = tagElement.classList.contains('active');
+
+            // Quitar el estado activo de las demás etiquetas de esta misma subcategoría
+            const header = tagElement.closest('.subcategory-header');
+            if (header) {
+                header.querySelectorAll('.subcat-tag').forEach(t => t.classList.remove('active'));
+            }
+
+            const cards = grid.querySelectorAll('.product-card');
+
+            if (wasActive) {
+                cards.forEach(card => card.classList.remove('hidden-by-tag'));
+                return;
+            }
+
+            tagElement.classList.add('active');
+
+            cards.forEach(card => {
+                const description = card.getAttribute('data-description') || '';
+                const cardTag = getLastWordTag(description);
+                card.classList.toggle('hidden-by-tag', cardTag !== tagValue);
+            });
         }
 
         // Manejar click en producto
