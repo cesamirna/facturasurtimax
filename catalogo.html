@@ -1468,6 +1468,20 @@
             return parts.length ? parts[parts.length - 1].toUpperCase() : '';
         }
 
+        // Compara etiquetas de subcategoría: primero las numéricas (ordenadas
+        // de menor a mayor) y luego las de texto (orden alfabético)
+        function compareTags(a, b) {
+            const numA = parseFloat(a);
+            const numB = parseFloat(b);
+            const isNumA = !isNaN(numA) && /^-?\d+([.,]\d+)?$/.test(a);
+            const isNumB = !isNaN(numB) && /^-?\d+([.,]\d+)?$/.test(b);
+
+            if (isNumA && isNumB) return numA - numB;
+            if (isNumA && !isNumB) return -1;
+            if (!isNumA && isNumB) return 1;
+            return a.localeCompare(b, 'es', { sensitivity: 'base' });
+        }
+
         // Extraer subcategoría de la primera palabra del nombre del producto
         function extractSubcategoryFromName(description) {
             if (!description) return "General";
@@ -1881,7 +1895,7 @@
                                 p.Category === category && p.Subcategory === subcategory);
                             const uniqueTags = [...new Set(
                                 groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
-                            )];
+                            )].sort(compareTags);
 
                             if (uniqueTags.length > 0) {
                                 const tagsContainer = document.createElement('span');
