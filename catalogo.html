@@ -1468,20 +1468,6 @@
             return parts.length ? parts[parts.length - 1].toUpperCase() : '';
         }
 
-        // Compara etiquetas de subcategoría: primero las numéricas (ordenadas
-        // de menor a mayor) y luego las de texto (orden alfabético)
-        function compareTags(a, b) {
-            const numA = parseFloat(a);
-            const numB = parseFloat(b);
-            const isNumA = !isNaN(numA) && /^-?\d+([.,]\d+)?$/.test(a);
-            const isNumB = !isNaN(numB) && /^-?\d+([.,]\d+)?$/.test(b);
-
-            if (isNumA && isNumB) return numA - numB;
-            if (isNumA && !isNumB) return -1;
-            if (!isNumA && isNumB) return 1;
-            return a.localeCompare(b, 'es', { sensitivity: 'base' });
-        }
-
         // Extraer subcategoría de la primera palabra del nombre del producto
         function extractSubcategoryFromName(description) {
             if (!description) return "General";
@@ -1546,6 +1532,18 @@
             return extractBrandFromName(product.Description);
         }
 
+        // Comparador para subcategorías: si ambos valores son numéricos los compara
+        // como números (para que 80 quede antes que 100), y si no, usa el orden
+        // alfabético normal en español.
+        function compareSubcategory(a, b) {
+            const numA = parseFloat(a);
+            const numB = parseFloat(b);
+            const aIsNum = !isNaN(numA) && /^\s*\d+(\.\d+)?\s*$/.test(String(a));
+            const bIsNum = !isNaN(numB) && /^\s*\d+(\.\d+)?\s*$/.test(String(b));
+            if (aIsNum && bIsNum) return numA - numB;
+            return String(a).localeCompare(String(b), "es", { sensitivity: "base" });
+        }
+
         // Poblar filtros con todos los productos
         function populateFilters() {
             populateFiltersFromProducts(productList);
@@ -1579,12 +1577,10 @@
                     products
                         .filter(p => p.Category === categoryFilter)
                         .map(p => p.Subcategory)
-                )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+                )].sort(compareSubcategory);
                 subcategorySelect.disabled = false;
             } else {
-                subcategories = [...new Set(products.map(p => p.Subcategory))].sort((a, b) => 
-                    a.localeCompare(b, "es", { sensitivity: "base" })
-                );
+                subcategories = [...new Set(products.map(p => p.Subcategory))].sort(compareSubcategory);
                 subcategorySelect.disabled = true;
             }
             
@@ -1691,7 +1687,7 @@
                 // Obtener subcategorías de la categoría seleccionada
                 const subcategories = [...new Set(
                     categoryProducts.map(p => p.Subcategory)
-                )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+                )].sort(compareSubcategory);
                 
                 subcategories.forEach(sub => {
                     const option = document.createElement("option");
@@ -1794,7 +1790,7 @@
             filteredProducts.sort((a, b) => {
                 const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
                 if (catCompare !== 0) return catCompare;
-                const subCompare = a.Subcategory.localeCompare(b.Subcategory, "es", { sensitivity: "base" });
+                const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
                 if (subCompare !== 0) return subCompare;
                 return (a.Price || 0) - (b.Price || 0);
             });
@@ -1895,7 +1891,7 @@
                                 p.Category === category && p.Subcategory === subcategory);
                             const uniqueTags = [...new Set(
                                 groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
-                            )].sort(compareTags);
+                            )];
 
                             if (uniqueTags.length > 0) {
                                 const tagsContainer = document.createElement('span');
