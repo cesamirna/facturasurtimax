@@ -1532,15 +1532,50 @@
             return extractBrandFromName(product.Description);
         }
 
-        // Comparador para subcategorías: si ambos valores son numéricos los compara
-        // como números (para que 80 quede antes que 100), y si no, usa el orden
-        // alfabético normal en español.
+        // Convierte una subcategoría a valor numérico si es un número simple
+        // o una medida en pulgadas con fracción, por ejemplo:
+        //   "80"        -> 80
+        //   "100"       -> 100
+        //   "1/2"       -> 0.5
+        //   "2-1/2"     -> 2.5
+        //   "2 1/2"     -> 2.5
+        // Puede llevar símbolo de pulgada u otro texto pegado al final (se ignora).
+        // Devuelve null si no se pudo interpretar como número.
+        function parseSubcategoryNumber(value) {
+            const str = String(value).trim();
+
+            // Entero o decimal simple, ej: "80", "100", "2.5"
+            let match = str.match(/^(\d+(?:\.\d+)?)\s*["']?$/);
+            if (match) return parseFloat(match[1]);
+
+            // Entero y fracción, ej: "2-1/2", "2 1/2"
+            match = str.match(/^(\d+)[\s-](\d+)\/(\d+)\s*["']?$/);
+            if (match) {
+                const whole = parseFloat(match[1]);
+                const num = parseFloat(match[2]);
+                const den = parseFloat(match[3]);
+                if (den !== 0) return whole + (num / den);
+            }
+
+            // Solo fracción, ej: "1/2", "3/4"
+            match = str.match(/^(\d+)\/(\d+)\s*["']?$/);
+            if (match) {
+                const num = parseFloat(match[1]);
+                const den = parseFloat(match[2]);
+                if (den !== 0) return num / den;
+            }
+
+            return null;
+        }
+
+        // Comparador para subcategorías: si ambos valores son numéricos (incluyendo
+        // medidas en pulgadas con fracción como 2-1/2) los compara como números
+        // (para que 80 quede antes que 100, y 2-1/2 no quede antes que 2), y si no,
+        // usa el orden alfabético normal en español.
         function compareSubcategory(a, b) {
-            const numA = parseFloat(a);
-            const numB = parseFloat(b);
-            const aIsNum = !isNaN(numA) && /^\s*\d+(\.\d+)?\s*$/.test(String(a));
-            const bIsNum = !isNaN(numB) && /^\s*\d+(\.\d+)?\s*$/.test(String(b));
-            if (aIsNum && bIsNum) return numA - numB;
+            const numA = parseSubcategoryNumber(a);
+            const numB = parseSubcategoryNumber(b);
+            if (numA !== null && numB !== null) return numA - numB;
             return String(a).localeCompare(String(b), "es", { sensitivity: "base" });
         }
 
