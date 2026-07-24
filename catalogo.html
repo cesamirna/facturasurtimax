@@ -1570,16 +1570,40 @@
             return null;
         }
 
+        // Extrae el prefijo (texto o símbolo) y el número que le sigue, ej:
+        //   "#6"   -> { prefix: "#", num: 6 }
+        //   "#10"  -> { prefix: "#", num: 10 }
+        //   "M6"   -> { prefix: "M", num: 6 }
+        //   "M10"  -> { prefix: "M", num: 10 }
+        // Devuelve null si no hay un número en el valor.
+        function parseSubcategoryPrefixedNumber(value) {
+            const str = String(value).trim();
+            const match = str.match(/^(\D*)(\d+(?:\.\d+)?)/);
+            if (match) {
+                return { prefix: match[1], num: parseFloat(match[2]) };
+            }
+            return null;
+        }
+
         // Comparador para subcategorías: si ambos valores son numéricos (incluyendo
         // medidas en pulgadas con fracción como 2-1/2) los compara como números
-        // (para que 80 quede antes que 100, y 2-1/2 no quede antes que 2), y si no,
-        // usa el orden alfabético normal en español.
+        // (para que 80 quede antes que 100, y 2-1/2 no quede antes que 2); si ambos
+        // comparten el mismo prefijo de texto/símbolo seguido de número (ej: #6 y #10,
+        // o M6 y M10) los compara por ese número para que #10 no quede antes que #6;
+        // y en cualquier otro caso usa el orden alfabético normal en español.
         function compareSubcategory(a, b) {
             const numA = parseSubcategoryNumber(a);
             const numB = parseSubcategoryNumber(b);
             if (numA !== null && numB !== null) return numA - numB;
             if (numA !== null && numB === null) return -1; // los números van antes que el texto
             if (numA === null && numB !== null) return 1;  // el texto va después de los números
+
+            const prefA = parseSubcategoryPrefixedNumber(a);
+            const prefB = parseSubcategoryPrefixedNumber(b);
+            if (prefA && prefB && prefA.prefix.toLowerCase() === prefB.prefix.toLowerCase()) {
+                return prefA.num - prefB.num;
+            }
+
             return String(a).localeCompare(String(b), "es", { sensitivity: "base" });
         }
 
