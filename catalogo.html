@@ -1251,6 +1251,58 @@
         const PRODUCTS_PER_LOAD = 16; // Mostrar 16 productos inicialmente (4 filas de 4)
         let isLoading = false;
         let renderedGroups = {}; // Para trackear qué grupos ya se renderizaron
+        let defaultCategoryApplied = false; // Para seleccionar "Destacados" solo la primera vez
+
+        // ============================================================
+        // SECCIÓN DESTACADOS
+        // Agrega aquí los códigos de barra de los productos que quieres
+        // que aparezcan en la sección "Destacados" al inicio de la página
+        // (antes de todos los demás productos). Cada código debe ser el
+        // mismo valor que tiene el producto en la columna "Code"/"CodBarra".
+        // Ejemplo (reemplaza por tus códigos reales):
+        //   "7501234567890", // Bloque 4
+        //   "7509876543210", // Bloque 6
+        //   "7501112223334", // Arena Fina
+        //   "7504445556667", // Arenon Fino
+        // ============================================================
+        const FEATURED_CODES = [
+            "38481347", // Bloque 4
+            "37489314", // Bloque 6
+            "26758751", // BARRA DEF. G60 1/2”X30’
+            // "CODIGO_DE_BARRA_4", // Arenon Fino
+        ];
+
+        // Valor especial usado en el <select> de categorías para representar
+        // "Destacados". No corresponde a ningún valor real del campo Category
+        // de los productos, por eso no interfiere con la barra de búsqueda
+        // (que solo compara contra los campos reales del producto).
+        const DESTACADOS_VALUE = "__DESTACADOS__";
+
+        // Indica si un producto pertenece a la categoría especial "Destacados"
+        // según su código (FEATURED_CODES).
+        function isFeaturedProduct(product) {
+            if (!FEATURED_CODES || FEATURED_CODES.length === 0) return false;
+            if (product.Code === undefined || product.Code === null) return false;
+            const featuredCodesSet = new Set(FEATURED_CODES.map(c => String(c).trim()));
+            return featuredCodesSet.has(String(product.Code).trim());
+        }
+
+        // Ordena la lista completa de productos UNA SOLA VEZ (categoría,
+        // subcategoría y precio), justo al cargarlos. Como filtrar un arreglo
+        // ya ordenado conserva el orden relativo de sus elementos, esto evita
+        // tener que reordenar todo el catálogo cada vez que se cambia de
+        // filtro (antes "Todas las categorías" se sentía lento porque
+        // reordenaba miles de productos en cada clic, mientras que elegir una
+        // categoría puntual solo reordenaba un subconjunto pequeño).
+        function sortProductList() {
+            productList.sort((a, b) => {
+                const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
+                if (catCompare !== 0) return catCompare;
+                const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
+                if (subCompare !== 0) return subCompare;
+                return (a.Price || 0) - (b.Price || 0);
+            });
+        }
 
         // Inicialización
         document.addEventListener("DOMContentLoaded", () => {
@@ -1264,8 +1316,10 @@
             if (localStorage.getItem("productList")) {
                 try {
                     productList = JSON.parse(localStorage.getItem("productList"));
+                    sortProductList();
                     populateFilters();
                     filterProducts();
+                    renderFeaturedProducts();
                 } catch (e) {
                     console.error("Error al cargar productos desde localStorage:", e);
                 }
@@ -1507,8 +1561,10 @@
             });
 
             localStorage.setItem("productList", JSON.stringify(productList));
+            sortProductList();
             populateFilters();
             filterProducts();
+            renderFeaturedProducts();
             showNotification(`Se cargaron ${productList.length} productos correctamente`);
         }
         //product.Codigo || product.codigo ||
@@ -1524,12 +1580,16 @@
             return "Sin Marca";
         }
 
-        // Obtener marca del producto
+        // Obtener marca del producto (se guarda en caché en el propio producto
+        // la primera vez, para no repetir el cálculo en cada filtrado; esto es
+        // lo que más se nota al elegir "Todas las categorías", donde se
+        // recorre el catálogo completo en vez de un subconjunto pequeño).
         function getProductBrand(product) {
-            if (product.Brand && product.Brand !== "Sin Marca" && product.Brand.trim() !== "") {
-                return product.Brand;
-            }
-            return extractBrandFromName(product.Description);
+            if (product._brand !== undefined) return product._brand;
+            product._brand = (product.Brand && product.Brand !== "Sin Marca" && product.Brand.trim() !== "")
+                ? product.Brand
+                : extractBrandFromName(product.Description);
+            return product._brand;
         }
 
         // Convierte una subcategoría a valor numérico si es un número simple
@@ -1613,7 +1673,9 @@
         }
 
         // Poblar filtros desde una lista de productos específica
-        function populateFiltersFromProducts(products) {
+        // includeFeaturedOption: si es false, la opción "Destacados" no se agrega
+        // al filtro de categorías (se usa al buscar desde la barra de búsqueda).
+        function populateFiltersFromProducts(products, includeFeaturedOption = true) {
             // Categorías
             const categories = [...new Set(products.map(p => p.Category))].sort((a, b) => 
                 a.localeCompare(b, "es", { sensitivity: "base" })
@@ -1621,6 +1683,25 @@
             const categorySelect = document.getElementById("category-filter");
             const currentCategory = categorySelect.value;
             categorySelect.innerHTML = '<option value="">Todas las categorías</option>';
+
+            // "Destacados" es una categoría especial basada en FEATURED_CODES.
+            // No se muestra en la barra de filtro cuando se llega aquí desde una
+            // búsqueda (includeFeaturedOption = false).
+            if (includeFeaturedOption && productList.some(isFeaturedProduct)) {
+                const featuredOption = document.createElement("option");
+                featuredOption.value = DESTACADOS_VALUE;
+                featuredOption.textContent = "Destacados ⭐";
+                // La primera vez que se cargan productos (todavía no se eligió
+                // ninguna categoría), "Destacados" queda seleccionado por
+                // defecto para que sea lo primero que se muestra en pantalla.
+                if (currentCategory === DESTACADOS_VALUE ||
+                    (!currentCategory && !defaultCategoryApplied)) {
+                    featuredOption.selected = true;
+                }
+                defaultCategoryApplied = true;
+                categorySelect.appendChild(featuredOption);
+            }
+
             categories.forEach(cat => {
                 const option = document.createElement("option");
                 option.value = cat;
@@ -1635,7 +1716,14 @@
             const categoryFilter = categorySelect.value;
             
             let subcategories;
-            if (categoryFilter) {
+            if (categoryFilter === DESTACADOS_VALUE) {
+                subcategories = [...new Set(
+                    products
+                        .filter(isFeaturedProduct)
+                        .map(p => p.Subcategory)
+                )].sort(compareSubcategory);
+                subcategorySelect.disabled = false;
+            } else if (categoryFilter) {
                 subcategories = [...new Set(
                     products
                         .filter(p => p.Category === categoryFilter)
@@ -1692,10 +1780,16 @@
                 });
                 
                 // Actualizar los filtros con solo las opciones disponibles en los resultados
-                populateFiltersFromProducts(matchingProducts);
+                // (sin la opción "Destacados": no debe aparecer al buscar desde la barra de búsqueda)
+                populateFiltersFromProducts(matchingProducts, false);
             } else {
-                // Si no hay búsqueda, mostrar todos los filtros
+                // Si no hay búsqueda, volver al estado inicial: mostrar todos
+                // los filtros y volver a seleccionar "Destacados" (no "Todas
+                // las categorías"), igual que al entrar a la página.
+                defaultCategoryApplied = false;
                 populateFilters();
+                handleCategoryChange();
+                return;
             }
             
             filterProducts();
@@ -1745,7 +1839,10 @@
                 subcategorySelect.disabled = false;
                 
                 // Filtrar productos por la categoría seleccionada
-                const categoryProducts = baseProducts.filter(p => p.Category === categoryFilter);
+                // ("Destacados" es una categoría especial basada en FEATURED_CODES)
+                const categoryProducts = categoryFilter === DESTACADOS_VALUE
+                    ? baseProducts.filter(isFeaturedProduct)
+                    : baseProducts.filter(p => p.Category === categoryFilter);
                 
                 // Obtener subcategorías de la categoría seleccionada
                 const subcategories = [...new Set(
@@ -1798,7 +1895,10 @@
             }
             
             // Filtrar por categoría si hay una seleccionada
-            if (categoryFilter) {
+            // ("Destacados" es una categoría especial basada en FEATURED_CODES)
+            if (categoryFilter === DESTACADOS_VALUE) {
+                baseProducts = baseProducts.filter(isFeaturedProduct);
+            } else if (categoryFilter) {
                 baseProducts = baseProducts.filter(p => p.Category === categoryFilter);
             }
             
@@ -1824,6 +1924,115 @@
             filterProducts();
         }
 
+        // Renderiza la sección "Destacados" (antes de todos los productos),
+        // agrupando por categoría y subcategoría con sus etiquetas, tal como
+        // se hace en el resto del catálogo. Solo incluye los productos cuyo
+        // código de barra está en FEATURED_CODES.
+        function renderFeaturedProducts() {
+            const featuredSection = document.getElementById("featured-section");
+            const featuredContent = document.getElementById("featured-content");
+            if (!featuredSection || !featuredContent) return;
+
+            featuredContent.innerHTML = "";
+
+            if (!FEATURED_CODES || FEATURED_CODES.length === 0) {
+                featuredSection.style.display = "none";
+                return;
+            }
+
+            const featuredCodesSet = new Set(FEATURED_CODES.map(c => String(c).trim()));
+            const featured = productList.filter(p =>
+                p.Code !== undefined && p.Code !== null && featuredCodesSet.has(String(p.Code).trim())
+            );
+
+            if (featured.length === 0) {
+                featuredSection.style.display = "none";
+                return;
+            }
+
+            featuredSection.style.display = "block";
+
+            // Mismo orden que el resto del catálogo: categoría, subcategoría y precio
+            featured.sort((a, b) => {
+                const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
+                if (catCompare !== 0) return catCompare;
+                const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
+                if (subCompare !== 0) return subCompare;
+                return (a.Price || 0) - (b.Price || 0);
+            });
+
+            let currentCategory = null;
+            let currentSubcategory = null;
+            let currentGrid = null;
+
+            featured.forEach(product => {
+                const category = product.Category;
+                const subcategory = product.Subcategory;
+                const groupKey = `featured|||${category}|||${subcategory}`;
+
+                if (category !== currentCategory) {
+                    if (currentGrid) featuredContent.appendChild(currentGrid);
+                    const categoryHeader = document.createElement('div');
+                    categoryHeader.className = 'category-header';
+                    categoryHeader.textContent = category;
+                    featuredContent.appendChild(categoryHeader);
+                    currentCategory = category;
+                    currentSubcategory = null;
+                    currentGrid = null;
+                }
+
+                if (subcategory !== currentSubcategory) {
+                    if (currentGrid) featuredContent.appendChild(currentGrid);
+
+                    const subcategoryHeader = document.createElement('div');
+                    subcategoryHeader.className = 'subcategory-header';
+                    const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
+                    const subLabel = document.createElement('span');
+                    subLabel.textContent = subcategory.toUpperCase();
+                    subcategoryHeader.innerHTML = subIcon;
+                    subcategoryHeader.appendChild(subLabel);
+
+                    // Etiquetas con la última palabra de cada producto de esta subcategoría
+                    const groupProducts = featured.filter(p =>
+                        p.Category === category && p.Subcategory === subcategory);
+                    const uniqueTags = [...new Set(
+                        groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                    )].sort(compareSubcategory);
+
+                    if (uniqueTags.length > 0) {
+                        const tagsContainer = document.createElement('span');
+                        tagsContainer.className = 'subcat-tags';
+                        uniqueTags.forEach(tag => {
+                            const tagEl = document.createElement('span');
+                            tagEl.className = 'subcat-tag';
+                            tagEl.textContent = tag;
+                            tagEl.setAttribute('data-tag', tag);
+                            tagEl.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                filterProductsByTag(groupKey, tag, tagEl);
+                            });
+                            tagsContainer.appendChild(tagEl);
+                        });
+                        subcategoryHeader.appendChild(tagsContainer);
+                    }
+
+                    featuredContent.appendChild(subcategoryHeader);
+
+                    currentGrid = document.createElement('div');
+                    currentGrid.className = 'products-grid';
+                    currentGrid.setAttribute('data-group', groupKey);
+                    currentSubcategory = subcategory;
+                }
+
+                const productHTML = createProductCard(product);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = productHTML;
+                currentGrid.appendChild(tempDiv.firstElementChild);
+            });
+
+            if (currentGrid) featuredContent.appendChild(currentGrid);
+        }
+
         // Filtrar productos
         function filterProducts() {
             const categoryFilter = document.getElementById("category-filter").value;
@@ -1832,7 +2041,10 @@
             const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
 
             filteredProducts = productList.filter(product => {
-                const matchesCategory = !categoryFilter || product.Category === categoryFilter;
+                // "Destacados" es una categoría especial basada en FEATURED_CODES,
+                // no en el campo Category del producto.
+                const matchesCategory = !categoryFilter ||
+                    (categoryFilter === DESTACADOS_VALUE ? isFeaturedProduct(product) : product.Category === categoryFilter);
                 const matchesSubcategory = !subcategoryFilter || product.Subcategory === subcategoryFilter;
                 
                 // Obtener marca del producto (del campo Brand o extraída del nombre)
@@ -1849,14 +2061,9 @@
                 return matchesCategory && matchesSubcategory && matchesBrand && matchesSearch;
             });
 
-            // Ordenar por categoría, subcategoría y precio de venta (menor a mayor)
-            filteredProducts.sort((a, b) => {
-                const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
-                if (catCompare !== 0) return catCompare;
-                const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
-                if (subCompare !== 0) return subCompare;
-                return (a.Price || 0) - (b.Price || 0);
-            });
+            // No hace falta reordenar aquí: productList ya está ordenado por
+            // categoría, subcategoría y precio (ver sortProductList), y
+            // Array.filter conserva el orden relativo de los elementos.
 
             displayedCount = 0;
             renderedGroups = {};
@@ -2042,6 +2249,14 @@
         // Si se vuelve a hacer clic en la misma etiqueta activa, se restauran
         // todos los productos de la subcategoría.
         function filterProductsByTag(groupKey, tagValue, tagElement) {
+            // Antes de filtrar por etiqueta, cargar TODOS los productos que
+            // falten (sin esperar a que el usuario desplace hacia abajo), para
+            // que la etiqueta muestre absolutamente todos los productos que le
+            // pertenecen y no solo los que ya se habían cargado hasta ese punto.
+            while (displayedCount < filteredProducts.length) {
+                loadMoreProducts(true);
+            }
+
             const grid = document.querySelector(`[data-group="${CSS.escape(groupKey)}"]`);
             if (!grid) return;
 
