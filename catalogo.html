@@ -489,6 +489,7 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             width: 100%;
+            margin-bottom: 14px;
         }
         
         /* Tarjeta de producto */
@@ -496,7 +497,7 @@
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: var(--card-shadow);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -508,7 +509,61 @@
         
         .product-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 137, 123, 0.25);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Fila del botón "Cotizar": va justo debajo de la fila de badges
+           (costo, margen, ganancia), alineada a la derecha. Se posiciona
+           de forma absoluta para que no desplace el resto de la información
+           de la tarjeta (categoría, marca, nombre, etc.) */
+        .quote-row {
+            position: absolute;
+            top: 52px;
+            right: 20px;
+            left: 20px;
+            display: flex;
+            justify-content: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity 0.25s ease;
+        }
+
+        /* Mostrar el botón "Cotizar" solo cuando el mouse está sobre la tarjeta */
+        .product-card:hover .quote-row {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Pestaña "Cotizar": mismo estilo que la barra de categoría
+           (fondo blanco y texto en color primario), ancho ajustado al texto */
+        .quote-tab {
+            width: auto;
+            border: none;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 12px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            line-height: 1.4;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .quote-tab:hover {
+            background-color: #c8e6c9;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .quote-tab span {
+            white-space: nowrap;
         }
 
         /* Imagen del producto: oculta por defecto, se muestra al pasar el mouse */
@@ -547,6 +602,7 @@
 
         /* Al pasar el mouse SOBRE LA MINIATURA: ocultar toda la info (solo si la tarjeta tiene imagen) */
         .product-card.has-image:has(.product-thumb:hover) > .badges-container,
+        .product-card.has-image:has(.product-thumb:hover) > .quote-row,
         .product-card.has-image:has(.product-thumb:hover) > .product-category,
         .product-card.has-image:has(.product-thumb:hover) > .product-subcategory,
         .product-card.has-image:has(.product-thumb:hover) > .product-brand,
@@ -556,8 +612,13 @@
             opacity: 0;
         }
 
-        /* Miniatura de la imagen del producto en la esquina inferior derecha.
-           Solo se muestra si el producto tiene imagen (se agrega vía JS). */
+        /* El botón "Cotizar" también deja de recibir clics mientras se muestra la imagen completa */
+        .product-card.has-image:has(.product-thumb:hover) > .quote-row {
+            pointer-events: none;
+        }
+
+        /* Miniatura de la imagen del producto en la esquina inferior derecha,
+           tal como estaba siempre */
         .product-thumb {
             position: absolute;
             bottom: 12px;
@@ -810,7 +871,7 @@
             padding: 12px 18px;
             border-left: 6px solid var(--primary-color);
             border-radius: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 8px;
             margin-top: 14px;
             font-size: 14px;
             font-weight: 600;
@@ -831,8 +892,8 @@
             color: var(--primary-color);
             padding: 10px 10px;
             border-radius: 12px;
-            margin-top: 12px;
-            margin-bottom: 12px;
+            margin-top: 2px;
+            margin-bottom: 4px;
             font-size: 15px;
             font-weight: 600;
             clear: both;
@@ -883,11 +944,6 @@
         /* Oculta las tarjetas de producto que no coinciden con la etiqueta activa */
         .product-card.hidden-by-tag {
             display: none !important;
-        }
-        
-        /* Asegurar que el grid de productos no afecte a la subcategoría siguiente */
-        .products-grid {
-            margin-bottom: 30px;
         }
         
         /* Responsive */
@@ -1037,6 +1093,49 @@
             /* Ocultar la flecha negra (botón "volver arriba") en el teléfono */
             .scroll-top-btn {
                 display: none !important;
+            }
+        }
+
+        /* ============================================================
+           DESTACADOS: en pantallas grandes, las tarjetas de producto
+           se agrupan una tras otra en fila (una sola cuadrícula
+           continua), en vez de quedar separadas por subcategoría.
+           Para eso se ocultan los títulos de subcategoría dentro de
+           esta sección y cada "products-grid" deja de formar su
+           propia cuadrícula (display: contents) para que las tarjetas
+           pasen a ser hijas directas de la cuadrícula principal.
+           En teléfono (max-width: 600px) no se aplica: se conserva el
+           comportamiento normal, agrupado por subcategoría.
+           ============================================================ */
+        @media (min-width: 601px) {
+            #catalog-content.showing-destacados {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+
+            #catalog-content.showing-destacados .products-grid {
+                display: contents;
+            }
+
+            #catalog-content.showing-destacados .subcategory-header {
+                display: none;
+            }
+
+            #catalog-content.showing-destacados .category-header {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (min-width: 901px) and (max-width: 1200px) {
+            #catalog-content.showing-destacados {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 601px) and (max-width: 900px) {
+            #catalog-content.showing-destacados {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
@@ -1280,6 +1379,8 @@
             "85907513013", //MALLA GALV. REPELLO 1/8" 3’X100’
             "37487414", //ARENON FINO
             "22463766", //VENTANA FRANCESA 100X120
+            "23817122", //TUBO PVC SDR13.5 C/C 1/2X20
+            "19299399", //ADAPTADOR MACHO PVC 1/2 PRESION
             
             // "CODIGO_DE_BARRA_4", // Arenon Fino
         ];
@@ -1702,7 +1803,7 @@
             if (includeFeaturedOption && productList.some(isFeaturedProduct)) {
                 const featuredOption = document.createElement("option");
                 featuredOption.value = DESTACADOS_VALUE;
-                featuredOption.textContent = "Destacados";
+                featuredOption.textContent = "DESTACADOS";
                 // La primera vez que se cargan productos (todavía no se eligió
                 // ninguna categoría), "Destacados" queda seleccionado por
                 // defecto para que sea lo primero que se muestra en pantalla.
@@ -2079,7 +2180,12 @@
 
             displayedCount = 0;
             renderedGroups = {};
-            document.getElementById("catalog-content").innerHTML = "";
+            const catalogContentEl = document.getElementById("catalog-content");
+            catalogContentEl.innerHTML = "";
+            // Marca el contenedor cuando se está mostrando "Destacados" para
+            // que, solo en pantallas grandes, las tarjetas se agrupen una
+            // tras otra en fila (ver CSS de .showing-destacados).
+            catalogContentEl.classList.toggle("showing-destacados", categoryFilter === DESTACADOS_VALUE);
             // Render inmediato (sin retraso) para evitar el parpadeo al filtrar
             loadMoreProducts(true);
         }
@@ -2328,14 +2434,15 @@
                 ? `<img class="product-bg-image" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
                 : '';
 
-            // Miniatura en la esquina inferior derecha (solo si hay imagen).
-            // Si ninguna extensión existe, se elimina y no se muestra nada.
+            // Miniatura en la esquina inferior derecha (solo si hay imagen),
+            // tal como estaba siempre. Si ninguna extensión existe, se
+            // oculta automáticamente (onerror).
             const thumbTag = refCode
                 ? `<img class="product-thumb" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
                 : '';
 
             return `
-                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" onclick="handleProductClick(this)">
+                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}">
                     ${imageTag}
                     ${thumbTag}
                     <div class="badges-container">
@@ -2346,6 +2453,12 @@
                             ${cost > 0 ? `<span class="badge badge-margin">${margin.toFixed(0)}%</span>` : ''}
                             ${cost > 0 ? `<span class="badge badge-profit">+$${profit.toFixed(2)}</span>` : ''}
                         </div>
+                    </div>
+
+                    <div class="quote-row">
+                        <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" onclick="handleProductClick(this)">
+                            <span>Cotizar</span>
+                        </button>
                     </div>
                     
                     <div class="product-category">${escapeHtml(product.Category)}</div>
