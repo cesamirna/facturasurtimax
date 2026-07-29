@@ -1669,7 +1669,7 @@
                     Subcategory: subcategory,
                     Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                     Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
-                    Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || 0)
+                    Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0)
                 };
             });
 
