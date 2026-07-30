@@ -357,7 +357,7 @@
     
     #product-search {
         width: 100%;
-        padding: 12px 54px 12px 20px;
+        padding: 12px 20px 12px 54px;
         border: 2px solid var(--gray-200);
         border-radius: 12px;
         font-size: 16px;
@@ -378,7 +378,7 @@
     
     .search-icon {
         position: absolute;
-        right: 18px;
+        left: 18px;
         top: 50%;
         transform: translateY(-50%);
         color: var(--gray-400);
@@ -813,17 +813,69 @@
     }
     
     .modal-category-header {
-        padding: 10px 24px;
-        background-color: var(--gray-100);
-        color: var(--primary-dark);
-        font-weight: 700;
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        background-color: #ffffff;
+        color: var(--primary-color);
+        padding: 12px 24px;
+        border-left: 6px solid var(--primary-color);
+        font-weight: 600;
+        font-size: 14px;
         border-bottom: 1px solid var(--gray-200);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         position: sticky;
         top: 0;
         z-index: 1;
+    }
+
+    .modal-subcategory-header {
+        /* Misma apariencia que en catálogo: icono junto al título,
+           sin caja de fondo */
+        padding: 10px 24px;
+        background-color: transparent;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .modal-subcategory-header svg {
+        flex-shrink: 0;
+    }
+
+    .modal-subcat-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .modal-subcat-tag {
+        background: var(--gray-200);
+        color: var(--gray-700);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .modal-subcat-tag:hover {
+        background: var(--gray-300);
+        color: var(--gray-800);
+    }
+
+    .modal-subcat-tag.active {
+        background: var(--primary-dark);
+        color: #ffffff;
+    }
+
+    /* Oculta los productos del modal que no coinciden con la etiqueta activa */
+    .modal-product-item.hidden-by-tag {
+        display: none !important;
     }
     
     .modal-product-item:last-child {
@@ -862,6 +914,25 @@
         display: flex;
         align-items: center;
         gap: 4px;
+    }
+
+    /* Marca y código, con el mismo estilo de texto que en catálogo, en la misma línea */
+    .modal-product-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .modal-product-brand {
+        font-size: 12px;
+        color: var(--primary-dark);
+        font-weight: 600;
+    }
+
+    .modal-product-code {
+        font-size: 12px;
+        color: var(--gray-500);
     }
     
     .modal-product-price {
@@ -1238,9 +1309,9 @@
     <div class="search-modal">
         <div class="search-modal-header">
             <h2>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+               <!--<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+                </svg>-->
                 Resultados de búsqueda: <span id="modal-search-term" class="search-term"></span>
             </h2>
             <button class="search-modal-close" onclick="closeSearchModal()">
@@ -1502,7 +1573,7 @@
                     <div class="product-info">
                         <div class="product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="product-details">
-                            <strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}
+                            <strong>Marca:</strong> ${productBrand} | <strong>Categoría:</strong> ${category} | <strong>Código:</strong> ${code}
                         </div>
                     </div>
                     <div class="product-price-tag">
@@ -2064,6 +2135,68 @@
         }
         return "General";
     }
+
+    // Escapa texto para insertarlo de forma segura dentro de HTML/atributos
+    function escapeHtml(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    // Última palabra del nombre del producto, usada como "tíquet" junto a la subcategoría (igual que en catálogo)
+    function getLastWordTag(description) {
+        if (!description) return '';
+        const parts = String(description).trim().split(/\s+/).filter(Boolean);
+        return parts.length ? parts[parts.length - 1].toUpperCase() : '';
+    }
+
+    // Comparador de subcategorías (igual que en catálogo): números antes que texto,
+    // medidas con fracción (2-1/2), prefijos con número (#6, M10), y alfabético en español
+    function parseSubcategoryNumber(value) {
+        const str = String(value).trim();
+        let match = str.match(/^(\d+)[\s-](\d+)\/(\d+)/);
+        if (match) {
+            const whole = parseFloat(match[1]);
+            const num = parseFloat(match[2]);
+            const den = parseFloat(match[3]);
+            if (den !== 0) return whole + (num / den);
+        }
+        match = str.match(/^(\d+)\/(\d+)/);
+        if (match) {
+            const num = parseFloat(match[1]);
+            const den = parseFloat(match[2]);
+            if (den !== 0) return num / den;
+        }
+        match = str.match(/^(\d+(?:\.\d+)?)/);
+        if (match) return parseFloat(match[1]);
+        return null;
+    }
+
+    function parseSubcategoryPrefixedNumber(value) {
+        const str = String(value).trim();
+        const match = str.match(/^(\D*)(\d+(?:\.\d+)?)/);
+        if (match) return { prefix: match[1], num: parseFloat(match[2]) };
+        return null;
+    }
+
+    function compareSubcategory(a, b) {
+        const numA = parseSubcategoryNumber(a);
+        const numB = parseSubcategoryNumber(b);
+        if (numA !== null && numB !== null) return numA - numB;
+        if (numA !== null && numB === null) return -1;
+        if (numA === null && numB !== null) return 1;
+
+        const prefA = parseSubcategoryPrefixedNumber(a);
+        const prefB = parseSubcategoryPrefixedNumber(b);
+        if (prefA && prefB && prefA.prefix.toLowerCase() === prefB.prefix.toLowerCase()) {
+            return prefA.num - prefB.num;
+        }
+
+        return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' });
+    }
     
     function loadInvoiceFromFile(e) {
         const file = e.target.files[0];
@@ -2317,6 +2450,7 @@
     const MODAL_BATCH_SIZE = 50;
     let modalRenderedCount = 0;
     let modalLastCategory = null;
+    let modalLastSubcategory = null;
     let modalShowAll = false;
 
     function openSearchModal(searchTerm) {
@@ -2368,11 +2502,11 @@
                    subcategory.includes(term);
         });
         
-        // Ordenar por categoría, subcategoría y precio
+        // Ordenar por categoría, subcategoría (igual que en catálogo) y precio
         modalFilteredProducts.sort((a, b) => {
             const catCompare = (a.Category || '').localeCompare(b.Category || '', 'es', { sensitivity: 'base' });
             if (catCompare !== 0) return catCompare;
-            const subCompare = (a.Subcategory || '').localeCompare(b.Subcategory || '', 'es', { sensitivity: 'base' });
+            const subCompare = compareSubcategory(a.Subcategory || '', b.Subcategory || '');
             if (subCompare !== 0) return subCompare;
             return (a.Price || 0) - (b.Price || 0);
         });
@@ -2395,6 +2529,7 @@
             productListContainer.innerHTML = '';
             modalRenderedCount = 0;
             modalLastCategory = null;
+            modalLastSubcategory = null;
             modalShowAll = showAll;
             renderModalBatch();
 
@@ -2432,22 +2567,46 @@
             const priceWithTax = price * 1.07;
             const code = product.Code || 'Sin código';
             const category = product.Category || 'Sin categoría';
+            const subcategory = product.Subcategory || '';
             const productBrand = getProductBrand(product);
             const originalIndex = productList.indexOf(product);
 
-            // Insertar encabezado de categoría cuando cambia (solo al mostrar todos)
+            // Insertar encabezado de categoría y subcategoría cuando cambian,
+            // igual que en catálogo (subcategoría con tíquets de la última palabra)
+            const groupKey = `${category}|||${subcategory}`;
             let header = '';
-            if (modalShowAll && category !== modalLastCategory) {
+            if (category !== modalLastCategory) {
                 modalLastCategory = category;
-                header = `<li class="modal-category-header">${category}</li>`;
+                modalLastSubcategory = null;
+                header += `<li class="modal-category-header">${escapeHtml(category)}</li>`;
+            }
+            if (subcategory !== modalLastSubcategory) {
+                modalLastSubcategory = subcategory;
+
+                const groupProducts = modalFilteredProducts.filter(p =>
+                    (p.Category || 'Sin categoría') === category && (p.Subcategory || '') === subcategory);
+                const uniqueTags = [...new Set(
+                    groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                )].sort(compareSubcategory);
+                const escapedGroupKey = escapeHtml(groupKey).replace(/'/g, '&#39;');
+                const tagsHtml = uniqueTags.length
+                    ? `<span class="modal-subcat-tags">${uniqueTags.map(t => {
+                        const escapedTag = escapeHtml(t).replace(/'/g, '&#39;');
+                        return `<span class="modal-subcat-tag" data-tag="${escapedTag}" onclick="event.stopPropagation(); filterModalProductsByTag('${escapedGroupKey}', '${escapedTag}', this)">${t}</span>`;
+                    }).join('')}</span>`
+                    : '';
+                const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
+
+                header += `<li class="modal-subcategory-header">${subIcon}<span>${subcategory ? escapeHtml(subcategory).toUpperCase() : 'SIN SUBCATEGORÍA'}</span>${tagsHtml}</li>`;
             }
 
             html += header + `
-                <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" onclick="selectProductFromModal(${originalIndex})">
+                <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" data-group="${escapeHtml(groupKey)}" data-description="${escapeHtml(product.Description || '')}" onclick="selectProductFromModal(${originalIndex})">
                     <div class="modal-product-info">
                         <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
-                        <div class="modal-product-details">
-                            <span><strong>Código:</strong> ${code} | <strong>Categoría:</strong> ${category} | <strong>Marca:</strong> ${productBrand}</span>
+                        <div class="modal-product-meta">
+                            <span class="modal-product-brand">${escapeHtml(productBrand)}</span>
+                            <span class="modal-product-code">Código: ${escapeHtml(code)}</span>
                         </div>
                     </div>
                     <div class="modal-product-price">
@@ -2462,6 +2621,42 @@
 
         productListContainer.insertAdjacentHTML('beforeend', html);
         modalRenderedCount = end;
+    }
+
+    // Al hacer clic en una etiqueta de subcategoría dentro del modal, mostrar
+    // únicamente los productos cuya última palabra coincide con esa etiqueta
+    // (igual que en catálogo). Un segundo clic sobre la misma etiqueta activa
+    // restaura todos los productos de esa subcategoría.
+    function filterModalProductsByTag(groupKey, tagValue, tagElement) {
+        // Renderizar todos los lotes pendientes para que la etiqueta filtre
+        // sobre absolutamente todos los productos del grupo, no solo los
+        // que ya se habían cargado por scroll.
+        while (modalRenderedCount < modalFilteredProducts.length) {
+            renderModalBatch();
+        }
+
+        const wasActive = tagElement.classList.contains('active');
+
+        // Quitar el estado activo de las demás etiquetas de esta misma subcategoría
+        const header = tagElement.closest('.modal-subcategory-header');
+        if (header) {
+            header.querySelectorAll('.modal-subcat-tag').forEach(t => t.classList.remove('active'));
+        }
+
+        const items = document.querySelectorAll(`.modal-product-item[data-group="${CSS.escape(groupKey)}"]`);
+
+        if (wasActive) {
+            items.forEach(item => item.classList.remove('hidden-by-tag'));
+            return;
+        }
+
+        tagElement.classList.add('active');
+
+        items.forEach(item => {
+            const description = item.getAttribute('data-description') || '';
+            const itemTag = getLastWordTag(description);
+            item.classList.toggle('hidden-by-tag', itemTag !== tagValue);
+        });
     }
 
     // Carga más productos cuando el usuario se acerca al final del scroll
