@@ -1302,9 +1302,9 @@
         
         // Búsqueda de productos
         const searchInput = document.getElementById('product-search');
-        searchInput.addEventListener('input', function() {
-            searchProducts(this.value);
-        });
+        searchInput.addEventListener('input', debounce(function() {
+            searchProducts(searchInput.value);
+        }, 300));
         
         searchInput.addEventListener('keydown', function(e) {
             handleSearchKeydown(e);
@@ -1330,6 +1330,7 @@
                 const storedProducts = JSON.parse(storedProductList);
                 if (Array.isArray(storedProducts) && storedProducts.length > 0) {
                     productList = storedProducts;
+                    indexProductList(productList);
                     console.log('Productos cargados desde localStorage:', productList.length);
                 }
             } catch (e) {
@@ -1363,6 +1364,28 @@
             return product.Brand;
         }
   return extractBrandFromName(product.Description);
+  }
+
+  // Precalcula un índice de búsqueda en minúsculas para cada producto,
+  // para no tener que recalcular (toLowerCase, marca, etc.) en cada tecla
+  // que el usuario escribe. Esto es lo que hacía lenta la búsqueda cuando
+  // la lista de productos cargada desde Excel era grande.
+  function buildSearchIndex(product) {
+      const description = (product.Description || '').toLowerCase();
+      const code = (product.Code || '').toString().toLowerCase();
+      const reference = (product.Reference || '').toString().toLowerCase();
+      const category = (product.Category || '').toLowerCase();
+      const subcategory = (product.Subcategory || '').toLowerCase();
+      const productBrand = getProductBrand(product).toLowerCase();
+      product._searchIndex = [description, code, reference, category, subcategory, productBrand].join(' | ');
+      return product;
+  }
+
+  function indexProductList(list) {
+      for (let i = 0; i < list.length; i++) {
+          buildSearchIndex(list[i]);
+      }
+      return list;
   }
 
   // ============ MINIATURA DE IMAGEN DEL PRODUCTO ============
@@ -1405,6 +1428,19 @@
   }
 
   // ============ FUNCIONES DE BÚSQUEDA (Usando lógica de catálogo) ============
+    // Debounce para búsqueda (igual que en catálogo)
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     function searchProducts(query) {
         const searchResults = document.getElementById('search-results');
         const resultsList = document.getElementById('results-list');
@@ -1424,21 +1460,11 @@
         
         const searchTerm = query.toLowerCase().trim();
         
-        // Usar la misma lógica de búsqueda que el catálogo
+        // Usar el índice precalculado (evita recalcular minúsculas/marca de
+        // todos los productos en cada tecla, que era la causa de la lentitud)
         const filteredProducts = productList.filter(product => {
-            const description = (product.Description || '').toLowerCase();
-            const code = (product.Code || '').toString().toLowerCase();
-            const reference = (product.Reference || '').toString().toLowerCase();
-            const category = (product.Category || '').toLowerCase();
-            const productBrand = getProductBrand(product).toLowerCase();
-            const subcategory = (product.Subcategory || '').toLowerCase();
-            
-            return description.includes(searchTerm) || 
-                   code.includes(searchTerm) || 
-                   reference.includes(searchTerm) ||
-                   category.includes(searchTerm) ||
-                   productBrand.includes(searchTerm) ||
-                   subcategory.includes(searchTerm);
+            if (!product._searchIndex) buildSearchIndex(product);
+            return product._searchIndex.includes(searchTerm);
         });
         
         // Ordenar por categoría, subcategoría y precio (igual que el catálogo)
@@ -2019,10 +2045,11 @@
                 Subcategory: subcategory,
                 Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                 Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
-                Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || 0)
+                Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0)
             };
         });
 
+        indexProductList(productList);
         localStorage.setItem('productList', JSON.stringify(productList));
         showNotification(`Se cargaron ${productList.length} productos correctamente`);
     }
