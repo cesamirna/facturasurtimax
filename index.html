@@ -1222,13 +1222,13 @@
 
     <div id="adjustment-form" class="no-print">
         <span class="adjustment-label">Agregar ajuste:</span>
-        <select id="adjustment-type" onchange="handleAdjustmentTypeChange()"> 
+        <select id="adjustment-type" onchange="handleAdjustmentTypeChange()">
+            <option placeholder="Ajuste"></option>
             <option value="discount">Descuento</option>
             <option value="deposit">Abono</option>
             <option value="exempt">Exento</option>
         </select>
         <div class="amount-wrapper" id="adjustment-amount-wrapper">
-            <!--span class="currency-symbol">$</span-->
             <input type="number" id="adjustment-amount"  step="0.01" min="0" placeholder="$0.00">
         </div>
         <button id="add-adjustment-btn" class="action-btn add-btn">
