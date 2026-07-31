@@ -417,6 +417,13 @@
             font-weight: 600;
         }
 
+        /* Resalte temporal al ubicar una opción escribiendo su letra inicial
+           (no cambia la selección, solo la muestra/ubica dentro del panel) */
+        .custom-select-option.highlighted {
+            background-color: #3c3c3d;
+            color: white;
+        }
+
         /* Scrollbar suave dentro del panel */
         .custom-select-panel::-webkit-scrollbar {
             width: 8px;
@@ -1451,7 +1458,15 @@
         // Cerrar cualquier dropdown personalizado abierto
         function closeAllCustomSelects(except) {
             document.querySelectorAll(".custom-select.open").forEach(w => {
-                if (w !== except) w.classList.remove("open");
+                if (w !== except) {
+                    w.classList.remove("open");
+                    // Quitar el resalte temporal de "ubicar por letra": solo debe
+                    // durar mientras el panel está abierto, no quedar marcado
+                    // de forma permanente al cerrarlo.
+                    w.querySelectorAll(".custom-select-option.highlighted").forEach(o =>
+                        o.classList.remove("highlighted")
+                    );
+                }
             });
         }
         // Cerrar los desplegables SOLO cuando se toca/hace clic FUERA de
@@ -1530,6 +1545,9 @@
                         panel.querySelectorAll(".custom-select-option").forEach((c, j) =>
                             c.classList.toggle("selected", j === select.selectedIndex)
                         );
+                        panel.querySelectorAll(".custom-select-option.highlighted").forEach(o =>
+                            o.classList.remove("highlighted")
+                        );
                         wrapper.classList.remove("open");
                     });
                     panel.appendChild(item);
@@ -1557,6 +1575,11 @@
                 const willOpen = !wrapper.classList.contains("open");
                 closeAllCustomSelects(wrapper);
                 wrapper.classList.toggle("open", willOpen);
+                if (!willOpen) {
+                    panel.querySelectorAll(".custom-select-option.highlighted").forEach(o =>
+                        o.classList.remove("highlighted")
+                    );
+                }
                 if (willOpen) {
                     const sel = panel.querySelector(".custom-select-option.selected");
                     if (sel) sel.scrollIntoView({ block: "nearest" });
@@ -1577,6 +1600,84 @@
 
             rebuild();
         }
+
+        // Ubicar (mostrar) en el panel de filtros la opción cuya letra
+        // inicial coincide con la tecla presionada, sin cambiar la
+        // selección actual. Funciona con cualquier filtro que esté abierto
+        // (categoría, subcategoría o marca) y permite pulsar la misma letra
+        // varias veces para ir pasando por las distintas opciones que
+        // empiezan con esa letra. También permite moverse con las flechas
+        // arriba/abajo y confirmar la selección con Enter.
+        document.addEventListener("keydown", (e) => {
+            const openWrapper = document.querySelector(".custom-select.open");
+            if (!openWrapper) return;
+
+            const panel = openWrapper.querySelector(".custom-select-panel");
+            if (!panel) return;
+            const options = Array.from(panel.querySelectorAll(".custom-select-option"));
+            if (options.length === 0) return;
+
+            const current = panel.querySelector(".custom-select-option.highlighted") ||
+                             panel.querySelector(".custom-select-option.selected");
+            const currentIndex = current ? options.indexOf(current) : -1;
+
+            // Flechas arriba/abajo: mover el resalte una opción hacia
+            // arriba o hacia abajo, sin salirse de la lista.
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                let nextIndex;
+                if (currentIndex === -1) {
+                    nextIndex = 0;
+                } else if (e.key === "ArrowDown") {
+                    nextIndex = Math.min(currentIndex + 1, options.length - 1);
+                } else {
+                    nextIndex = Math.max(currentIndex - 1, 0);
+                }
+                const next = options[nextIndex];
+                options.forEach(o => o.classList.remove("highlighted"));
+                next.classList.add("highlighted");
+                next.scrollIntoView({ block: "nearest" });
+                return;
+            }
+
+            // Enter: confirmar/aplicar la opción resaltada, igual que si
+            // se hiciera clic sobre ella.
+            if (e.key === "Enter") {
+                if (current) {
+                    e.preventDefault();
+                    current.click();
+                }
+                return;
+            }
+
+            const key = e.key;
+            if (key.length !== 1 || !/[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/.test(key)) return;
+
+            e.preventDefault();
+
+            const letter = key.toLowerCase();
+
+            // Punto de partida: justo después de la opción resaltada u
+            // opción seleccionada, para poder ciclar entre coincidencias
+            // pulsando la misma letra repetidamente.
+            const startIndex = current ? currentIndex + 1 : 0;
+
+            let match = null;
+            for (let i = 0; i < options.length; i++) {
+                const idx = (startIndex + i) % options.length;
+                const text = options[idx].textContent.trim().toLowerCase();
+                if (text.startsWith(letter)) {
+                    match = options[idx];
+                    break;
+                }
+            }
+
+            if (match) {
+                options.forEach(o => o.classList.remove("highlighted"));
+                match.classList.add("highlighted");
+                match.scrollIntoView({ block: "nearest" });
+            }
+        });
 
         // Debounce para búsqueda
         function debounce(func, wait) {
