@@ -636,6 +636,19 @@
         font-size: 12px;
         margin-left: 8px;
     }
+
+    .product-exempt-tag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background-color: rgba(233, 69, 96, 0.12);
+        color: var(--danger-color);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        vertical-align: middle;
+    }
     
     /* Columnas especiales */
     .margin-column {
@@ -1347,6 +1360,38 @@
     let isExempt = false;
     let selectedSearchIndex = -1;
 
+    // ============================================================
+    // SECCIÓN EXENTOS (igual que en catálogo)
+    // Agrega aquí los códigos de barra de los productos que están
+    // EXENTOS del 7% de ITBMS. A esos productos se les cobra
+    // exactamente su precio normal (sin sumarle el impuesto), tanto
+    // en la búsqueda/modal como al agregarlos a la factura.
+    // Mantén esta lista igual a la de catalogo.html para que ambos
+    // archivos coincidan.
+    // ============================================================
+    const EXEMPT_CODES = [
+        "6941639883142", // MACHETE 10" TOTAL
+        "6941639883166", // MACHETE 12" TOTAL
+        "6941639883241", // MACHETE 20" TOTAL
+        "6941639883104", // MACHETE 24" TOTAL
+        "6941639883302", // MACHETE 26" TOTAL
+        // "CODIGO_DE_BARRA_1", // Nombre del producto exento
+    ];
+
+    // Indica si un código de barra corresponde a un producto exento de ITBMS
+    function isCodeExempt(code) {
+        if (code === undefined || code === null) return false;
+        const normalized = code.toString().trim();
+        if (!normalized) return false;
+        return EXEMPT_CODES.includes(normalized);
+    }
+
+    // Indica si un producto (objeto con .Code) está exento de ITBMS
+    function isProductExempt(product) {
+        if (!product || product.Code === undefined || product.Code === null) return false;
+        return isCodeExempt(product.Code);
+    }
+
     // ============ INICIALIZACIÓN ============
     document.addEventListener('DOMContentLoaded', function() {
         // Establecer la fecha actual
@@ -1562,7 +1607,8 @@
         
         resultsList.innerHTML = limitedProducts.map((product, index) => {
             const price = parseFloat(product.Price) || 0;
-            const priceWithTax = price * 1.07;
+            const exempt = isProductExempt(product);
+            const priceWithTax = exempt ? price : price * 1.07;
             const code = product.Code || 'Sin código';
             const category = product.Category || 'Sin categoría';
             const productBrand = getProductBrand(product);
@@ -1577,9 +1623,14 @@
                         </div>
                     </div>
                     <div class="product-price-tag">
+                        ${exempt ? `
+                        <div class="price-total">$${price.toFixed(2)}</div>
+                        <div class="price-base">Exento de ITBMS (7%)</div>
+                        ` : `
                         <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-base">con ITBMS</div>
+                        `}
                     </div>
                     ${getProductImageHtml(product.Code, 'product-thumb')}
                 </div>
@@ -1657,12 +1708,13 @@
         const price = parseFloat(document.getElementById('product-price').value);
         const total = (quantity * price).toFixed(2);
         const code = document.getElementById('product-code').value;
+        const exempt = isCodeExempt(code);
         
         const cost = findProductCost(code, description);
         const margin = calculateMargin(price, cost);
         const profit = calculateProductProfit(price, cost, quantity);
         
-        products.push({ quantity, description, price, total, code, cost, margin, profit });
+        products.push({ quantity, description, price, total, code, cost, margin, profit, exempt });
         updateInvoiceTable();
         updateTotals();
         saveCurrentProducts();
@@ -1771,7 +1823,9 @@
     
     function updateTotals() {
         const subtotal = products.reduce((sum, product) => sum + Number(product.total), 0);
-        const tax = (subtotal * 0.07).toFixed(2);
+        // El ITBMS solo se calcula sobre los productos que NO son exentos
+        const taxableSubtotal = products.reduce((sum, product) => sum + (product.exempt ? 0 : Number(product.total)), 0);
+        const tax = (taxableSubtotal * 0.07).toFixed(2);
         
         const depositElement = document.getElementById('deposit');
         const discountElement = document.getElementById('discount');
@@ -2015,10 +2069,11 @@
                     const code = selectedProduct.code || '';
                     const cost = parseFloat(selectedProduct.cost) || 0;
                     const margin = parseFloat(selectedProduct.margin) || 0;
+                    const exempt = !!selectedProduct.exempt;
                     const total = (quantity * price).toFixed(2);
                     const profit = calculateProductProfit(price, cost, quantity);
                     
-                    products.push({ quantity, description, price, total, code, cost, margin, profit });
+                    products.push({ quantity, description, price, total, code, cost, margin, profit, exempt });
                 });
                 
                 updateInvoiceTable();
@@ -2043,10 +2098,11 @@
                 const code = selectedProduct.code || '';
                 const cost = parseFloat(selectedProduct.cost) || 0;
                 const margin = parseFloat(selectedProduct.margin) || 0;
+                const exempt = !!selectedProduct.exempt;
                 const total = (quantity * price).toFixed(2);
                 const profit = calculateProductProfit(price, cost, quantity);
                 
-                products.push({ quantity, description, price, total, code, cost, margin, profit });
+                products.push({ quantity, description, price, total, code, cost, margin, profit, exempt });
                 
                 updateInvoiceTable();
                 updateTotals();
@@ -2564,7 +2620,8 @@
         for (let index = start; index < end; index++) {
             const product = modalFilteredProducts[index];
             const price = parseFloat(product.Price) || 0;
-            const priceWithTax = price * 1.07;
+            const exempt = isProductExempt(product);
+            const priceWithTax = exempt ? price : price * 1.07;
             const code = product.Code || 'Sin código';
             const category = product.Category || 'Sin categoría';
             const subcategory = product.Subcategory || '';
@@ -2612,9 +2669,14 @@
                         </div>
                     </div>
                     <div class="modal-product-price">
+                        ${exempt ? `
+                        <div class="price-total">$${price.toFixed(2)}</div>
+                        <div class="price-label">Exento de ITBMS (7%)</div>
+                        ` : `
                         <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-label">con ITBMS</div>
+                        `}
                     </div>
                     ${getProductImageHtml(product.Code, 'modal-product-thumb')}
                 </li>

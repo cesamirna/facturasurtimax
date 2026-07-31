@@ -1392,6 +1392,27 @@
             // "CODIGO_DE_BARRA_4", // Arenon Fino
         ];
 
+        // ============================================================
+        // SECCIÓN EXENTOS
+        // Agrega aquí los códigos de barra de los productos que están
+        // EXENTOS del 7% de ITBMS. A esos productos se les cobra
+        // exactamente su precio normal (sin sumarle el impuesto), tanto
+        // en la tarjeta del catálogo como al enviarlos a cotizar/factura.
+        // Cada código debe ser el mismo valor que tiene el producto en
+        // la columna "Code"/"CodBarra".
+        // Ejemplo (reemplaza por tus códigos reales):
+        //   "7501234567890", // Producto exento 1
+        //   "7509876543210", // Producto exento 2
+        // ============================================================
+        const EXEMPT_CODES = [
+            "6941639883142", // MACHETE 10" TOTAL
+            "6941639883166", // MACHETE 12" TOTAL
+            "6941639883241", // MACHETE 20" TOTAL
+            "6941639883104", // MACHETE 24" TOTAL
+            " 6941639883302", // MACHETE 26" TOTAL
+            // "CODIGO_DE_BARRA_1", // Nombre del producto exento
+        ];
+
         // Valor especial usado en el <select> de categorías para representar
         // "Destacados". No corresponde a ningún valor real del campo Category
         // de los productos, por eso no interfiere con la barra de búsqueda
@@ -2509,14 +2530,21 @@
             const description = element.getAttribute('data-description');
             const price = parseFloat(element.getAttribute('data-price'));
             const cost = parseFloat(element.getAttribute('data-cost'));
-            addProductToInvoice(code, description, price, cost);
+            const exempt = element.getAttribute('data-exempt') === 'true';
+            addProductToInvoice(code, description, price, cost, exempt);
         }
 
         // Crear tarjeta de producto
         function createProductCard(product) {
             const price = product.Price || 0;
             const cost = product.Cost || 0;
-            const priceWithTax = price * 1.07;
+            const refCode = (product.Code !== undefined && product.Code !== null)
+                ? product.Code.toString().trim()
+                : '';
+            const isExempt = EXEMPT_CODES.includes(refCode);
+            // Si el producto está exento del 7% de ITBMS, se cobra su
+            // precio normal tal cual (sin sumarle el impuesto).
+            const priceWithTax = isExempt ? price : price * 1.07;
             const profit = cost > 0 ? price - cost : 0;
             const margin = cost > 0 ? ((profit / cost) * 100) : 0;
             const productBrand = getProductBrand(product);
@@ -2528,9 +2556,6 @@
             // Imagen de fondo según el código de referencia.
             // Si el producto no tiene código, no se intenta mostrar imagen.
             // Si la imagen no existe en la carpeta "imagenes", se oculta automáticamente (onerror).
-            const refCode = (product.Code !== undefined && product.Code !== null)
-                ? product.Code.toString().trim()
-                : '';
             const imageTag = refCode
                 ? `<img class="product-bg-image" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
                 : '';
@@ -2543,7 +2568,7 @@
                 : '';
 
             return `
-                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}">
+                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}">
                     ${imageTag}
                     ${thumbTag}
                     <div class="badges-container">
@@ -2557,7 +2582,7 @@
                     </div>
 
                     <div class="quote-row">
-                        <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" onclick="handleProductClick(this)">
+                        <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" onclick="handleProductClick(this)">
                             <span>Cotizar</span>
                         </button>
                     </div>
@@ -2570,7 +2595,7 @@
                     
                     <div class="price-section">
                         <div class="price-main"><span>$${priceWithTax.toFixed(2)}</span></div>
-                        <div class="price-tax">$${price.toFixed(2)} Sin ITBMS (7%)</div>
+                        <div class="price-tax">${isExempt ? 'Exento de ITBMS (7%)' : `$${price.toFixed(2)} Sin ITBMS (7%)`}</div>
                     </div>
                 </div>
             `;
@@ -2647,7 +2672,7 @@
         }
 
         // Agregar producto a la factura
-        function addProductToInvoice(code, description, price, cost) {
+        function addProductToInvoice(code, description, price, cost, exempt = false) {
             cost = cost || 0;
             
             let quantity = prompt(`Ingrese la cantidad para "${description}":`, "1");
@@ -2673,7 +2698,8 @@
                 price: price,
                 quantity: quantity,
                 cost: cost,
-                margin: margin
+                margin: margin,
+                exempt: exempt
             };
 
             let selectedProducts = [];
