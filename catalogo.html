@@ -1405,11 +1405,29 @@
         //   "7509876543210", // Producto exento 2
         // ============================================================
         const EXEMPT_CODES = [
+            "38481347", //BLOQUE 4
+            "37489314", //BLOQUE 6
+            "37487414", //ARENON FINO
+            "59995267", //ARENON FINO SACO
+            "43358384", //ARENA FINA
+            "53463299", //ARENA FINA SACO
+            "23131242", //ACARREO
+
+            "88274814", //HERBICIDA BANDANA 1L
+            "71166555", //HERBICIDA BANDANA 3.5L
+            "6000022", //HERBICIDA GLIFOSATO 1L
+            "86233284", //HERBICIDA GLIFOSATO 3.5L
+            "6000721", //HERBICIDA GLIFOSATO SOBRE 100G
+            "37698562", //HERBICIDA GLIFOSATO SOBRE 50G
+            "45839596", //HERBICIDA METSULFURON 10G
+            "62261593", //HERBICIDA PARAQUAT 1L
+            "32961118", //HERBICIDA PARAQUAT 3.5L
+
             "6941639883142", // MACHETE 10" TOTAL
             "6941639883166", // MACHETE 12" TOTAL
             "6941639883241", // MACHETE 20" TOTAL
             "6941639883104", // MACHETE 24" TOTAL
-            " 6941639883302", // MACHETE 26" TOTAL
+            "6941639883302", // MACHETE 26" TOTAL
             // "CODIGO_DE_BARRA_1", // Nombre del producto exento
         ];
 
@@ -1622,6 +1640,14 @@
             rebuild();
         }
 
+        // Buffer de escritura tipo "typeahead": va acumulando las letras
+        // que el usuario pulsa seguidas (como en un <select> nativo) para
+        // poder reconocer palabras de 3 o más letras y no solo la última
+        // tecla pulsada. Si el usuario deja de escribir un momento, el
+        // buffer se reinicia para empezar una búsqueda nueva.
+        let typeaheadBuffer = "";
+        let typeaheadTimeout = null;
+
         // Ubicar (mostrar) en el panel de filtros la opción cuya letra
         // inicial coincide con la tecla presionada, sin cambiar la
         // selección actual. Funciona con cualquier filtro que esté abierto
@@ -1676,18 +1702,34 @@
 
             e.preventDefault();
 
-            const letter = key.toLowerCase();
+            // Acumular la letra en el buffer de escritura. Si pasa más de
+            // 600ms sin pulsar otra tecla, se asume que es una búsqueda
+            // nueva y el buffer se reinicia.
+            clearTimeout(typeaheadTimeout);
+            typeaheadBuffer += key.toLowerCase();
+            typeaheadTimeout = setTimeout(() => {
+                typeaheadBuffer = "";
+            }, 600);
+
+            // Mientras el buffer tenga menos de 3 letras, se busca la
+            // coincidencia solo con lo escrito hasta el momento (para que
+            // responda desde la primera tecla). En cuanto se alcanzan 3 o
+            // más letras, la búsqueda ya reconoce la palabra completa
+            // escrita (por ejemplo "sam" encuentra "Samsung" en vez de
+            // quedarse solo con la "s").
+            const query = typeaheadBuffer;
 
             // Punto de partida: justo después de la opción resaltada u
             // opción seleccionada, para poder ciclar entre coincidencias
-            // pulsando la misma letra repetidamente.
-            const startIndex = current ? currentIndex + 1 : 0;
+            // pulsando la misma letra repetidamente (solo aplica cuando el
+            // buffer tiene una única letra, igual que antes).
+            const startIndex = (current && query.length === 1) ? currentIndex + 1 : 0;
 
             let match = null;
             for (let i = 0; i < options.length; i++) {
                 const idx = (startIndex + i) % options.length;
                 const text = options[idx].textContent.trim().toLowerCase();
-                if (text.startsWith(letter)) {
+                if (text.startsWith(query)) {
                     match = options[idx];
                     break;
                 }
@@ -1697,6 +1739,24 @@
                 options.forEach(o => o.classList.remove("highlighted"));
                 match.classList.add("highlighted");
                 match.scrollIntoView({ block: "nearest" });
+            } else if (typeaheadBuffer.length > 1) {
+                // Si la palabra completa no coincide con nada, se reinicia
+                // el buffer a la última letra pulsada y se reintenta, para
+                // no quedarse bloqueado sin resultados.
+                typeaheadBuffer = key.toLowerCase();
+                const retryQuery = typeaheadBuffer;
+                for (let i = 0; i < options.length; i++) {
+                    const text = options[i].textContent.trim().toLowerCase();
+                    if (text.startsWith(retryQuery)) {
+                        match = options[i];
+                        break;
+                    }
+                }
+                if (match) {
+                    options.forEach(o => o.classList.remove("highlighted"));
+                    match.classList.add("highlighted");
+                    match.scrollIntoView({ block: "nearest" });
+                }
             }
         });
 
@@ -2591,6 +2651,7 @@
                     
                     <div class="product-brand">${escapeHtml(productBrand)}</div>
                     <div class="product-name">${escapeHtml(product.Description)}</div>
+                    ${product.Reference ? `<div class="product-code" style="margin-bottom:0;">${escapeHtml(product.Reference)}</div>` : ''}
                     <div class="product-code">Código: ${escapeHtml(product.Code)}</div>
                     
                     <div class="price-section">
