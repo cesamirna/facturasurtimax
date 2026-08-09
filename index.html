@@ -43,7 +43,7 @@
     }
     
     .invoice {
-        max-width: 1100px;
+        max-width: 1200px;
         margin: 0 auto;
         border-radius: 8px;
         padding: 30px;
@@ -116,7 +116,7 @@
     }
     
     .info-left, .info-right {
-        width: 50%;
+        width: 60%;
     }
     
     .info-label {
@@ -335,6 +335,136 @@
         background-color: white;
         color: var(--gray-700);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .pdf-btn {
+        background-color: var(--gray-700);
+    }
+
+    .pdf-btn:hover {
+        background-color: var(--yellow-color);
+        color: var(--gray-600);
+        box-shadow: none;
+    }
+
+    /* Estilos usados al capturar la factura para generar el PDF real (.pdf)      */
+    /* Replican exactamente las reglas de @media print para que el PDF luzca      */
+    /* igual que la factura impresa/de ejemplo.                                   */
+    body.pdf-capture {
+        background-color: white !important;
+    }
+
+    body.pdf-capture .invoice {
+        box-shadow: none !important;
+        padding: 15px !important;
+        max-width: 100% !important;
+    }
+
+    body.pdf-capture #controls,
+    body.pdf-capture .search-section,
+    body.pdf-capture #product-form,
+    body.pdf-capture #adjustment-form,
+    body.pdf-capture .no-print,
+    body.pdf-capture .action-btn,
+    body.pdf-capture .notification {
+        display: none !important;
+    }
+
+    body.pdf-capture .header {
+        margin-left: -10px !important;
+    }
+
+    body.pdf-capture .header-right {
+        margin-right: 10px !important;
+    }
+
+    body.pdf-capture .brand-column {
+        display: table-cell !important;
+    }
+
+    body.pdf-capture .invoice-number {
+        background-color: rgb(247, 222, 4) !important;
+        top: 45px !important;
+        right: 50px !important;
+        color: var(--gray-800) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body.pdf-capture input,
+    body.pdf-capture select {
+        border: none !important;
+        background: none !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        color: inherit !important;
+    }
+
+    body.pdf-capture input[type="checkbox"] {
+        -webkit-appearance: checkbox !important;
+        -moz-appearance: checkbox !important;
+        appearance: checkbox !important;
+        opacity: 1 !important;
+    }
+
+    body.pdf-capture .info {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        padding: 10px 0 !important;
+        border: none !important;
+    }
+
+    body.pdf-capture table {
+        box-shadow: none !important;
+    }
+
+    body.pdf-capture thead {
+        background-color: transparent !important;
+        color: black !important;
+    }
+
+    body.pdf-capture th,
+    body.pdf-capture td {
+        border-bottom: 1px solid #eee !important;
+    }
+
+    body.pdf-capture tbody tr:nth-child(even) {
+        background-color: transparent !important;
+    }
+
+    body.pdf-capture tbody tr:first-child td {
+        border-top: none !important;
+    }
+
+    body.pdf-capture tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+
+    body.pdf-capture .totals {
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 10px 0 !important;
+        border: none !important;
+    }
+
+    body.pdf-capture .hide-when-zero.zero-value {
+        display: none !important;
+    }
+
+    body.pdf-capture .hide-when-empty.empty-value {
+        display: none !important;
+    }
+
+    body.pdf-capture.hide-prices table th:nth-child(5),
+    body.pdf-capture.hide-prices table td:nth-child(5),
+    body.pdf-capture.hide-prices table th:nth-child(6),
+    body.pdf-capture.hide-prices table td:nth-child(6) {
+        display: none !important;
+    }
+
+    body.pdf-capture.hide-totals .totals {
+        display: none !important;
     }
 
     .product-btn {
@@ -1102,6 +1232,11 @@
 
     /* Estilos de impresión - MEJORADOS */
     @media print {
+        @page {
+            size: 8.5in 11in;
+            margin: 0.4in;
+        }
+
         body {
             padding: 0;
             background-color: white;
@@ -1217,9 +1352,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
         <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707z"/>
         </svg>
-        Cargar Factura
+        Abrir Factura
     </button>
-    <button onclick="saveInvoiceToExcel()" class="action-btn save-load-btn">
+    <button onclick="saveInvoiceToJson()" class="action-btn save-load-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
         <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1m1.354 4.354-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
         </svg>
@@ -1231,6 +1366,12 @@
         <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
         </svg>
         Imprimir
+    </button>
+    <button onclick="generateInvoicePDF()" class="action-btn pdf-btn">
+        <svg xmlns="http://w3.org" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M6.354 8.146a.5.5 0 1 1 .708-.708L8 8.293V5.5a.5.5 0 0 1 1 0v2.793l.938-.955a.5.5 0 1 1 .708.708l-2 2a.5.5 0 0 1-.708 0z"/>
+        </svg>
+        <!--PDF-->
     </button>
     <button onclick="document.getElementById('excel-file').click()" class="action-btn product-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
@@ -1453,6 +1594,8 @@
 </div>
 
 <script src="xlsx.full.min.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
 <script>
     // Variables globales
     let products = [];
@@ -2539,7 +2682,7 @@
     }
 
     // ============ FUNCIONES DE EXPORTACIÓN ============
-    function saveInvoiceToExcel() {
+    function saveInvoiceToJson() {
         const invoiceData = {
             date: document.getElementById('invoice-date').value,
             clientName: document.getElementById('client-name').value,
@@ -2558,52 +2701,23 @@
             products: products
         };
         
-        // Crear libro de Excel
-        const wb = XLSX.utils.book_new();
-        
-        // Datos para la hoja
-        const wsData = [
-            ['Fecha', invoiceData.date],
-            ['Cliente', invoiceData.clientName],
-            ['Dirección', invoiceData.clientAddress],
-            ['Teléfono', invoiceData.clientPhone],
-            ['Correo', invoiceData.clientEmail],
-            ['Vendedor', invoiceData.sellerName],
-            ['Orden No.', invoiceData.orderNumber],
-            ['Contado', invoiceData.contado],
-            ['Crédito', invoiceData.credito],
-            ['Abono', invoiceData.deposit],
-            ['Descuento', invoiceData.discount],
-            [],
-            ['CANT.', 'CÓDIGO', 'DESCRIPCIÓN', 'P/U', 'TOTAL']
-        ];
-        
-        // Agregar productos
-        products.forEach(product => {
-            wsData.push([
-                product.quantity,
-                product.code || '',
-                product.description,
-                parseFloat(product.price).toFixed(2),
-                product.total
-            ]);
-        });
-        
-        // Agregar totales
-        wsData.push([]);
-        wsData.push(['', '', '', 'Sub-Total:', invoiceData.subtotal]);
-        wsData.push(['', '', '', 'I.T.B.M.S. (7%):', invoiceData.tax]);
-        wsData.push(['', '', '', 'TOTAL:', invoiceData.total]);
-        
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
-        XLSX.utils.book_append_sheet(wb, ws, 'Factura');
-        
         // Generar nombre de archivo
         const clientName = invoiceData.clientName || 'cliente';
         const date = invoiceData.date || new Date().toISOString().split('T')[0];
-        const fileName = `Factura_${clientName.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.xlsx`;
+        const fileName = `Factura_${clientName.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.json`;
         
-        XLSX.writeFile(wb, fileName);
+        // Crear y descargar el archivo JSON
+        const jsonString = JSON.stringify(invoiceData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
         showNotification('Factura guardada como ' + fileName);
     }
     
@@ -2680,6 +2794,128 @@
             document.body.classList.remove('hide-totals');
             paymentLabels.forEach(label => label.classList.remove('no-print'));
         }, 1000);
+    }
+
+    async function generateInvoicePDF() {
+        // Verificar cuál condición de pago está marcada (misma lógica que al imprimir)
+        const cotizacionBox = document.getElementById('cotizacion');
+        const creditoBox = document.getElementById('credito');
+        const contadoBox = document.getElementById('contado');
+
+        const cotizacionChecked = cotizacionBox.checked;
+        const creditoChecked = creditoBox.checked;
+        const contadoChecked = contadoBox.checked;
+        const ningunaChecked = !cotizacionChecked && !creditoChecked && !contadoChecked;
+
+        document.body.classList.add('pdf-capture');
+
+        if (ningunaChecked) {
+            document.body.classList.add('hide-prices');
+            document.body.classList.add('hide-totals');
+        } else if (cotizacionChecked) {
+            document.body.classList.add('hide-prices');
+            document.body.classList.remove('hide-totals');
+        } else {
+            document.body.classList.remove('hide-prices');
+            document.body.classList.remove('hide-totals');
+        }
+
+        const paymentBoxes = [cotizacionBox, creditoBox, contadoBox];
+        const paymentLabels = paymentBoxes.map(box => box.closest('label'));
+
+        paymentBoxes.forEach((box, i) => {
+            if (!box.checked) {
+                paymentLabels[i].classList.add('no-print');
+            }
+        });
+
+        const invoiceElement = document.querySelector('.invoice');
+
+        // Se fija un ancho constante de captura (equivalente al ancho útil real
+        // de la hoja carta a 96dpi) para que el texto del PDF siempre salga a
+        // tamaño normal, sin importar qué tan ancha esté la ventana del
+        // navegador al momento de generar el PDF.
+        const CAPTURE_WIDTH = 1200; // ≈ 7.7in de ancho útil (carta - márgenes) a 96dpi
+        const originalWidth = invoiceElement.style.width;
+        const originalMaxWidth = invoiceElement.style.maxWidth;
+        invoiceElement.style.width = CAPTURE_WIDTH + 'px';
+        invoiceElement.style.maxWidth = CAPTURE_WIDTH + 'px';
+
+        try {
+            if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+                throw new Error('Las librerías para generar el PDF no se cargaron. Verifique su conexión a internet.');
+            }
+
+            const canvas = await html2canvas(invoiceElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                windowWidth: CAPTURE_WIDTH
+            });
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'in',
+                format: 'letter' // 8.5" x 11"
+            });
+
+            const pageWidth = 8.5;
+            const pageHeight = 11;
+            const margin = 0.4;
+            const usableWidth = pageWidth - margin * 2;
+            const usableHeight = pageHeight - margin * 2;
+
+            // Píxeles del canvas equivalentes a una pulgada, según el ancho usable
+            const pxPerInch = canvas.width / usableWidth;
+            const pxPerPage = Math.floor(usableHeight * pxPerInch);
+
+            let renderedHeight = 0;
+            let firstPage = true;
+
+            while (renderedHeight < canvas.height) {
+                const sliceHeight = Math.min(pxPerPage, canvas.height - renderedHeight);
+
+                const pageCanvas = document.createElement('canvas');
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = sliceHeight;
+
+                const ctx = pageCanvas.getContext('2d');
+                ctx.drawImage(
+                    canvas,
+                    0, renderedHeight, canvas.width, sliceHeight,
+                    0, 0, canvas.width, sliceHeight
+                );
+
+                const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+                const pageImgHeight = sliceHeight / pxPerInch;
+
+                if (!firstPage) {
+                    pdf.addPage();
+                }
+                pdf.addImage(pageImgData, 'JPEG', margin, margin, usableWidth, pageImgHeight);
+
+                renderedHeight += sliceHeight;
+                firstPage = false;
+            }
+
+            const clientName = document.getElementById('client-name').value || 'cliente';
+            const date = document.getElementById('invoice-date').value || new Date().toISOString().split('T')[0];
+            const fileName = `Factura_${clientName.replace(/[^a-zA-Z0-9]/g, '_')}_${date}.pdf`;
+
+            pdf.save(fileName);
+            showNotification('Factura guardada como ' + fileName);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            alert('Ocurrió un error al generar el PDF: ' + error.message);
+        } finally {
+            invoiceElement.style.width = originalWidth;
+            invoiceElement.style.maxWidth = originalMaxWidth;
+            document.body.classList.remove('pdf-capture');
+            document.body.classList.remove('hide-prices');
+            document.body.classList.remove('hide-totals');
+            paymentLabels.forEach(label => label.classList.remove('no-print'));
+        }
     }
 
     // ============ FUNCIONES DE UTILIDAD ============
