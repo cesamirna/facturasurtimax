@@ -763,7 +763,7 @@
     }
     
     .print-only {
-        display: none;
+        display: block;
     }
 
     .brand-column {
@@ -1559,12 +1559,12 @@
             }
         });
         
-        // Cargar datos guardados
-        restoreClientData();
-        loadSavedProducts();
-        checkForSelectedProduct();
-        
-        // Cargar productos desde localStorage si existen
+        // Cargar productos desde localStorage si existen.
+        // IMPORTANTE: esto debe ejecutarse ANTES de loadSavedProducts()/checkForSelectedProduct(),
+        // ya que esas funciones dibujan la tabla de la factura y necesitan productList
+        // para resolver correctamente la MARCA de cada producto (si productList aún
+        // está vacío, la marca se calcula como la primera palabra de la descripción,
+        // que normalmente corresponde a la subcategoría y no a la marca real).
         const storedProductList = localStorage.getItem('productList');
         if (storedProductList) {
             try {
@@ -1578,6 +1578,11 @@
                 console.error('Error al cargar productos desde localStorage:', e);
             }
         }
+
+        // Cargar datos guardados
+        restoreClientData();
+        loadSavedProducts();
+        checkForSelectedProduct();
         
         // Escuchar cambios en localStorage desde otras pestañas (catálogo)
         window.addEventListener('storage', function(e) {
