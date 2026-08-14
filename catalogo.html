@@ -1468,48 +1468,24 @@
             "77726389", //PEGAMENTO BONDEX STANDARD CERAMICA 20KG
             "23817122", //TUBO PVC SDR13.5 C/C 1/2X20
             "19299399", //ADAPTADOR MACHO PVC 1/2 PRESION
-            
-            // "CODIGO_DE_BARRA_4", // Arenon Fino
         ];
 
         // ============================================================
         // SECCIÓN EXENTOS
-        // Agrega aquí los códigos de barra de los productos que están
-        // EXENTOS del 7% de ITBMS. A esos productos se les cobra
-        // exactamente su precio normal (sin sumarle el impuesto), tanto
-        // en la tarjeta del catálogo como al enviarlos a cotizar/factura.
-        // Cada código debe ser el mismo valor que tiene el producto en
-        // la columna "Code"/"CodBarra".
-        // Ejemplo (reemplaza por tus códigos reales):
-        //   "7501234567890", // Producto exento 1
-        //   "7509876543210", // Producto exento 2
+        // La exención de ITBMS ya NO se define con una lista fija de
+        // códigos de barra. Ahora se toma directamente del campo
+        // "Impuesto" del Excel (columna "Impuesto"/"impuesto"):
+        //   - Impuesto = 7  -> el producto SÍ incluye el 7% de ITBMS.
+        //   - Impuesto = 0  -> el producto está EXENTO de ITBMS, se
+        //                      cobra su precio normal tal cual.
+        // Si el Excel no trae esa columna para algún producto, se asume
+        // por defecto que SÍ paga el 7% (Impuesto = 7).
+        // Ver función isProductExempt(product) más abajo.
         // ============================================================
-        const EXEMPT_CODES = [
-            "38481347", //BLOQUE 4
-            "37489314", //BLOQUE 6
-            "37487414", //ARENON FINO
-            "59995267", //ARENON FINO SACO
-            "43358384", //ARENA FINA
-            "53463299", //ARENA FINA SACO
-            "23131242", //ACARREO
-
-            "88274814", //HERBICIDA BANDANA 1L
-            "71166555", //HERBICIDA BANDANA 3.5L
-            "6000022", //HERBICIDA GLIFOSATO 1L
-            "86233284", //HERBICIDA GLIFOSATO 3.5L
-            "6000721", //HERBICIDA GLIFOSATO SOBRE 100G
-            "37698562", //HERBICIDA GLIFOSATO SOBRE 50G
-            "45839596", //HERBICIDA METSULFURON 10G
-            "62261593", //HERBICIDA PARAQUAT 1L
-            "32961118", //HERBICIDA PARAQUAT 3.5L
-
-            "6941639883142", // MACHETE 10" TOTAL
-            "6941639883166", // MACHETE 12" TOTAL
-            "6941639883241", // MACHETE 20" TOTAL
-            "6941639883104", // MACHETE 24" TOTAL
-            "6941639883302", // MACHETE 26" TOTAL
-            // "CODIGO_DE_BARRA_1", // Nombre del producto exento
-        ];
+        function isProductExempt(product) {
+            if (!product) return false;
+            return Number(product.Impuesto) === 0;
+        }
 
         // Valor especial usado en el <select> de categorías para representar
         // "Destacados". No corresponde a ningún valor real del campo Category
@@ -1921,6 +1897,17 @@
                     subcategory = extractSubcategoryFromName(description);
                 }
                 
+                // Campo "Impuesto" del Excel: 7 = incluye 7% de ITBMS, 0 = exento.
+                // Si el Excel no trae el dato para este producto, se asume 7
+                // (gravado) por defecto.
+                let impuestoRaw = product.Impuesto;
+                if (impuestoRaw === undefined || impuestoRaw === null || impuestoRaw === "") {
+                    impuestoRaw = product.impuesto;
+                }
+                if (impuestoRaw === undefined || impuestoRaw === null || impuestoRaw === "") {
+                    impuestoRaw = 7;
+                }
+
                 return {
                     Code: product.Code || product.CodBarra || "",
                     // Referencia del producto (igual que en index). No se muestra en pantalla,
@@ -1931,7 +1918,8 @@
                     Subcategory: subcategory,
                     Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                     Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
-                    Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0)
+                    Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0),
+                    Impuesto: parseFloat(impuestoRaw)
                 };
             });
 
@@ -2681,7 +2669,7 @@
             const refCode = (product.Code !== undefined && product.Code !== null)
                 ? product.Code.toString().trim()
                 : '';
-            const isExempt = EXEMPT_CODES.includes(refCode);
+            const isExempt = isProductExempt(product);
             // Si el producto está exento del 7% de ITBMS, se cobra su
             // precio normal tal cual (sin sumarle el impuesto).
             const priceWithTax = isExempt ? price : price * 1.07;
