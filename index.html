@@ -201,25 +201,26 @@
         align-items: center;
     }
     
-    .total-label {
+    /*.total-label {
         font-size: 14px;
         font-weight: bold;
         margin-right: -28px;
         min-width: 100px;
         text-align: right;
         color: var(--gray-700);
-    }
+    }*/
     
     .total-value {
+        font-size: 14px;
+        font-weight: 600;
         min-width: 100px;
         text-align: right;
-        font-weight: 600;
         color: var(--gray-800);
     }
     
     .grand-total {
         font-size: 16px;
-        font-weight: bold;
+        font-weight: 600;
         color: var(--danger-color);
         padding-top: 12px;
         margin-top: 12px;
@@ -1514,29 +1515,29 @@
     
     <div class="totals">
         <p class="no-print">
-            <span class="total-label" style="color: #1f8e96">GANANCIAS:</span>
-            <span class="total-value" style="color: #1f8e96; font-weight: bold;">$<span id="total-profit">0.00</span></span>
+            <span class="total-label" style="color: #1f8e96"></span>
+            <span class="total-value" style="color: #1f8e96">GANANCIAS: $<span id="total-profit">0.00</span></span>
         </p>
         
         <p>
-            <span class="total-label">SUB-TOTAL:</span>
-            <span class="total-value">$<span id="subtotal">0.00</span></span>
+            <!--span class="total-label"></span-->
+            <span class="total-value">SUB-TOTAL: $<span id="subtotal">0.00</span></span>
         </p>
         <p id="tax-row">
-            <span id="tax-label" class="total-label">I.T.B.M.S. (7%):</span>
-            <span id="tax-value" class="total-value">$<span id="tax">0.00</span></span>
+            <span id="tax-label"></span>
+            <span id="tax-value" class="total-value">I.T.B.M.S. (7%): $<span id="tax">0.00</span></span>
             <span id="exempt-badge" class="no-print" style="display:none;">EXENTO</span>
             <button id="remove-exempt-btn" onclick="removeExemption()" class="action-btn delete-btn no-print" style="display:none; margin-left: 10px; padding: 6px 10px; font-size: 12px;">Quitar</button>
         </p>
         <p id="discount-row" class="hide-when-zero">
-            <span class="total-label">DESCUENTO:</span>
-            <span class="total-value">$<span id="discount">0.00</span></span>
+            <!--span class="total-label"></span-->
+            <span class="total-value">DESCUENTO: $<span id="discount">0.00</span></span>
             <button onclick="editAdjustment('discount')" class="action-btn edit-btn no-print" style="margin-left: 10px; padding: 6px 10px; font-size: 12px;">Editar</button>
             <button onclick="deleteAdjustment('discount')" class="action-btn delete-btn no-print" style="padding: 6px 10px; font-size: 12px;">Eliminar</button>
         </p>
         <p id="deposit-row" class="hide-when-zero">
-            <span class="total-label">ABONO:</span>
-            <span class="total-value">$<span id="deposit">0.00</span></span>
+            <!--span class="total-label"></span-->
+            <span class="total-value">ABONO: $<span id="deposit">0.00</span></span>
             <button onclick="editAdjustment('deposit')" class="action-btn edit-btn no-print" style="margin-left: 10px; padding: 6px 10px; font-size: 12px;">Editar</button>
             <button onclick="deleteAdjustment('deposit')" class="action-btn delete-btn no-print" style="padding: 6px 10px; font-size: 12px;">Eliminar</button>
         </p>
