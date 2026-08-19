@@ -934,9 +934,13 @@
             font-size: 15px;
             font-weight: 600;
             clear: both;
-            /* Icono al lado del título */
+            /* Icono al lado del título. Si hay muchas etiquetas de tamaño,
+               flex-wrap permite que bajen debajo del título en vez de
+               desbordar o apiñarse en una sola línea (igual que en el
+               modal de búsqueda de index.html). */
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
         }
 
@@ -1873,28 +1877,37 @@
             return parts.length ? parts[parts.length - 1].toUpperCase() : '';
         }
 
-        // Extraer subcategoría de la primera palabra del nombre del producto
-        function extractSubcategoryFromName(description) {
+        // Extraer subcategoría de la primera (o primeras) palabra(s) del nombre del producto
+        function extractSubcategoryFromName(description, category) {
             if (!description) return "General";
-            // Tomar la primera palabra del nombre como subcategoría
-            const words = description.trim().split(/\s+/);
-            if (words.length > 0 && words[0].length > 0) {
-                // Capitalizar primera letra y el resto en minúsculas
-                const firstWord = words[0];
-                return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+            const words = description.trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "General";
+
+            // Capitaliza cada palabra: primera letra mayúscula, resto minúsculas
+            const capitalize = (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+
+            // Para la categoría "TORNILLOS Y FIJACIONES" se usan las dos primeras
+            // palabras del nombre del producto como subcategoría, excepto
+            // para los "CLAVOS", que no necesitan esa subdivisión
+            const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
+            const isClavos = words[0].toUpperCase().startsWith("CLAVO");
+            if (isTornillosYFijaciones && !isClavos && words.length > 1) {
+                return `${capitalize(words[0])} ${capitalize(words[1])}`;
             }
-            return "General";
+
+            return capitalize(words[0]);
         }
 
         // Procesar productos
         function processProducts(products) {
             productList = products.map((product) => {
                 const description = product.Description || product.Nombre || product.nombre || product.Descripcion || "";
+                const category = product.Category || product.Categoria || product.categoria || "Sin Categoría";
                 let subcategory = product.Subcategory || product.Subcategoria || product.subcategoria || "";
                 
-                // Si no hay subcategoría o es "General", usar la primera palabra del nombre
+                // Si no hay subcategoría o es "General", usar la(s) primera(s) palabra(s) del nombre
                 if (!subcategory || subcategory.trim() === "" || subcategory === "General") {
-                    subcategory = extractSubcategoryFromName(description);
+                    subcategory = extractSubcategoryFromName(description, category);
                 }
                 
                 // Campo "Impuesto" del Excel: 7 = incluye 7% de ITBMS, 0 = exento.
@@ -1914,7 +1927,7 @@
                     // solo se usa para poder buscarla en la barra de búsqueda.
                     Reference: (product.Reference || product.Referencia || product.referencia || product.Ref || product.ref || product.REF || "").toString(),
                     Description: description,
-                    Category: product.Category || product.Categoria || product.categoria || "Sin Categoría",
+                    Category: category,
                     Subcategory: subcategory,
                     Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                     Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
