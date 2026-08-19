@@ -1888,10 +1888,11 @@
 
             // Para la categoría "TORNILLOS Y FIJACIONES" se usan las dos primeras
             // palabras del nombre del producto como subcategoría, excepto
-            // para los "CLAVOS", que no necesitan esa subdivisión
+            // para "CLAVOS" y "TARUGOS", que no necesitan esa subdivisión
             const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
-            const isClavos = words[0].toUpperCase().startsWith("CLAVO");
-            if (isTornillosYFijaciones && !isClavos && words.length > 1) {
+            const firstWordUpper = words[0].toUpperCase();
+            const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("TARUGO");
+            if (isTornillosYFijaciones && !isSinSubdivision && words.length > 1) {
                 return `${capitalize(words[0])} ${capitalize(words[1])}`;
             }
 
