@@ -153,6 +153,7 @@
     
     table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         margin-bottom: 20px;
         border-radius: 10px;
@@ -326,6 +327,98 @@
     .add-btn:hover {
         background-color: var(--yellow-color);
         color: var(--gray-600);
+    }
+
+    .save-btn {
+        background-color: var(--primary-color);
+    }
+
+    .save-btn:hover {
+        background-color: var(--primary-dark);
+        color: white;
+        box-shadow: none;
+    }
+
+    .cancel-btn {
+        background-color: var(--gray-500);
+    }
+
+    .cancel-btn:hover {
+        background-color: var(--gray-400);
+        color: var(--gray-600);
+        box-shadow: none;
+    }
+
+    /* Edición en línea dentro de la tabla (mismo estilo que la barra de búsqueda) */
+    .inline-edit-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        background-color: var(--gray-100);
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .inline-edit-input:focus {
+        outline: none;
+        border-color: var(--gray-400);
+        box-shadow: none;
+        background-color: white;
+    }
+
+    .inline-edit-input::placeholder {
+        color: var(--gray-400);
+    }
+
+    /* Quita las flechas del spinner en el campo de Precio (en edición) para
+       ganar espacio y que el valor completo sea visible. */
+    input.inline-edit-input--no-spinner[type="number"]::-webkit-outer-spin-button,
+    input.inline-edit-input--no-spinner[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input.inline-edit-input--no-spinner[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    td.editing-cell {
+        min-width: 90px;
+        position: relative;
+    }
+
+    /* Campos angostos (Cantidad, Código, Precio): en modo edición "flotan"
+       sobre su celda con ancho propio, en vez de ensanchar la columna.
+       Así la columna no cambia de tamaño y ninguna otra fila/celda se
+       mueve; el campo simplemente se dibuja más ancho por encima. */
+    .inline-edit-input--float {
+        position: absolute;
+        top: 50%;
+        left: 4px;
+        transform: translateY(-50%);
+        width: auto;
+        z-index: 5;
+    }
+
+    /* Variante para el campo de Precio: al estar junto a la columna Total,
+       crece hacia la izquierda (sobre Marca/Descripción) en vez de hacia
+       la derecha, para no tapar el Total. */
+    .inline-edit-input--float-left {
+        left: auto;
+        right: 4px;
+    }
+
+    /* Variante para el campo de Código: se desplaza un poco más a la derecha
+       dentro de su celda para no chocar con el campo de Cantidad, que
+       flota justo a su izquierda. */
+    .inline-edit-input--float-offset {
+        left: 28px;
+    }
+
+    .new-product-row {
+        background-color: rgba(31, 142, 150, 0.05);
     }
 
     .print-btn {
@@ -556,7 +649,7 @@
     
     #product-search {
         width: 100%;
-        padding: 12px 20px 12px 54px;
+        padding: 12px 54px 12px 54px;
         border: 2px solid var(--gray-200);
         border-radius: 8px;
         font-size: 16px;
@@ -589,6 +682,32 @@
         color: var(--gray-900);
     }
     
+    .search-count-badge {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        flex-shrink: 0;
+        background-color: var(--gray-200);
+        color: var(--gray-700);
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s, color 0.2s;
+        pointer-events: none;
+    }
+    
+    .search-container:focus-within .search-count-badge {
+        background-color: var(--gray-300);
+        color: var(--gray-900);
+    }
+    
     .search-results {
         position: absolute;
         left: 0;
@@ -597,6 +716,7 @@
         margin-top: 5px;
         max-height: 350px;
         overflow-y: auto;
+        overflow-anchor: none;
         border: 2px solid var(--gray-400);
         border-radius: 12px;
         background-color: white;
@@ -610,7 +730,7 @@
     }
     
     .search-result-item {
-        padding: 14px 18px;
+        padding: 6px 18px;
         cursor: pointer;
         border-bottom: 1px solid var(--gray-200);
         display: flex;
@@ -633,17 +753,41 @@
     
     .product-info {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+    }
+    
+    .product-category {
+        font-size: 11px;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0;
+        line-height: 1.3;
+    }
+    
+    .product-brand {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-top: 0;
+        line-height: 1.3;
     }
     
     .product-name {
         font-weight: 600;
         color: var(--gray-800);
-        margin-bottom: 4px;
+        overflow-wrap: break-word;
+        line-height: 1.3;
     }
     
-    .product-details {
+    .product-code {
         font-size: 12px;
         color: var(--gray-500);
+        margin-top: 0;
+        line-height: 1.3;
     }
     
     .product-price-tag {
@@ -683,14 +827,6 @@
         font-size: 18px;
         color: var(--primary-color);
         font-weight: bold;
-    }
-    
-    .results-count {
-        padding: 10px 18px;
-        background-color: var(--gray-100);
-        font-size: 13px;
-        color: var(--gray-600);
-        border-bottom: 1px solid var(--gray-200);
     }
     
     .no-results {
@@ -738,7 +874,7 @@
     }
     
     #product-quantity { width: 80px; }
-    #product-code { width: 100px; }
+    #product-code { width: 150px; }
     #product-description { width: 500px; }
     #product-price { width: 110px; }
     
@@ -950,29 +1086,94 @@
         align-items: center;
         padding: 20px 24px;
         border-bottom: 1px solid var(--gray-200);
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: white;
         border-radius: 16px 16px 0 0;
     }
     
     .search-modal-header h2 {
         margin: 0;
         font-size: 16px;
-        color: white;
+        color: var(--gray-800);
         display: flex;
         align-items: center;
         gap: 10px;
     }
     
     .search-modal-header .search-term {
-        background-color: rgba(255,255,255,0.2);
+        background-color: var(--gray-100);
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 14px;
         font-weight: normal;
     }
     
+    .modal-search-box {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: var(--gray-100);
+        border: 2px solid var(--gray-200);
+        border-radius: 10px;
+        padding: 7px 12px;
+        margin-right: 16px;
+        min-width: 0;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+    
+    .modal-search-box:focus-within {
+        background-color: white;
+        border-color: var(--gray-400);
+    }
+    
+    .modal-search-icon {
+        color: var(--gray-400);
+        opacity: 1;
+        flex-shrink: 0;
+        transition: color 0.2s;
+    }
+    
+    .modal-search-box:focus-within .modal-search-icon {
+        color: var(--gray-900);
+    }
+    
+    .modal-search-input {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--gray-800);
+        font-size: 14px;
+        font-family: inherit;
+    }
+    
+    .modal-search-input::placeholder {
+        color: var(--gray-400);
+    }
+    
+    .modal-search-clear {
+        background: var(--gray-200);
+        border: none;
+        color: var(--gray-800);
+        opacity: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+    }
+    
+    .modal-search-clear:hover {
+        color: white;
+        background-color: var(--gray-400);
+    }
+    
     .search-modal-close {
-        background: rgba(255,255,255,0.2);
+        background: var(--gray-300);
         border: none;
         color: white;
         width: 36px;
@@ -986,29 +1187,35 @@
     }
     
     .search-modal-close:hover {
-        background: rgba(255,255,255,0.3);
+        background: var(--accent-color);
         transform: scale(1.1);
     }
     
-    .search-modal-info {
-        padding: 12px 24px;
-        background-color: var(--gray-100);
-        border-bottom: 1px solid var(--gray-200);
-        font-size: 14px;
-        color: var(--gray-600);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .search-modal-info .hint {
+    .modal-search-count {
+        flex-shrink: 0;
+        background-color: var(--gray-200);
+        color: var(--gray-700);
         font-size: 12px;
-        color: var(--gray-500);
+        font-weight: 600;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .modal-search-box:focus-within .modal-search-count {
+        background-color: var(--gray-300);
+        color: var(--gray-900);
     }
     
     .search-modal-body {
         flex: 1;
         overflow-y: auto;
+        overflow-anchor: none;
         padding: 0;
     }
     
@@ -1019,7 +1226,7 @@
     }
     
     .modal-product-item {
-        padding: 16px 24px;
+        padding: 10px 24px;
         border-bottom: 1px solid var(--gray-200);
         cursor: pointer;
         display: flex;
@@ -1030,9 +1237,9 @@
     
     .modal-category-header {
         background-color: #ffffff;
-        color: var(--primary-color);
+        color: var(--gray-700);
         padding: 12px 24px;
-        border-left: 6px solid var(--primary-color);
+        border-left: 6px solid var(--gray-700);
         font-weight: 600;
         font-size: 14px;
         border-bottom: 1px solid var(--gray-200);
@@ -1047,7 +1254,7 @@
            sin caja de fondo */
         padding: 10px 24px;
         background-color: transparent;
-        color: var(--primary-color);
+        color: var(--gray-700);
         font-weight: 600;
         font-size: 14px;
         display: flex;
@@ -1085,7 +1292,7 @@
     }
 
     .modal-subcat-tag.active {
-        background: var(--primary-dark);
+        background: var(--gray-700);
         color: #ffffff;
     }
 
@@ -1099,12 +1306,12 @@
     }
     
     .modal-product-item:hover {
-        background-color: rgba(0, 184, 169, 0.08);
+        background-color: rgba(64, 64, 64, 0.08);
     }
     
     .modal-product-item.selected {
-        background-color: rgba(0, 184, 169, 0.15);
-        border-left: 4px solid var(--primary-color);
+        background-color: rgba(64, 64, 64, 0.15);
+        border-left: 4px solid var(--gray-700);
     }
     
     .modal-product-info {
@@ -1114,8 +1321,9 @@
     .modal-product-name {
         font-weight: 600;
         color: var(--gray-800);
-        margin-bottom: 6px;
+        margin-bottom: 4px;
         font-size: 15px;
+        line-height: 1.3;
     }
     
     .modal-product-details {
@@ -1137,7 +1345,8 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-top: 4px;
+        margin-top: 3px;
+        line-height: 1.3;
     }
 
     .modal-product-brand {
@@ -1162,8 +1371,8 @@
     }
     
     .modal-product-price .price-total {
-        font-size: 20px;
-        color: var(--primary-color);
+        font-size: 18px;
+        color: var(--primary-dark);
         font-weight: bold;
     }
     
@@ -1444,8 +1653,8 @@
             <svg class="search-icon" role="button" tabindex="0" aria-label="Mostrar todos los productos" title="Mostrar todos los productos" onclick="openSearchModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSearchModal();}" style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
+            <span id="search-count-badge" class="search-count-badge" style="display: none;">0</span>
             <div id="search-results" class="search-results">
-                <div id="results-count" class="results-count"></div>
                 <div id="results-list"></div>
             </div>
         </div>
@@ -1500,12 +1709,12 @@
                 <th style="width: 5%;">CANT.</th>
                 <th style="width: 10%;">CÓDIGO</th>
                 <th style="width: 45%;">DESCRIPCIÓN</th>
-                <th style="width: 18%;" class="brand-column">MARCA</th>
-                <th style="width: 5%;">PRECIO</th>
-                <th style="width: 5%;">TOTAL</th>
+                <th style="width: 15%;" class="brand-column">MARCA</th>
+                <th style="width: 8%;">PRECIO</th>
+                <th style="width: 8%;">TOTAL</th>
                 <th style="width: 8%;" class="no-print">GANANCIA</th>
                 <th style="width: 8%;" class="no-print">MARGEN</th>
-                <th style="width: 10%;" class="no-print">ACCIÓN</th>
+                <th style="width: 8%;" class="no-print">ACCIÓN</th>
             </tr>
         </thead>
         <tbody id="invoice-items">
@@ -1563,21 +1772,18 @@
 <div id="search-modal-overlay" class="search-modal-overlay">
     <div class="search-modal">
         <div class="search-modal-header">
-            <h2>
-               <!--<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="modal-search-box">
+                <svg class="modal-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>-->
-                Resultados de búsqueda: <span id="modal-search-term" class="search-term"></span>
-            </h2>
-            <button class="search-modal-close" onclick="closeSearchModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-            </button>
-        </div>
-        <div class="search-modal-info">
-            <span id="modal-results-count">0 productos encontrados</span>
-            <span class="hint">Haz clic en un producto para seleccionarlo</span>
+                <input type="text" id="modal-search-input" class="modal-search-input" placeholder="Buscar productos por nombre, código, marca o categoría..." autocomplete="off">
+                <span id="modal-search-count" class="modal-search-count">0</span>
+                <button type="button" id="modal-search-clear" class="modal-search-clear" onclick="clearModalSearch()" title="Limpiar búsqueda" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div class="search-modal-body">
             <ul id="modal-product-list" class="modal-product-list">
@@ -1590,6 +1796,11 @@
                 <span><kbd>Enter</kbd> Seleccionar</span>
                 <span><kbd>Esc</kbd> Cerrar</span>
             </div>
+            <button class="search-modal-close" onclick="closeSearchModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
     </div>
 </div>
@@ -1600,6 +1811,8 @@
 <script>
     // Variables globales
     let products = [];
+    let editingProductIndex = null;
+    let pendingNewProduct = null; // producto recién seleccionado, aún no confirmado en la tabla
     let productList = [];
     let isExempt = false;
     let selectedSearchIndex = -1;
@@ -1811,20 +2024,42 @@
         };
     }
 
+    // Ajusta la altura del cuadro de resultados para que muestre exactamente
+    // los primeros 4 productos completos; el resto queda accesible con scroll.
+    function adjustSearchResultsHeight() {
+        const searchResults = document.getElementById('search-results');
+        const resultsList = document.getElementById('results-list');
+        if (!searchResults || !resultsList) return;
+        const items = resultsList.querySelectorAll('.search-result-item');
+        if (items.length === 0) {
+            searchResults.style.maxHeight = '';
+            return;
+        }
+        const visibleCount = Math.min(4, items.length);
+        let height = 0;
+        for (let i = 0; i < visibleCount; i++) {
+            height += items[i].offsetHeight;
+        }
+        searchResults.style.maxHeight = height + 'px';
+    }
+
     function searchProducts(query) {
         const searchResults = document.getElementById('search-results');
         const resultsList = document.getElementById('results-list');
-        const resultsCount = document.getElementById('results-count');
+        const countBadge = document.getElementById('search-count-badge');
         
         if (!query || query.trim() === '') {
             searchResults.classList.remove('active');
+            if (countBadge) countBadge.style.display = 'none';
             return;
         }
         
         if (!productList || productList.length === 0) {
             searchResults.classList.add('active');
-            resultsCount.textContent = '';
+            if (countBadge) countBadge.style.display = 'none';
             resultsList.innerHTML = '<div class="no-results">No hay productos cargados. Por favor cargue una lista de productos desde Excel o JSON.</div>';
+            adjustSearchResultsHeight();
+            searchResults.scrollTop = 0;
             return;
         }
         
@@ -1841,23 +2076,41 @@
         filteredProducts.sort((a, b) => {
             const catCompare = (a.Category || '').localeCompare(b.Category || '', 'es', { sensitivity: 'base' });
             if (catCompare !== 0) return catCompare;
-            const subCompare = (a.Subcategory || '').localeCompare(b.Subcategory || '', 'es', { sensitivity: 'base' });
+            const subCompare = compareSubcategory(a.Subcategory || '', b.Subcategory || '');
             if (subCompare !== 0) return subCompare;
-            return (a.Price || 0) - (b.Price || 0);
+            const priceCompare = (a.Price || 0) - (b.Price || 0);
+            if (priceCompare !== 0) return priceCompare;
+
+            // A igual categoría, subcategoría (mismo nombre/calibre) y
+            // precio, en "Tornillos y Fijaciones" se ordena por tamaño
+            // (de menor a mayor), como se ven en un tiquete (igual que catálogo).
+            if (String(a.Category || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
+                const tagA = getLastWordTag(a.Description, a.Category);
+                const tagB = getLastWordTag(b.Description, b.Category);
+                return compareTagsForSort(tagA, tagB);
+            }
+
+            return 0;
         });
         
         searchResults.classList.add('active');
         selectedSearchIndex = -1;
         
         if (filteredProducts.length === 0) {
-            resultsCount.textContent = 'No se encontraron productos';
+            if (countBadge) countBadge.style.display = 'none';
             resultsList.innerHTML = '<div class="no-results">No se encontraron productos con ese criterio de búsqueda.</div>';
+            adjustSearchResultsHeight();
+            searchResults.scrollTop = 0;
             return;
         }
         
         // Limitar a 50 resultados
         const limitedProducts = filteredProducts.slice(0, 50);
-        resultsCount.textContent = `${filteredProducts.length} producto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}${filteredProducts.length > 50 ? ' (mostrando primeros 50)' : ''}`;
+        if (countBadge) {
+            countBadge.textContent = filteredProducts.length;
+            countBadge.title = filteredProducts.length > 50 ? 'Mostrando primeros 50' : '';
+            countBadge.style.display = 'flex';
+        }
         
         resultsList.innerHTML = limitedProducts.map((product, index) => {
             const price = parseFloat(product.Price) || 0;
@@ -1871,10 +2124,10 @@
             return `
                 <div class="search-result-item" data-index="${originalIndex}" onclick="selectProduct(${originalIndex})">
                     <div class="product-info">
+                        <div class="product-category">${category}</div>
+                        <div class="product-brand">${productBrand}</div>
                         <div class="product-name">${product.Description || 'Sin descripción'}</div>
-                        <div class="product-details">
-                            <strong>Marca:</strong> ${productBrand} | <strong>Categoría:</strong> ${category} | <strong>Código:</strong> ${code}
-                        </div>
+                        <div class="product-code">Código: ${code}</div>
                     </div>
                     <div class="product-price-tag">
                         ${exempt ? `
@@ -1883,13 +2136,24 @@
                         ` : `
                         <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
-                        <div class="price-base">con ITBMS</div>
+                        <div class="price-base">con ITBMS (7%)</div>
                         `}
                     </div>
                     ${getProductImageHtml(product.Code, 'product-thumb')}
                 </div>
             `;
         }).join('');
+        
+        // Siempre volver al inicio de la lista al hacer una nueva búsqueda.
+        // Se hace después de renderizar (y en el siguiente frame) para evitar
+        // que el "scroll anchoring" del navegador reubique el scroll al
+        // insertar contenido nuevo.
+        adjustSearchResultsHeight();
+        searchResults.scrollTop = 0;
+        requestAnimationFrame(() => {
+            adjustSearchResultsHeight();
+            searchResults.scrollTop = 0;
+        });
     }
     
     function handleSearchKeydown(e) {
@@ -1937,7 +2201,8 @@
         const product = productList[productIndex];
         if (!product) return;
         
-        // Llenar los campos del formulario
+        // Llenar los campos del formulario (el producto pasa primero por aquí,
+        // el usuario confirma con el formulario antes de que llegue a la tabla)
         document.getElementById('product-description').value = product.Description || '';
         document.getElementById('product-price').value = product.Price || 0;
         document.getElementById('product-code').value = product.Code || '';
@@ -1946,6 +2211,8 @@
         // Cerrar resultados y limpiar búsqueda
         document.getElementById('search-results').classList.remove('active');
         document.getElementById('product-search').value = '';
+        const countBadge1 = document.getElementById('search-count-badge');
+        if (countBadge1) countBadge1.style.display = 'none';
         
         // Enfocar el campo de cantidad
         document.getElementById('product-quantity').focus();
@@ -1955,6 +2222,115 @@
     }
 
     // ============ FUNCIONES DE PRODUCTOS ============
+    // Coloca un producto recién seleccionado como fila editable pendiente al
+    // final de la tabla. No se agrega a la factura hasta que el usuario
+    // presione "Guardar" o Enter.
+    function addProductToInvoice({ quantity, code, description, price }) {
+        // Si ya había un producto pendiente sin confirmar, se guarda primero
+        // para no perder esa selección.
+        commitPendingNewProduct(false);
+        
+        pendingNewProduct = {
+            quantity: parseFloat(quantity) || 1,
+            code: code || '',
+            description: description || '',
+            price: parseFloat(price) || 0
+        };
+        editingProductIndex = null;
+        
+        updateInvoiceTable();
+        updateTotals();
+        saveCurrentProducts();
+        
+        // Enfocar el campo de cantidad de la nueva fila pendiente
+        setTimeout(() => {
+            const qtyInput = document.getElementById('new-quantity');
+            if (qtyInput) {
+                qtyInput.focus();
+                qtyInput.select();
+            }
+        }, 0);
+    }
+    
+    // Confirma (agrega a products[]) el producto pendiente usando los valores
+    // actuales de sus campos en el DOM, si existen. showToast controla si se
+    // muestra la notificación de "producto agregado".
+    function commitPendingNewProduct(showToast) {
+        if (!pendingNewProduct) return;
+        
+        const quantityInput = document.getElementById('new-quantity');
+        const codeInput = document.getElementById('new-code');
+        const descriptionInput = document.getElementById('new-description');
+        const priceInput = document.getElementById('new-price');
+        
+        const quantity = quantityInput ? (parseFloat(quantityInput.value) || 0) : (parseFloat(pendingNewProduct.quantity) || 0);
+        const code = codeInput ? codeInput.value.trim() : (pendingNewProduct.code || '');
+        const description = descriptionInput ? descriptionInput.value.trim() : (pendingNewProduct.description || '');
+        const price = priceInput ? (parseFloat(priceInput.value) || 0) : (parseFloat(pendingNewProduct.price) || 0);
+        
+        if (quantity <= 0 || !description) {
+            // Datos insuficientes: se descarta la fila pendiente sin agregarla
+            pendingNewProduct = null;
+            return;
+        }
+        
+        const total = (quantity * price).toFixed(2);
+        const exempt = isCodeExempt(code);
+        const cost = findProductCost(code, description);
+        const margin = calculateMargin(price, cost);
+        const profit = calculateProductProfit(price, cost, quantity);
+        
+        products.push({ quantity, description, price, total, code, cost, margin, profit, exempt });
+        pendingNewProduct = null;
+        
+        if (showToast) {
+            showNotification('Producto agregado a la factura: ' + description);
+        }
+    }
+    
+    // Botón "Guardar" / Enter de la fila pendiente nueva
+    function saveNewProduct() {
+        if (!pendingNewProduct) return;
+        
+        const quantityInput = document.getElementById('new-quantity');
+        const descriptionInput = document.getElementById('new-description');
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const description = descriptionInput.value.trim();
+        
+        if (quantity <= 0) {
+            alert('La cantidad debe ser mayor a 0.');
+            quantityInput.focus();
+            return;
+        }
+        if (!description) {
+            alert('La descripción no puede estar vacía.');
+            descriptionInput.focus();
+            return;
+        }
+        
+        commitPendingNewProduct(true);
+        updateInvoiceTable();
+        updateTotals();
+        saveCurrentProducts();
+    }
+    
+    // Botón "Cancelar" de la fila pendiente nueva
+    function cancelNewProduct() {
+        pendingNewProduct = null;
+        updateInvoiceTable();
+    }
+    
+    // Enter guarda, Escape cancela, para los campos de la fila nueva pendiente
+    function handleNewProductKeydown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveNewProduct();
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            cancelNewProduct();
+        }
+    }
+    
     function addProduct(e) {
         e.preventDefault();
         const quantity = document.getElementById('product-quantity').value;
@@ -1982,22 +2358,114 @@
     
     function deleteProduct(index) {
         products.splice(index, 1);
+        if (editingProductIndex === index) {
+            editingProductIndex = null;
+        } else if (editingProductIndex !== null && editingProductIndex > index) {
+            editingProductIndex -= 1;
+        }
         updateInvoiceTable();
         updateTotals();
         saveCurrentProducts();
     }
     
+    // Activa el modo edición en línea para la fila indicada
     function editProduct(index) {
-        const product = products[index];
-        document.getElementById('product-quantity').value = product.quantity;
-        document.getElementById('product-description').value = product.description;
-        document.getElementById('product-price').value = product.price;
-        document.getElementById('product-code').value = product.code || '';
+        // Si hay una fila nueva pendiente sin confirmar, se guarda primero
+        commitPendingNewProduct(false);
         
-        products.splice(index, 1);
+        editingProductIndex = index;
+        updateInvoiceTable();
+        
+        // Enfocar el primer campo editable de la fila
+        setTimeout(() => {
+            const qtyInput = document.getElementById(`edit-quantity-${index}`);
+            if (qtyInput) {
+                qtyInput.focus();
+                qtyInput.select();
+            }
+        }, 0);
+    }
+    
+    // Cancela la edición en línea sin guardar cambios
+    function cancelEditProduct() {
+        editingProductIndex = null;
+        updateInvoiceTable();
+    }
+    
+    // Guarda los cambios hechos en la fila editable y vuelve a modo lectura
+    function saveEditProduct(index) {
+        const quantityInput = document.getElementById(`edit-quantity-${index}`);
+        const codeInput = document.getElementById(`edit-code-${index}`);
+        const descriptionInput = document.getElementById(`edit-description-${index}`);
+        const priceInput = document.getElementById(`edit-price-${index}`);
+        
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const code = codeInput.value.trim();
+        const description = descriptionInput.value.trim();
+        const price = parseFloat(priceInput.value) || 0;
+        
+        if (quantity <= 0) {
+            alert('La cantidad debe ser mayor a 0.');
+            quantityInput.focus();
+            return;
+        }
+        if (!description) {
+            alert('La descripción no puede estar vacía.');
+            descriptionInput.focus();
+            return;
+        }
+        
+        const total = (quantity * price).toFixed(2);
+        const exempt = isCodeExempt(code);
+        const cost = findProductCost(code, description);
+        const margin = calculateMargin(price, cost);
+        const profit = calculateProductProfit(price, cost, quantity);
+        
+        products[index] = { quantity, description, price, total, code, cost, margin, profit, exempt };
+        editingProductIndex = null;
+        
         updateInvoiceTable();
         updateTotals();
         saveCurrentProducts();
+        showNotification('Producto actualizado');
+    }
+    
+    // Enter guarda, Escape cancela, para los campos de una fila existente en edición
+    // Recalcula Total, Ganancia y Margen en vivo mientras se edita un producto,
+    // usando los valores actuales de los campos (sin necesidad de guardar).
+    function updateEditProductCalculations(index) {
+        const quantityInput = document.getElementById(`edit-quantity-${index}`);
+        const codeInput = document.getElementById(`edit-code-${index}`);
+        const descriptionInput = document.getElementById(`edit-description-${index}`);
+        const priceInput = document.getElementById(`edit-price-${index}`);
+        if (!quantityInput || !priceInput) return;
+        
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = parseFloat(priceInput.value) || 0;
+        const code = codeInput ? codeInput.value.trim() : '';
+        const description = descriptionInput ? descriptionInput.value.trim() : '';
+        
+        const total = (quantity * price).toFixed(2);
+        const cost = findProductCost(code, description);
+        const margin = calculateMargin(price, cost);
+        const profit = calculateProductProfit(price, cost, quantity);
+        
+        const totalCell = document.getElementById(`edit-total-${index}`);
+        const profitCell = document.getElementById(`edit-profit-${index}`);
+        const marginCell = document.getElementById(`edit-margin-${index}`);
+        if (totalCell) totalCell.textContent = `$${total}`;
+        if (profitCell) profitCell.textContent = `$${profit.toFixed(2)}`;
+        if (marginCell) marginCell.textContent = `${margin.toFixed(1)}%`;
+    }
+    
+    function handleEditProductKeydown(event, index) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveEditProduct(index);
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            cancelEditProduct();
+        }
     }
     
     function updateInvoiceTable() {
@@ -2016,22 +2484,70 @@
                 profit = calculateProductProfit(parseFloat(product.price), cost, parseFloat(product.quantity));
             }
             
-            row.innerHTML = `
-                <td>${product.quantity}</td>
-                <td>${product.code || ''}</td>
-                <td>${product.description}</td>
-                <td class="brand-column">${findProductBrandForItem(product.code, product.description)}</td>
-                <td>$${parseFloat(product.price).toFixed(2)}</td>
-                <td>$${product.total}</td>
+            if (editingProductIndex === index) {
+                // Fila en modo edición: campos editables directamente en la tabla
+                row.innerHTML = `
+                    <td class="editing-cell"><input type="number" id="edit-quantity-${index}" class="inline-edit-input inline-edit-input--float inline-edit-input--no-spinner" style="width: 60px;" value="${product.quantity}" min="0.01" step="0.01" oninput="updateEditProductCalculations(${index})" onkeydown="handleEditProductKeydown(event, ${index})"></td>
+                    <td class="editing-cell"><input type="text" id="edit-code-${index}" class="inline-edit-input inline-edit-input--float inline-edit-input--float-offset" style="width: 95px;" value="${escapeHtml(product.code || '')}" placeholder="Código" oninput="updateEditProductCalculations(${index})" onkeydown="handleEditProductKeydown(event, ${index})"></td>
+                    <td class="editing-cell"><input type="text" id="edit-description-${index}" class="inline-edit-input" value="${escapeHtml(product.description)}" placeholder="Descripción" oninput="updateEditProductCalculations(${index})" onkeydown="handleEditProductKeydown(event, ${index})"></td>
+                    <td class="brand-column">${findProductBrandForItem(product.code, product.description)}</td>
+                    <td class="editing-cell"><input type="number" id="edit-price-${index}" class="inline-edit-input inline-edit-input--no-spinner" style="width: 100%; text-align: left;" value="${product.price}" min="0" step="0.01" oninput="updateEditProductCalculations(${index})" onkeydown="handleEditProductKeydown(event, ${index})"></td>
+                    <td id="edit-total-${index}">$${product.total}</td>
+                    <td class="profit-column no-print" id="edit-profit-${index}">$${profit.toFixed(2)}</td>
+                    <td class="margin-column no-print" id="edit-margin-${index}">${margin.toFixed(1)}%</td>
+                    <td class="no-print">
+                        <button class="action-btn save-btn" onclick="saveEditProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Guardar</button>
+                        <button class="action-btn cancel-btn" onclick="cancelEditProduct()" style="padding: 6px 10px; font-size: 12px;">Cancelar</button>
+                    </td>
+                `;
+            } else {
+                row.innerHTML = `
+                    <td>${product.quantity}</td>
+                    <td>${product.code || ''}</td>
+                    <td>${product.description}</td>
+                    <td class="brand-column">${findProductBrandForItem(product.code, product.description)}</td>
+                    <td>$${parseFloat(product.price).toFixed(2)}</td>
+                    <td>$${product.total}</td>
+                    <td class="profit-column no-print">$${profit.toFixed(2)}</td>
+                    <td class="margin-column no-print">${margin.toFixed(1)}%</td>
+                    <td class="no-print">
+                        <button class="action-btn edit-btn" onclick="editProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Editar</button>
+                        <button class="action-btn delete-btn" onclick="deleteProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Eliminar</button>
+                    </td>
+                `;
+            }
+            tableBody.appendChild(row);
+        });
+        
+        // Fila pendiente: producto recién seleccionado que aún no se ha confirmado
+        if (pendingNewProduct) {
+            const p = pendingNewProduct;
+            const qty = parseFloat(p.quantity) || 0;
+            const price = parseFloat(p.price) || 0;
+            const cost = findProductCost(p.code, p.description);
+            const margin = calculateMargin(price, cost);
+            const profit = calculateProductProfit(price, cost, qty);
+            const total = (qty * price).toFixed(2);
+            
+            const newRow = document.createElement('tr');
+            newRow.className = 'new-product-row';
+            newRow.innerHTML = `
+                <td class="editing-cell"><input type="number" id="new-quantity" class="inline-edit-input inline-edit-input--float" style="width: 75px;" value="${p.quantity}" min="0.01" step="0.01" onkeydown="handleNewProductKeydown(event)"></td>
+                <td class="editing-cell"><input type="text" id="new-code" class="inline-edit-input inline-edit-input--float" style="width: 130px;" value="${escapeHtml(p.code || '')}" placeholder="Código" onkeydown="handleNewProductKeydown(event)"></td>
+                <td class="editing-cell"><input type="text" id="new-description" class="inline-edit-input" value="${escapeHtml(p.description)}" placeholder="Descripción" onkeydown="handleNewProductKeydown(event)"></td>
+                <td class="brand-column">${findProductBrandForItem(p.code, p.description)}</td>
+                <td class="editing-cell"><input type="number" id="new-price" class="inline-edit-input inline-edit-input--float" style="width: 100px;" value="${p.price}" min="0" step="0.01" onkeydown="handleNewProductKeydown(event)"></td>
+                <td>$${total}</td>
                 <td class="profit-column no-print">$${profit.toFixed(2)}</td>
                 <td class="margin-column no-print">${margin.toFixed(1)}%</td>
                 <td class="no-print">
-                    <button class="action-btn edit-btn" onclick="editProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Editar</button>
-                    <button class="action-btn delete-btn" onclick="deleteProduct(${index})" style="padding: 6px 10px; font-size: 12px;">Eliminar</button>
+                    <button class="action-btn save-btn" onclick="saveNewProduct()" style="padding: 6px 10px; font-size: 12px;">Guardar</button>
+                    <button class="action-btn cancel-btn" onclick="cancelNewProduct()" style="padding: 6px 10px; font-size: 12px;">Cancelar</button>
                 </td>
             `;
-            tableBody.appendChild(row);
-        });
+            tableBody.appendChild(newRow);
+        }
+        
     }
 
     // Obtiene la marca de un producto agregado a la factura, buscándolo
@@ -2498,10 +3014,17 @@
 
         // Para la categoría "TORNILLOS Y FIJACIONES" se usan las dos primeras
         // palabras del nombre del producto como subcategoría, excepto
-        // para "CLAVOS" "GANCHO" "TARUGOS", que no necesitan esa subdivisión
+        // para "CLAVOS" "GANCHO" "TARUGOS", que no necesitan esa subdivisión,
+        // y para "TUERCA HEX" y "TOR HEX", que usan las tres primeras palabras
         const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
         const firstWordUpper = words[0].toUpperCase();
+        const secondWordUpper = (words[1] || "").toUpperCase();
         const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO");
+        const isTuercaHex = firstWordUpper.startsWith("TUERCA") && secondWordUpper.startsWith("HEX");
+        const isTorHex = firstWordUpper.startsWith("TOR") && secondWordUpper.startsWith("HEX");
+        if (isTornillosYFijaciones && (isTuercaHex || isTorHex)) {
+            return words.slice(0, 3).map(capitalize).join(" ");
+        }
         if (isTornillosYFijaciones && !isSinSubdivision && words.length > 1) {
             return `${capitalize(words[0])} ${capitalize(words[1])}`;
         }
@@ -2519,11 +3042,60 @@
             .replace(/>/g, '&gt;');
     }
 
-    // Última palabra del nombre del producto, usada como "tíquet" junto a la subcategoría (igual que en catálogo)
-    function getLastWordTag(description) {
+    // Quita acentos y normaliza a mayúsculas, para poder comparar nombres
+    // de categoría sin importar tildes ("PLOMERÍA" === "PLOMERIA").
+    function normalizeCategoryName(category) {
+        return String(category || '')
+            .trim()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase();
+    }
+
+    // Obtiene la etiqueta del producto. En TORNILLOS Y FIJACIONES y en
+    // PLOMERÍA, cuando el nombre termina en una palabra descriptiva (por
+    // ejemplo "INOX"), la medida válida es el valor numérico inmediatamente
+    // anterior: "TOR HEX G2 NC 1/4-20X1 INOX" -> "1/4-20X1" (igual que en
+    // catálogo). Si al recorrer hacia atrás no se encuentra ningún valor
+    // numérico, se usa la última palabra tal cual (comportamiento por defecto).
+    function getLastWordTag(description, category = '') {
         if (!description) return '';
         const parts = String(description).trim().split(/\s+/).filter(Boolean);
-        return parts.length ? parts[parts.length - 1].toUpperCase() : '';
+        if (!parts.length) return '';
+
+        const normalizedCategory = normalizeCategoryName(category);
+        const isTornillosYFijaciones = normalizedCategory === 'TORNILLOS Y FIJACIONES';
+        const isPlomeria = normalizedCategory === 'PLOMERIA';
+        if (!isTornillosYFijaciones && !isPlomeria) {
+            return parts[parts.length - 1].toUpperCase();
+        }
+
+        // Para "Tornillos y Fijaciones" y "Plomería" el verdadero valor de medida no
+        // siempre es la última palabra: puede haber una o varias
+        // palabras finales que no son parte de la medida, como:
+        //   - una palabra puramente descriptiva sin dígitos ni "/"
+        //     (ej. "INOX" en "... PHS 10X2 INOX")
+        //   - una anotación de empaque entre paréntesis (ej. "(2PZ)"
+        //     en "... PHS 10X1/2 (2PZ)")
+        // Se recorre desde el final saltando esas palabras hasta
+        // encontrar la que realmente contiene la medida.
+        const isDescriptiveWord = (word) => /[A-ZÁÉÍÓÚÑ]+$/i.test(word) && !/[0-9/]/.test(word);
+        const isPackagingAnnotation = (word) => /^\(.*\)$/.test(word);
+
+        let idx = parts.length - 1;
+        while (idx > 0 && (isDescriptiveWord(parts[idx]) || isPackagingAnnotation(parts[idx]))) {
+            idx--;
+        }
+
+        // Si tras recorrer todas las palabras no se encontró ninguna que
+        // parezca contener realmente una medida (con dígitos o "/"), es
+        // que no hay un valor válido que extraer: se deja la última
+        // palabra tal cual, igual que en el resto de categorías.
+        if (isDescriptiveWord(parts[idx]) || isPackagingAnnotation(parts[idx])) {
+            return parts[parts.length - 1].toUpperCase();
+        }
+
+        return parts[idx].toUpperCase();
     }
 
     // Comparador de subcategorías (igual que en catálogo): números antes que texto,
@@ -2569,6 +3141,50 @@
         }
 
         return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' });
+    }
+
+    // Convierte una fracción de pulgada (ej. "1/2", "2-1/2") a decimal,
+    // usada para comparar tamaños de tornillo numéricamente (igual que en catálogo).
+    function fractionToDecimal(frac) {
+        const str = String(frac).trim();
+        let match = str.match(/^(\d+)[\s-](\d+)\/(\d+)/);
+        if (match) {
+            const whole = parseFloat(match[1]);
+            const num = parseFloat(match[2]);
+            const den = parseFloat(match[3]);
+            return den !== 0 ? whole + (num / den) : whole;
+        }
+        match = str.match(/^(\d+)\/(\d+)/);
+        if (match) {
+            const num = parseFloat(match[1]);
+            const den = parseFloat(match[2]);
+            return den !== 0 ? num / den : 0;
+        }
+        return parseFloat(str) || 0;
+    }
+
+    // Convierte una etiqueta de medida (ej. "10X1/2", "1/4-20X1") en un
+    // arreglo de números en el orden en que aparecen, resolviendo
+    // fracciones, para poder comparar tamaños de tornillo de forma
+    // numérica en vez de alfabética (igual que en catálogo).
+    function parseTagForSort(tag) {
+        if (!tag) return [];
+        const tokens = String(tag).match(/\d+\/\d+|\d+(?:\.\d+)?/g) || [];
+        return tokens.map(t => t.includes('/') ? fractionToDecimal(t) : parseFloat(t));
+    }
+
+    // Compara dos etiquetas de medida componente por componente (calibre,
+    // luego largo, etc.), de menor a mayor tamaño (igual que en catálogo).
+    function compareTagsForSort(tagA, tagB) {
+        const a = parseTagForSort(tagA);
+        const b = parseTagForSort(tagB);
+        const len = Math.max(a.length, b.length);
+        for (let i = 0; i < len; i++) {
+            const av = a[i] !== undefined ? a[i] : 0;
+            const bv = b[i] !== undefined ? b[i] : 0;
+            if (av !== bv) return av - bv;
+        }
+        return 0;
     }
     
     function loadInvoiceFromFile(e) {
@@ -2944,24 +3560,109 @@
     let modalLastSubcategory = null;
     let modalShowAll = false;
 
+    let modalSearchListenersBound = false;
+
+    // Conjunto base sobre el que trabaja la barra de búsqueda del modal.
+    // Si el modal se abre con un término (ej. "ACEITE MOTOR"), este conjunto
+    // se fija a esos resultados, y cualquier búsqueda posterior dentro del
+    // modal (ej. "ND-40") solo filtra dentro de ese subconjunto, no de todo
+    // el catálogo. Si el modal se abre sin término (ver todos), el conjunto
+    // base es el catálogo completo.
+    let modalSearchPool = null;
+
+    // Filtra una lista de productos por un término, usando los mismos
+    // campos (descripción, código, referencia, categoría, marca, subcategoría).
+    function filterProductsByTerm(list, term) {
+        const t = (term || '').toLowerCase().trim();
+        if (!t) return list.slice();
+        return list.filter(product => {
+            const description = (product.Description || '').toLowerCase();
+            const code = (product.Code || '').toString().toLowerCase();
+            const reference = (product.Reference || '').toString().toLowerCase();
+            const category = (product.Category || '').toLowerCase();
+            const productBrand = getProductBrand(product).toLowerCase();
+            const subcategory = (product.Subcategory || '').toLowerCase();
+
+            return description.includes(t) ||
+                   code.includes(t) ||
+                   reference.includes(t) ||
+                   category.includes(t) ||
+                   productBrand.includes(t) ||
+                   subcategory.includes(t);
+        });
+    }
+
     function openSearchModal(searchTerm) {
         const modal = document.getElementById('search-modal-overlay');
-        const searchTermDisplay = document.getElementById('modal-search-term');
-        const resultsCountDisplay = document.getElementById('modal-results-count');
+        const modalSearchInput = document.getElementById('modal-search-input');
+        
+        // Cerrar el dropdown de búsqueda principal
+        document.getElementById('search-results').classList.remove('active');
+        
+        const initialTerm = (searchTerm || '').trim();
+        
+        // No precargamos la barra del modal con el término buscado; queda vacía.
+        modalSearchInput.value = '';
+        updateModalClearButton();
+        
+        // Fijar el conjunto base: si vengo de una búsqueda, el modal solo
+        // trabajará sobre esos resultados; si no, sobre todo el catálogo.
+        modalSearchPool = initialTerm ? filterProductsByTerm(productList || [], initialTerm) : (productList || []);
+        
+        // Ejecutar el renderizado inicial (ya filtrado al fijar el pool, por eso se pasa vacío)
+        filterAndRenderModalProducts('');
+        
+        // Mostrar modal
+        modal.classList.add('active');
+        
+        // Enfocar y seleccionar el texto de la barra de búsqueda del modal
+        setTimeout(() => {
+            modalSearchInput.focus();
+            modalSearchInput.select();
+        }, 50);
+        
+        // Agregar event listener para navegación con teclado (solo una vez)
+        document.addEventListener('keydown', handleModalKeydown);
+        
+        // Enlazar los listeners de la barra de búsqueda del modal (solo una vez)
+        if (!modalSearchListenersBound) {
+            modalSearchInput.addEventListener('input', debounce(function() {
+                updateModalClearButton();
+                filterAndRenderModalProducts(modalSearchInput.value);
+            }, 250));
+            modalSearchListenersBound = true;
+        }
+    }
+    
+    // Muestra u oculta el botón de "limpiar" según si hay texto en la barra
+    function updateModalClearButton() {
+        const modalSearchInput = document.getElementById('modal-search-input');
+        const clearBtn = document.getElementById('modal-search-clear');
+        if (!modalSearchInput || !clearBtn) return;
+        clearBtn.style.display = modalSearchInput.value ? 'flex' : 'none';
+    }
+    
+    // Limpia la barra de búsqueda del modal y vuelve a mostrar todos los productos
+    function clearModalSearch() {
+        const modalSearchInput = document.getElementById('modal-search-input');
+        modalSearchInput.value = '';
+        updateModalClearButton();
+        filterAndRenderModalProducts('');
+        modalSearchInput.focus();
+    }
+    
+    // Filtra, ordena y renderiza los productos del modal según el término dado.
+    // Se usa tanto al abrir el modal como al escribir en su barra de búsqueda.
+    function filterAndRenderModalProducts(searchTerm) {
+        const resultsCountDisplay = document.getElementById('modal-search-count');
         const productListContainer = document.getElementById('modal-product-list');
         
         // Determinar si estamos mostrando todos los productos (sin término de búsqueda)
         const showAll = !searchTerm || searchTerm.trim() === '';
         
-        // Cerrar el dropdown de búsqueda
-        document.getElementById('search-results').classList.remove('active');
-        
-        // Mostrar el término de búsqueda (o indicar que se muestran todos)
-        searchTermDisplay.textContent = showAll ? 'Todos los productos' : `"${searchTerm}"`;
-        
         // Filtrar productos
         if (!productList || productList.length === 0) {
-            resultsCountDisplay.textContent = 'No hay productos cargados';
+            resultsCountDisplay.textContent = '0';
             productListContainer.innerHTML = `
                 <div class="modal-no-results">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
@@ -2970,28 +3671,16 @@
                     <p>No hay productos cargados. Por favor cargue una lista de productos desde Excel o JSON.</p>
                 </div>
             `;
-            modal.classList.add('active');
             return;
         }
         
         const term = (searchTerm || '').toLowerCase().trim();
         
-        modalFilteredProducts = productList.filter(product => {
-            if (showAll) return true;
-            const description = (product.Description || '').toLowerCase();
-            const code = (product.Code || '').toString().toLowerCase();
-            const reference = (product.Reference || '').toString().toLowerCase();
-            const category = (product.Category || '').toLowerCase();
-            const productBrand = getProductBrand(product).toLowerCase();
-            const subcategory = (product.Subcategory || '').toLowerCase();
-            
-            return description.includes(term) || 
-                   code.includes(term) || 
-                   reference.includes(term) ||
-                   category.includes(term) ||
-                   productBrand.includes(term) ||
-                   subcategory.includes(term);
-        });
+        // La búsqueda dentro del modal solo filtra dentro del conjunto base
+        // (modalSearchPool), fijado al abrir el modal — no vuelve a buscar
+        // en todo el catálogo.
+        const pool = modalSearchPool || productList;
+        modalFilteredProducts = showAll ? pool.slice() : filterProductsByTerm(pool, term);
         
         // Ordenar por categoría, subcategoría (igual que en catálogo) y precio
         modalFilteredProducts.sort((a, b) => {
@@ -2999,11 +3688,25 @@
             if (catCompare !== 0) return catCompare;
             const subCompare = compareSubcategory(a.Subcategory || '', b.Subcategory || '');
             if (subCompare !== 0) return subCompare;
-            return (a.Price || 0) - (b.Price || 0);
+            const priceCompare = (a.Price || 0) - (b.Price || 0);
+            if (priceCompare !== 0) return priceCompare;
+
+            // A igual categoría, subcategoría (mismo nombre/calibre) y
+            // precio, en "Tornillos y Fijaciones" se ordena por tamaño
+            // (de menor a mayor), como se ven en un tiquete (igual que catálogo).
+            if (String(a.Category || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
+                const tagA = getLastWordTag(a.Description, a.Category);
+                const tagB = getLastWordTag(b.Description, b.Category);
+                return compareTagsForSort(tagA, tagB);
+            }
+
+            return 0;
         });
         
-        // Actualizar contador
-        resultsCountDisplay.textContent = `${modalFilteredProducts.length} producto${modalFilteredProducts.length !== 1 ? 's' : ''} encontrado${modalFilteredProducts.length !== 1 ? 's' : ''}`;
+        // Actualizar contador (badge en la barra de búsqueda)
+        resultsCountDisplay.textContent = modalFilteredProducts.length;
+        
+        const modalBody = document.querySelector('.search-modal-body');
         
         // Renderizar productos
         if (modalFilteredProducts.length === 0) {
@@ -3025,21 +3728,23 @@
             renderModalBatch();
 
             // Listener de scroll para cargar más productos al deslizar la barra
-            const modalBody = document.querySelector('.search-modal-body');
             if (modalBody) {
                 modalBody.removeEventListener('scroll', handleModalScroll);
                 modalBody.addEventListener('scroll', handleModalScroll);
             }
         }
         
+        // Siempre volver al inicio de la lista al hacer una nueva búsqueda.
+        // Se hace después de renderizar (y en el siguiente frame) para evitar
+        // que el "scroll anchoring" del navegador reubique el scroll al
+        // insertar contenido nuevo.
+        if (modalBody) {
+            modalBody.scrollTop = 0;
+            requestAnimationFrame(() => { modalBody.scrollTop = 0; });
+        }
+        
         // Resetear índice de selección
         modalSelectedIndex = -1;
-        
-        // Mostrar modal
-        modal.classList.add('active');
-        
-        // Agregar event listener para navegación con teclado
-        document.addEventListener('keydown', handleModalKeydown);
     }
 
     // Renderiza el siguiente lote de productos (MODAL_BATCH_SIZE)
@@ -3078,7 +3783,7 @@
                 const groupProducts = modalFilteredProducts.filter(p =>
                     (p.Category || 'Sin categoría') === category && (p.Subcategory || '') === subcategory);
                 const uniqueTags = [...new Set(
-                    groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                    groupProducts.map(p => getLastWordTag(p.Description, p.Category)).filter(Boolean)
                 )].sort(compareSubcategory);
                 const escapedGroupKey = escapeHtml(groupKey).replace(/'/g, '&#39;');
                 const tagsHtml = uniqueTags.length
@@ -3095,10 +3800,10 @@
             html += header + `
                 <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" data-group="${escapeHtml(groupKey)}" data-description="${escapeHtml(product.Description || '')}" onclick="selectProductFromModal(${originalIndex})">
                     <div class="modal-product-info">
-                        <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="modal-product-meta">
                             <span class="modal-product-brand">${escapeHtml(productBrand)}</span>
                         </div>
+                        <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="modal-product-meta">
                             <span class="modal-product-code">Código: ${escapeHtml(code)}</span>
                         </div>
@@ -3110,7 +3815,7 @@
                         ` : `
                         <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
-                        <div class="price-label">con ITBMS</div>
+                        <div class="price-label">con ITBMS (7%)</div>
                         `}
                     </div>
                     ${getProductImageHtml(product.Code, 'modal-product-thumb')}
@@ -3151,9 +3856,13 @@
 
         tagElement.classList.add('active');
 
+        // La categoría es la primera parte del groupKey ("categoría|||subcategoría"),
+        // se necesita para que getLastWordTag aplique la lógica de Tornillos y Fijaciones.
+        const category = groupKey.split('|||')[0] || '';
+
         items.forEach(item => {
             const description = item.getAttribute('data-description') || '';
-            const itemTag = getLastWordTag(description);
+            const itemTag = getLastWordTag(description, category);
             item.classList.toggle('hidden-by-tag', itemTag !== tagValue);
         });
     }
@@ -3196,6 +3905,9 @@
         
         // Limpiar búsqueda
         document.getElementById('product-search').value = '';
+        document.getElementById('search-results').classList.remove('active');
+        const countBadge2 = document.getElementById('search-count-badge');
+        if (countBadge2) countBadge2.style.display = 'none';
         
         // Enfocar el campo de cantidad
         document.getElementById('product-quantity').focus();
