@@ -65,11 +65,18 @@
     .header-right {
         text-align: left;
         margin-right: 20px;
-        padding-top: 80px;
+        padding-top: 4px;
+        font-size: 14px;
     }
 
     .header-right p {
         margin: 2px 0;
+    }
+
+    .header-right .invoice-number {
+        position: static;
+        display: inline-block;
+        margin: 0 0 8px 0;
     }
 
     .header-right input[type="date"] {
@@ -117,6 +124,7 @@
     
     .info-left, .info-right {
         width: 60%;
+        font-size: 14px;
     }
     
     .info-label {
@@ -478,8 +486,6 @@
 
     body.pdf-capture .invoice-number {
         background-color: rgb(247, 222, 4) !important;
-        top: 45px !important;
-        right: 50px !important;
         color: var(--gray-800) !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -487,6 +493,15 @@
 
     body.pdf-capture input,
     body.pdf-capture select {
+        border: none !important;
+        background: none !important;
+        padding: 0 !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        color: inherit !important;
+    }
+
+    body.pdf-capture .custom-date-trigger {
         border: none !important;
         background: none !important;
         padding: 0 !important;
@@ -581,15 +596,13 @@
         box-shadow: none;
     }
     .invoice-number {
-        position: absolute;
-        top: 40px;
-        right: 186px;
         padding: 6px 12px 6px 12px;
         background-color: var(--yellow-color);
         color: var(--gray-800);
         font-weight: bold;
         border-radius: 6px;
         font-size: 14px;
+        white-space: nowrap;
     }
     
     .payment-method {
@@ -923,6 +936,302 @@
     
     #adjustment-form select:hover {
         border-color: var(--gray-400);
+    }
+
+    /* ===== Dropdown personalizado y redondeado para "Agregar ajuste" =====
+       (misma técnica usada en catalogo.html: el <select> nativo se oculta
+       pero sigue funcionando para toda la lógica existente; encima se
+       dibuja un botón + panel propios que sí se pueden redondear, ya que
+       el navegador no permite redondear el desplegable nativo). */
+    #adjustment-form .custom-select {
+        position: relative;
+        min-width: 180px;
+    }
+
+    #adjustment-form .custom-select select {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+        pointer-events: none;
+    }
+
+    #adjustment-form .custom-select-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 16px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: inherit;
+        text-align: left;
+        background-color: white;
+        color: var(--gray-700);
+        cursor: pointer;
+        min-width: 180px;
+        transition: all 0.3s;
+    }
+
+    #adjustment-form .custom-select-trigger:hover {
+        border-color: var(--gray-400);
+    }
+
+    #adjustment-form .custom-select.open .custom-select-trigger {
+        border-color: var(--gray-400);
+    }
+
+    #adjustment-form .custom-select.disabled .custom-select-trigger {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    #adjustment-form .cs-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    #adjustment-form .cs-arrow {
+        display: flex;
+        color: #525252;
+        transition: transform 0.25s ease;
+        flex-shrink: 0;
+    }
+
+    #adjustment-form .custom-select.open .cs-arrow {
+        transform: rotate(180deg);
+    }
+
+    #adjustment-form .custom-select-panel {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        z-index: 1200;
+        background-color: white;
+        border-radius: 12px;
+        padding: 6px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        max-height: 240px;
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    #adjustment-form .custom-select.open .custom-select-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    #adjustment-form .custom-select-option {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    #adjustment-form .custom-select-option:hover {
+        background-color: var(--gray-100);
+    }
+
+    #adjustment-form .custom-select-option.selected {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+    }
+
+    /* ===== Calendario personalizado y redondeado para la fecha de la factura =====
+       El navegador no permite redondear su propio calendario nativo, así
+       que aquí se construye uno propio (igual que con el select de ajuste):
+       el <input type="date"> original queda oculto pero sigue funcionando
+       para toda la lógica existente (.value, guardado, PDF, etc.). */
+    .custom-date-picker {
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .custom-date-picker input[type="date"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+        pointer-events: none;
+    }
+
+    .custom-date-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--gray-300);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 14px;
+        font-family: inherit;
+        background-color: white;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .custom-date-trigger:hover {
+        border-color: var(--gray-400);
+    }
+
+    .custom-date-picker.open .custom-date-trigger {
+        border-color: var(--gray-400);
+    }
+
+    .cdp-calendar-icon {
+        display: flex;
+        color: var(--primary-color);
+        flex-shrink: 0;
+    }
+
+    .custom-date-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        z-index: 1300;
+        width: 260px;
+        background-color: white;
+        border-radius: 14px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        padding: 12px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    .custom-date-picker.open .custom-date-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .cdp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .cdp-month-year {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--gray-700);
+        text-transform: capitalize;
+    }
+
+    .cdp-nav {
+        display: flex;
+        gap: 4px;
+    }
+
+    .cdp-nav button {
+        border: none;
+        background-color: var(--gray-100);
+        border-radius: 6px;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--gray-700);
+    }
+
+    .cdp-nav button:hover {
+        background-color: var(--gray-200);
+    }
+
+    .cdp-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gray-500);
+        margin-bottom: 4px;
+    }
+
+    .cdp-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .cdp-day {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--gray-700);
+        cursor: pointer;
+    }
+
+    .cdp-day:hover {
+        background-color: var(--gray-100);
+    }
+
+    .cdp-day.other-month {
+        color: var(--gray-400);
+    }
+
+    .cdp-day.today {
+        border: 1px solid var(--primary-color);
+    }
+
+    .cdp-day.selected {
+        background-color: var(--secondary-color);
+        color: white;
+        font-weight: 600;
+    }
+
+    .cdp-footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .cdp-footer button {
+        border: none;
+        background: none;
+        color: var(--primary-color);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 4px;
+    }
+
+    .cdp-footer button:hover {
+        text-decoration: underline;
     }
     
     #adjustment-form .amount-wrapper {
@@ -1476,14 +1785,21 @@
         
         .invoice-number {
             background-color: rgb(247, 222, 4) !important;
-            top: 45px;
-            right: 50px;
             color:  var(--gray-800)!important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
         
         input, select {
+            border: none !important;
+            background: none !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            color: inherit !important;
+        }
+
+        .custom-date-trigger {
             border: none !important;
             background: none !important;
             padding: 0 !important;
@@ -1616,10 +1932,10 @@
             <p class="company-data">Materiales de construcción, pinturas y más.</p>
             <p class="company-data">Al lado del Restaurante Fortuna, Almirante, Vía Chiriquí Grande, Bocas del Toro.</p>
             <p class="company-data">Correo: vsurtimaxbocas1@gmail.com | Tel. 6804-3388 / 6874-8881</p>
-            <div class="invoice-number" id="order-number-display">Orden #<span id="order-number-text"></span>
-            </div>
         </div>
         <div class="header-right">
+            <div class="invoice-number" id="order-number-display">Orden #<span id="order-number-text"></span>
+            </div>
             <p class="date-row"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-label="Fecha" title="Fecha" style="vertical-align: -2px; margin-right: 5px;">
                 <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
                 </svg><input type="date" id="invoice-date"></p>
@@ -1856,6 +2172,12 @@
         // Inicializar visibilidad
         updateAdjustmentVisibility();
         updateEmailVisibility();
+
+        // Convertir el <select> de "Agregar ajuste" en un dropdown redondeado
+        enhanceAdjustmentSelect(document.getElementById('adjustment-type'));
+
+        // Convertir el campo de fecha en un calendario propio y redondeado
+        enhanceDatePicker(document.getElementById('invoice-date'));
         
         // Event listeners
         document.getElementById('order-number').addEventListener('input', function() {
@@ -2663,6 +2985,7 @@
         if (adjustmentType === 'exempt') {
             isExempt = true;
             document.getElementById('adjustment-type').value = '';
+            document.getElementById('adjustment-type').dispatchEvent(new Event('change'));
             handleAdjustmentTypeChange();
             updateTotals();
             saveClientData();
@@ -2686,12 +3009,264 @@
         }
         
         document.getElementById('adjustment-type').value = '';
+        document.getElementById('adjustment-type').dispatchEvent(new Event('change'));
         document.getElementById('adjustment-amount').value = '0.00';
         
         updateTotals();
         saveClientData();
     }
     
+    // Convierte el <select> nativo de "Agregar ajuste" en un dropdown
+    // redondeado (misma técnica que en catalogo.html). El <select>
+    // original queda oculto pero sigue funcionando, así toda la lógica
+    // existente (value, evento "change") sigue igual.
+    function enhanceAdjustmentSelect(select) {
+        if (!select || select.dataset.enhanced) return;
+        select.dataset.enhanced = 'true';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select';
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'custom-select-trigger';
+
+        const label = document.createElement('span');
+        label.className = 'cs-label';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'cs-arrow';
+        arrow.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>';
+
+        trigger.appendChild(label);
+        trigger.appendChild(arrow);
+        wrapper.appendChild(trigger);
+
+        const panel = document.createElement('div');
+        panel.className = 'custom-select-panel';
+        wrapper.appendChild(panel);
+
+        function updateLabel() {
+            const opt = select.options[select.selectedIndex];
+            label.textContent = opt ? opt.textContent : 'Seleccionar...';
+        }
+
+        function rebuild() {
+            panel.innerHTML = '';
+            Array.from(select.options).forEach((opt, i) => {
+                const item = document.createElement('div');
+                item.className = 'custom-select-option';
+                item.textContent = opt.textContent;
+                if (i === select.selectedIndex) item.classList.add('selected');
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateLabel();
+                    panel.querySelectorAll('.custom-select-option').forEach((c, j) =>
+                        c.classList.toggle('selected', j === select.selectedIndex)
+                    );
+                    wrapper.classList.remove('open');
+                });
+                panel.appendChild(item);
+            });
+            updateLabel();
+            wrapper.classList.toggle('disabled', select.disabled);
+        }
+
+        function closeSelect() {
+            wrapper.classList.remove('open');
+        }
+
+        trigger.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (select.disabled) return;
+            wrapper.classList.toggle('open');
+        });
+
+        document.addEventListener('pointerdown', (e) => {
+            if (!wrapper.contains(e.target)) closeSelect();
+        });
+
+        select.addEventListener('change', updateLabel);
+
+        rebuild();
+    }
+
+    // Convierte el <input type="date"> de la factura en un calendario propio
+    // y redondeado (el calendario nativo del navegador no se puede
+    // restilizar con CSS). El input original queda oculto pero sigue
+    // funcionando normalmente (.value en formato AAAA-MM-DD), por lo que
+    // el resto del código (guardado, PDF, carga desde Excel/JSON, etc.)
+    // no necesita cambios.
+    function enhanceDatePicker(input) {
+        if (!input || input.dataset.enhanced) return;
+        input.dataset.enhanced = 'true';
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-date-picker';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'custom-date-trigger';
+
+        const label = document.createElement('span');
+        label.className = 'cdp-label';
+
+        trigger.appendChild(label);
+        wrapper.appendChild(trigger);
+
+        const panel = document.createElement('div');
+        panel.className = 'custom-date-panel';
+        panel.innerHTML = `
+            <div class="cdp-header">
+                <span class="cdp-month-year"></span>
+                <div class="cdp-nav">
+                    <button type="button" class="cdp-prev" title="Mes anterior" aria-label="Mes anterior">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+                    </button>
+                    <button type="button" class="cdp-next" title="Mes siguiente" aria-label="Mes siguiente">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="cdp-weekdays">
+                <span>DO</span><span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span>
+            </div>
+            <div class="cdp-days"></div>
+            <div class="cdp-footer">
+                <button type="button" class="cdp-clear">Borrar</button>
+                <button type="button" class="cdp-today">Hoy</button>
+            </div>
+        `;
+        wrapper.appendChild(panel);
+
+        const monthYearEl = panel.querySelector('.cdp-month-year');
+        const daysEl = panel.querySelector('.cdp-days');
+
+        function parseISO(iso) {
+            if (!iso) return null;
+            const [y, m, d] = iso.split('-').map(Number);
+            if (!y || !m || !d) return null;
+            return new Date(y, m - 1, d);
+        }
+
+        function toISO(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function toDisplay(date) {
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            return `${d}/${m}/${date.getFullYear()}`;
+        }
+
+        let selectedDate = parseISO(input.value);
+        let viewedDate = selectedDate ? new Date(selectedDate) : new Date();
+
+        function updateLabel() {
+            selectedDate = parseISO(input.value);
+            label.textContent = selectedDate ? toDisplay(selectedDate) : 'Seleccionar fecha';
+        }
+
+        function renderCalendar() {
+            monthYearEl.textContent = viewedDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+
+            const year = viewedDate.getFullYear();
+            const month = viewedDate.getMonth();
+            const firstOfMonth = new Date(year, month, 1);
+            const startOffset = firstOfMonth.getDay();
+            const gridStart = new Date(year, month, 1 - startOffset);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            daysEl.innerHTML = '';
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(gridStart);
+                cellDate.setDate(gridStart.getDate() + i);
+
+                const cell = document.createElement('div');
+                cell.className = 'cdp-day';
+                cell.textContent = cellDate.getDate();
+
+                if (cellDate.getMonth() !== month) cell.classList.add('other-month');
+                if (cellDate.getTime() === today.getTime()) cell.classList.add('today');
+                if (selectedDate && cellDate.getTime() === new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime()) {
+                    cell.classList.add('selected');
+                }
+
+                cell.addEventListener('click', () => {
+                    selectedDate = cellDate;
+                    input.value = toISO(cellDate);
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    updateLabel();
+                    wrapper.classList.remove('open');
+                });
+
+                daysEl.appendChild(cell);
+            }
+        }
+
+        function openPanel() {
+            viewedDate = selectedDate ? new Date(selectedDate) : new Date();
+            renderCalendar();
+            wrapper.classList.add('open');
+        }
+
+        trigger.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            wrapper.classList.contains('open') ? wrapper.classList.remove('open') : openPanel();
+        });
+
+        panel.querySelector('.cdp-prev').addEventListener('click', (e) => {
+            e.stopPropagation();
+            viewedDate.setMonth(viewedDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        panel.querySelector('.cdp-next').addEventListener('click', (e) => {
+            e.stopPropagation();
+            viewedDate.setMonth(viewedDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        panel.querySelector('.cdp-clear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            input.value = '';
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            updateLabel();
+            wrapper.classList.remove('open');
+        });
+
+        panel.querySelector('.cdp-today').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const now = new Date();
+            selectedDate = now;
+            input.value = toISO(now);
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            updateLabel();
+            wrapper.classList.remove('open');
+        });
+
+        document.addEventListener('pointerdown', (e) => {
+            if (!wrapper.contains(e.target)) wrapper.classList.remove('open');
+        });
+
+        input.addEventListener('change', updateLabel);
+
+        updateLabel();
+    }
+
     // Muestra u oculta el campo de monto según el tipo de ajuste seleccionado
     // (Exento no requiere monto, ya que solo tacha el ITBMS)
     function handleAdjustmentTypeChange() {
@@ -3201,6 +3776,7 @@
                     
                     if (jsonData.date || jsonData.clientName) {
                         document.getElementById('invoice-date').value = jsonData.date || '';
+                        document.getElementById('invoice-date').dispatchEvent(new Event('change'));
                         document.getElementById('client-name').value = jsonData.clientName || '';
                         document.getElementById('client-address').value = jsonData.clientAddress || '';
                         document.getElementById('client-phone').value = jsonData.clientPhone || '';
@@ -3240,6 +3816,7 @@
                 const json = window.XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                 
                 document.getElementById('invoice-date').value = json[0][1] || '';
+                document.getElementById('invoice-date').dispatchEvent(new Event('change'));
                 document.getElementById('client-name').value = json[1][1] || '';
                 document.getElementById('client-address').value = json[2][1] || '';
                 document.getElementById('client-phone').value = json[3][1] || '';
@@ -3361,6 +3938,7 @@
             
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('invoice-date').value = today;
+            document.getElementById('invoice-date').dispatchEvent(new Event('change'));
             
             updateInvoiceTable();
             updateTotals();
