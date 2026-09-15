@@ -244,6 +244,28 @@
         margin-bottom: 5px;
         color: var(--gray-700);
     }
+
+    .signature-row {
+        font-size: 12px;
+        display: flex;
+        gap: 40px;
+        margin-top: 10px;
+        /*justify-content: flex-start;*/
+        justify-content: flex-start;
+    }
+
+    .signature-box {
+        flex: 0 0 auto;
+        text-align: left;
+        margin-left: 10px;
+        color: var(--gray-900);
+    }
+
+    .signature-line {
+        border-top: 1px solid var(--gray-400);
+        width: 350px;
+        margin: 0 auto 4px auto;
+    }
     
     #controls {
         position: fixed;
@@ -938,6 +960,47 @@
         border-color: var(--gray-400);
     }
 
+    /* ===== Listado desplegable para autocompletado de Dirección =====
+       Mismo estilo visual que el dropdown de "Agregar ajuste": panel
+       blanco, redondeado, con sombra, que aparece debajo del campo
+       cuando hay varios lugares que coinciden con lo escrito. */
+    .address-autocomplete-panel {
+        position: fixed;
+        z-index: 9999;
+        background-color: white;
+        border-radius: 12px;
+        padding: 6px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        max-height: 240px;
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    .address-autocomplete-panel.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .address-autocomplete-option {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--gray-700);
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .address-autocomplete-option:hover,
+    .address-autocomplete-option.active {
+        background-color: var(--gray-100);
+    }
+
     /* ===== Dropdown personalizado y redondeado para "Agregar ajuste" =====
        (misma técnica usada en catalogo.html: el <select> nativo se oculta
        pero sigue funcionando para toda la lógica existente; encima se
@@ -1049,9 +1112,9 @@
         background-color: var(--gray-100);
     }
 
-    #adjustment-form .custom-select-option.selected {
-        background-color: var(--primary-color);
-        color: white;
+    #adjustment-form .custom-select-option.selected { /* Color Ajuste */
+        background-color: var(--gray-100);
+        
         font-weight: 600;
     }
 
@@ -1952,7 +2015,7 @@
     <div class="info">
         <div class="info-left">
             <p><b>Cliente:</b> <input type="text" id="client-name"></p>
-            <p><b>Dirección:</b> <input type="text" id="client-address"></p>
+            <p><b>Dirección:</b> <input type="text" id="client-address" autocomplete="off"></p>
             <p id="client-email-row" class="hide-when-empty"><b>Correo:</b> <input type="email" id="client-email"></p>
         </div>
         <div class="info-right">
@@ -2072,7 +2135,16 @@
     </div>
     
     <div class="signature">
-        <p>Recibido por: _______________________________________</p>
+        <div class="signature-row">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                Firma Cliente
+            </div>
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                Firma Responsable
+            </div>
+        </div>
         <p class="print-only" style="margin-top: 20px; font-size: 12px; color: #999; text-align: center;">
             Gracias por su compra. Para cualquier consulta, contáctenos al 6804-3388 o 6874-8881.
         </p>
@@ -2134,10 +2206,452 @@
     let selectedSearchIndex = -1;
 
     // ============================================================
+    // Lugares agrupados por Distrito. Cada clave del objeto es el
+    // Distrito, y dentro de cada uno se escribe SOLO el resto de la
+    // dirección (Corregimiento, Lugar, Detalle) sin repetir el
+    // nombre del distrito en cada línea.
+    //
+    // Ejemplo: para agregar "Chiriquí Grande, Bajo Cedro, Río Auyama"
+    // solo hace falta escribir "Bajo Cedro, Río Auyama" dentro del
+    // arreglo de "Chiriquí Grande".
+    // ============================================================
+    const LUGARES_POR_DISTRITO = {
+        // ===== Distrito: Chiriquí Grande (6 corregimientos oficiales)=====
+        "Chiriquí Grande": [
+            "Chiriquí Grande (Centro)",
+            "Bajo Cedro",
+            "Bajo Cedro, Río Auyama",
+            "Bajo Cedro, Valle Saron",
+            "Miramar",
+            "Punta Peña",
+            "Punta Peña, Loma La Fe",
+            "Punta Robalo",
+            "Punta Robalo, Palma Real",
+            "Rambala",
+        ],
+
+        // ===== Distrito: Changuinola (19 corregimientos oficiales) =====
+        "Changuinola": [
+            "Changuinola (Centro)",
+            "Changuinola, El Cuadrante",
+            "Barriada 4 de Abril",
+            "Barranco Adentro",
+            "Cochigró",
+            "El Empalme",
+            "El Silencio",
+            "Finca 4",
+            "Finca 6",
+            "Finca 12",
+            "Finca 30",
+            "Finca 51",
+            "Finca 60",
+            "Finca 66",
+            "Finca 66, Finca 8",
+            "Guabito",
+            "Guabito, Puente Blanco",
+            "La Gloria",
+            "La Gloria, Vista Hermosa",
+            "La Gloria, Junquito",
+            "La Gloria, Quebrada Banano",
+            "La Gloria, Milla 5",
+            "La Gloria, Milla 7",
+            "La Mesa",
+            "Las Delicias",
+            "Las Tablas",
+        ],
+
+        // ===== Distrito: Almirante (10 corregimientos oficiales) =====
+        "Almirante": [
+            "Almirante (Centro)",
+            "Almirante, Barriada San Agustín",
+            "Almirante, Nuevo Paraiso",
+
+            "Bajo Culubre",
+            "Barriada Guaymí",
+            "Barriada Guaymí, Milla 3",
+
+            "Barrio Francés",
+
+            "Cauchero, Loma Azul",
+            "Cauchero, Loma Estrella",
+            "Cauchero, Quebrada Plátano",
+            "Cauchero, Quebrada Pinzón",
+            "Cauchero, Quebrada Pueblo",
+
+            "Ceiba",
+
+            "Miraflores",
+            "Miraflores, Alto Refugio",
+            "Miraflores, Ojo De Agua",
+            "Miraflores, Tibite",
+
+            "Nance de Riscó",
+            "Nance de Riscó, Charco La Pava",
+            "Nance de Riscó, Alto Gavilán",
+            "Nance de Riscó, Bajo la Esperanza",
+            "Nance de Riscó, Valle del Rey",
+            "Nance de Riscó, Barriada Santén",
+
+            "Valle de Agua Arriba",
+            "Valle de Agua Arriba, Río Oeste Arriba",
+            "Valle de Agua Arriba, Río Oeste Abajo",
+            "Valle de Agua Arriba, Valle Las Perlas",
+            "Valle de Agua Arriba, Quebrada Cacao",
+            "Valle de Agua Arriba, Quebrada Pitty",
+            "Valle de Agua Arriba, Quebrada Pastor",
+            "Valle de Agua Arriba, Valle De Agua Abajo",
+
+            "Valle de Riscó",
+            "Valle de Riscó, Nudobidi",
+            "Valle de Riscó, Oriente de Riscó",
+            "Valle de Riscó, Palo Seco",
+            "Valle de Riscó, Soledad de Riscó",
+            "Valle de Riscó, Punta Peña de Riscó",
+        ],
+
+        // ===== Distrito: Bocas del Toro (6 corregimientos oficiales)=====
+        "Bocas del Toro": [
+            "Bocas del Toro (Centro)",
+            "Bastimentos",
+            "Boca del Drago",
+            "Punta Laurel",
+            "Tierra Oscura",
+            "San Cristóbal",
+        ],
+
+        // ===== Comarca Naso Tjër Di (1 distrito, 3 corregimientos oficiales)
+        // ===== Distrito: Naso Tjër Di
+        "Naso Tjër Di": [
+            "Teribe, Santa Rosa",
+            "San San Drui", 
+            "Bonyik",
+        ],
+
+        // ===== Comarca Ngäbe-Buglé (9 distritos, 70 corregimientos oficiales) =====
+        // ===== Distrito: Besiko
+        //"Besiko": ["Soloy", "Boca de Balsa", "Cerro Banco", "Cerro de Patena", "Camarón Arriba", "Emplanada de Chorcha", "Namnoni", "Niba"],
+
+        // ===== Distrito: Jirondai
+        "Jirondai": [
+            //"Guariviara", "Samboa",
+            "Buri, Pueblo Nuevo",
+            "Mancreek, Guabal", 
+            "Tu Gwai, Norteño",
+            "Tu Gwai, Silico Creek",
+            "Tu Gwai, Dos Bocas",
+        ],
+
+        // ===== Distrito: Kankintú
+        "Kankintú": [
+            //"Bisira", "Guoroní", "Mununí", "Piedra Roja", "Tolote", "Calante",
+            "Kankintú (Centro)",
+        ],
+
+        // ===== Distrito: Kusapín
+        //"Kusapín": ["Kusapín", "Bahía Azul", "Río Chiriquí", "Tobobe", "Cañaveral"],
+
+        // ===== Distrito: Mironó
+        //"Mironó": ["Hato Pilón", "Cascabel", "Hato Corotú", "Hato Culantro", "Hato Jobo", "Hato Julí", "Quebrada de Loro", "Salto Dupi"],
+
+        //===== Distrito: Muná
+        "Muná": [
+            //"Chichica", "Alto Caballero", "Bagama", "Cerro Caña", "Cerro Puerco", "Krúa", "Maraca", "Nibra", "Peña Blanca", "Rokari", "Umaní", "Diko", "Kikari", "Mreeni", "Dikeri",
+            "Sitio Prado, Cañazas",
+        ],
+
+        //===== Distrito: Dole Duima
+        //"Nole Duima": ["Cerro Iglesias", "Lajero", "Hato Chamí", "Susamá", "Jadeberi"],
+
+        //===== Distrito: Ñurún
+        //"Ñurún": ["Buenos Aires", "Agua de Salud", "Alto de Jesús", "Cerro Pelado", "El Bale", "El Paredón", "El Piro", "Guayabito", "Guibale", "El Piro N.° 2", "El Peñón"],
+
+        //===== Distrito: Santa Catalina
+        //"Santa Catalina o Calovébora": ["Santa Catalina o Calovébora", "Valle Bonito (Dogata)", "Loma Yuca", "San Pedrito (Jikuí)", "Alto Bilingüe"],
+    };
+
+    // Aplana LUGARES_POR_DISTRITO en el mismo arreglo plano
+    // "Distrito, Corregimiento, Lugar, Detalle" que usa el resto del
+    // código (autocompletado, búsqueda, etc.), para no tener que
+    // tocar nada más.
+    const LUGARES = Object.entries(LUGARES_POR_DISTRITO).flatMap(
+        ([distrito, lugares]) => lugares.map(lugar => `${distrito}, ${lugar}`)
+    );
+
+    // ============================================================
+    // Convierte una dirección completa "Distrito, Corregimiento,
+    // Lugar, Detalle" en la versión corta que se guarda en el
+    // campo de Dirección, para aprovechar el espacio sin perder
+    // la referencia completa (esa sí se ve en el listado desplegable).
+    //
+    // Regla en cascada, según cuántos niveles tenga el registro:
+    // - Si tiene Lugar Y Detalle (4 partes): se toman los ÚLTIMOS 2.
+    //     "Almirante, Miraflores, Ojo de Agua, Campamento 1"
+    //     -> "Ojo de Agua, Campamento 1"
+    // - Si tiene Lugar pero NO Detalle (3 partes): se coloca solo el Lugar.
+    //     "Almirante, Miraflores, Ojo de Agua" -> "Ojo de Agua"
+    // - Si solo tiene Distrito + Corregimiento (2 partes): se coloca
+    //   solo el Corregimiento.
+    //     "Almirante, Miraflores" -> "Miraflores"
+    // - Si solo tiene Distrito (1 parte): se coloca el Distrito tal cual.
+    // ============================================================
+    function getShortAddress(fullAddress) {
+        const parts = fullAddress.split(',').map(p => p.trim()).filter(Boolean);
+        if (parts.length === 0) return fullAddress;
+        if (parts.length >= 4) {
+            return parts.slice(-2).join(', ');
+        }
+        return parts[parts.length - 1];
+    }
+
+    (function setupClientAddressAutocomplete() {
+        const addressInput = document.getElementById('client-address');
+        if (!addressInput) return;
+
+        // Quita tildes/acentos para que la búsqueda reconozca los
+        // lugares aunque el usuario escriba sin tilde (ej. "Peña" se
+        // encuentra escribiendo "pena", "Bilingue" encuentra "Bilingüe").
+        function normalizeText(str) {
+            return str
+                .toString()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // El panel se crea por JavaScript y se agrega al final del
+        // <body>, para que nunca quede oculto o recortado por ningún
+        // contenedor padre. Se posiciona con coordenadas reales de
+        // pantalla (position: fixed) justo debajo del campo.
+        const panel = document.createElement('div');
+        panel.className = 'address-autocomplete-panel';
+        panel.id = 'address-autocomplete-panel';
+        document.body.appendChild(panel);
+
+        let activeIndex = -1;
+        let currentMatches = [];
+
+        function positionPanel() {
+            const rect = addressInput.getBoundingClientRect();
+            panel.style.left = rect.left + 'px';
+            panel.style.top = (rect.bottom + 6) + 'px';
+            panel.style.width = rect.width + 'px';
+        }
+
+        function closePanel() {
+            panel.classList.remove('open');
+            panel.innerHTML = '';
+            activeIndex = -1;
+            currentMatches = [];
+        }
+
+        function setActive(index) {
+            const options = panel.querySelectorAll('.address-autocomplete-option');
+            options.forEach(o => o.classList.remove('active'));
+            if (index >= 0 && index < options.length) {
+                options[index].classList.add('active');
+                options[index].scrollIntoView({ block: 'nearest' });
+            }
+            activeIndex = index;
+        }
+
+        function renderPanel(matches) {
+            currentMatches = matches;
+            panel.innerHTML = '';
+            matches.forEach((lugar) => {
+                const opt = document.createElement('div');
+                opt.className = 'address-autocomplete-option';
+                opt.textContent = lugar;
+                opt.addEventListener('mousedown', function(e) {
+                    // mousedown (no click) para que dispare antes del blur
+                    e.preventDefault();
+                    // En el listado se ve la dirección completa (lugar),
+                    // pero en el campo se guarda la versión corta.
+                    addressInput.value = getShortAddress(lugar);
+                    closePanel();
+                    addressInput.focus();
+                });
+                panel.appendChild(opt);
+            });
+            positionPanel();
+            panel.classList.add('open');
+            // La primera opción queda activa de una vez, así Enter
+            // funciona de inmediato sin tener que usar las flechas.
+            setActive(0);
+        }
+
+        addressInput.addEventListener('input', function(e) {
+            const value = addressInput.value;
+
+            if (!value) {
+                closePanel();
+                return;
+            }
+
+            // Se ignoran los espacios al final (ej. cuando el usuario
+            // acaba de presionar la barra espaciadora para separar
+            // palabras) para que la búsqueda no se quede sin
+            // coincidencias justo en ese instante y cierre el panel.
+            const trimmedValue = value.trim();
+            if (!trimmedValue) {
+                closePanel();
+                return;
+            }
+            const hasTrailingSpace = /\s$/.test(value);
+
+            // Se normaliza (sin tildes) tanto lo escrito como cada
+            // lugar, para que "pena" encuentre "Peña", "bilingue"
+            // encuentre "Bilingüe", etc.
+            const valueLower = normalizeText(trimmedValue);
+
+            // Coincidencia exacta desde el inicio del nombre completo
+            // (ej. "Lo" -> "Loma Azul"). Esta es la única que se
+            // autorellena en línea, ya que el texto escrito sí es un
+            // prefijo real del resultado.
+            const startMatches = LUGARES.filter(lugar =>
+                normalizeText(lugar).startsWith(valueLower)
+            );
+
+            // Coincidencia por palabras: cada "token" de lo escrito
+            // (separado por espacios, comas, etc.) debe ser el inicio
+            // de alguna palabra del lugar. Esto permite seguir
+            // encontrando coincidencias aunque se escriba más de una
+            // palabra seguida (ej. "Finca 66, Finca 8" -> encuentra
+            // "Changuinola, Finca 66, Finca 8"), incluso después de
+            // que el campo ya muestre solo el corregimiento ("Finca 66")
+            // y se siga escribiendo el lugar a continuación.
+            const valueTokens = valueLower.split(/[^a-z0-9ñ]+/i).filter(Boolean);
+            const wordMatches = LUGARES.filter(lugar => {
+                const words = normalizeText(lugar).split(/[^a-z0-9ñ]+/i).filter(Boolean);
+                return valueTokens.length > 0 &&
+                    valueTokens.every(token => words.some(w => w.startsWith(token)));
+            });
+
+            // Unión de ambos tipos de coincidencia, sin duplicados,
+            // conservando el orden de LUGARES.
+            const matches = LUGARES.filter(lugar =>
+                startMatches.includes(lugar) || wordMatches.includes(lugar)
+            );
+
+            // Al borrar (backspace/delete) no se autorellena en línea,
+            // pero sí se sigue mostrando el listado si aplica.
+            const isDeleting = e.inputType && e.inputType.startsWith('delete');
+
+            if (matches.length === 0) {
+                closePanel();
+                return;
+            }
+
+            // Solo se autorellena en línea (sin mostrar listado) cuando
+            // hay una única coincidencia, sin importar si el texto
+            // escrito coincide con la primera palabra del nombre o con
+            // otra palabra dentro de él (ej. "Valiente" -> "Loma Valiente").
+            // Si el usuario acaba de escribir un espacio, no se autorellena
+            // en línea (se vería raro insertar texto en medio del espacio);
+            // en su lugar se muestra el listado para que pueda seguir
+            // escribiendo o elegir una opción.
+            if (matches.length === 1 && !hasTrailingSpace) {
+                const fullMatch = matches[0];
+                // Se autorellena con la versión corta (la que realmente
+                // queda guardada); la dirección completa solo se usa
+                // para buscar y para mostrarse en el listado.
+                const match = getShortAddress(fullMatch);
+                const matchLower = normalizeText(match);
+
+                if (!isDeleting && match.length >= value.length) {
+                    // Se muestra el listado (con la única coincidencia)
+                    // además de autorellenar en línea, para que quede
+                    // visible hasta que el usuario la seleccione con
+                    // clic/Enter, en vez de ocultarse de inmediato.
+                    renderPanel(matches);
+                    addressInput.value = match;
+
+                    if (matchLower.startsWith(valueLower)) {
+                        // El texto escrito es el inicio real del nombre:
+                        // se resalta la parte añadida automáticamente,
+                        // igual que el autocompletado del navegador.
+                        addressInput.setSelectionRange(value.length, match.length);
+                    } else {
+                        // La coincidencia fue por otra palabra del nombre
+                        // (ej. la última): se autorellena igual, pero el
+                        // cursor queda al final sin resaltar nada, ya que
+                        // lo escrito no es un prefijo literal del resultado.
+                        addressInput.setSelectionRange(match.length, match.length);
+                    }
+                    return;
+                }
+
+                // Lo escrito ya es más largo que la versión corta que se
+                // guardaría (ej. se escribió el corregimiento completo y
+                // se sigue escribiendo el lugar a continuación, como
+                // "Finca 66, Finca 8"). Aquí no hay nada que autorellenar
+                // en línea, pero se muestra igual esa única coincidencia
+                // en el listado para poder elegirla con clic o Enter, en
+                // vez de simplemente cerrar el listado.
+                renderPanel(matches);
+                return;
+            }
+
+            // Varias coincidencias (o una sola pero con espacio al final):
+            // mostrar listado desplegable.
+            renderPanel(matches);
+        });
+
+        addressInput.addEventListener('keydown', function(e) {
+            const isOpen = panel.classList.contains('open');
+
+            if (isOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                e.preventDefault();
+                const count = currentMatches.length;
+                if (count === 0) return;
+                let next = activeIndex + (e.key === 'ArrowDown' ? 1 : -1);
+                if (next < 0) next = count - 1;
+                if (next >= count) next = 0;
+                setActive(next);
+                return;
+            }
+
+            if (isOpen && e.key === 'Enter') {
+                if (activeIndex >= 0 && currentMatches[activeIndex]) {
+                    e.preventDefault();
+                    addressInput.value = getShortAddress(currentMatches[activeIndex]);
+                    closePanel();
+                }
+                return;
+            }
+
+            if (isOpen && e.key === 'Escape') {
+                closePanel();
+                return;
+            }
+
+            // Backspace/Delete sobre texto seleccionado (parte autocompletada
+            // en línea): dejar que el navegador la borre normalmente.
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                const hasSelection = addressInput.selectionStart !== addressInput.selectionEnd;
+                if (hasSelection) return;
+            }
+        });
+
+        addressInput.addEventListener('blur', function() {
+            // pequeño retraso para permitir el mousedown de una opción
+            setTimeout(closePanel, 100);
+        });
+
+        window.addEventListener('resize', function() {
+            if (panel.classList.contains('open')) positionPanel();
+        });
+        window.addEventListener('scroll', function() {
+            if (panel.classList.contains('open')) positionPanel();
+        }, true);
+    })();
+
+
+    // ============================================================
     // SECCIÓN EXENTOS (igual que en catálogo)
     // La exención de ITBMS ya NO se define con una lista fija de
     // códigos de barra. Ahora se toma directamente del campo
     // "Impuesto" del Excel (columna "Impuesto"/"impuesto"):
+
     //   - Impuesto = 7  -> el producto SÍ incluye el 7% de ITBMS.
     //   - Impuesto = 0  -> el producto está EXENTO de ITBMS, se
     //                      cobra su precio normal tal cual.
@@ -2255,20 +2769,15 @@
     
     // Extraer marca del nombre del producto (igual que en catálogo)
     function extractBrandFromName(description) {
-        if (!description) return "Sin Marca";
-        const words = description.trim().split(/\s+/);
-        if (words.length > 0) {
-            return words[0].toUpperCase();
-        }
-        return "Sin Marca";
+        return "GENERICA";
     }
 
     // Obtener marca del producto (igual que en catálogo)
     function getProductBrand(product) {
-        if (product.Brand && product.Brand !== "Sin Marca" && product.Brand.trim() !== "") {
+        if (product.Brand && product.Brand !== "Sin Marca" && product.Brand !== "GENERICA" && product.Brand.trim() !== "") {
             return product.Brand;
         }
-  return extractBrandFromName(product.Description);
+  return "GENERICA";
   }
 
   // Precalcula un índice de búsqueda en minúsculas para cada producto,
@@ -3106,6 +3615,13 @@
         if (!input || input.dataset.enhanced) return;
         input.dataset.enhanced = 'true';
 
+        // Si justo antes del input hay un icono de calendario (svg) suelto,
+        // lo guardamos para moverlo dentro de la caja, manteniendo su
+        // apariencia (color, tamaño) tal cual estaba.
+        const externalIcon = input.previousElementSibling && input.previousElementSibling.tagName.toLowerCase() === 'svg'
+            ? input.previousElementSibling
+            : null;
+
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-date-picker';
         input.parentNode.insertBefore(wrapper, input);
@@ -3114,6 +3630,14 @@
         const trigger = document.createElement('button');
         trigger.type = 'button';
         trigger.className = 'custom-date-trigger';
+
+        if (externalIcon) {
+            // El gap del contenedor ya separa el icono del texto, así que
+            // se quita el margen que tenía para no duplicar el espacio.
+            externalIcon.style.flexShrink = '0';
+            externalIcon.style.marginRight = '0';
+            trigger.appendChild(externalIcon);
+        }
 
         const label = document.createElement('span');
         label.className = 'cdp-label';
@@ -3566,7 +4090,7 @@
                 Description: description,
                 Category: category,
                 Subcategory: subcategory,
-                Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
+                Brand: product.Brand || product.Marca || product.marca || "GENERICA",
                 Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
                 Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0),
                 Impuesto: parseFloat(impuestoRaw)
