@@ -2216,28 +2216,66 @@
     // arreglo de "Chiriquí Grande".
     // ============================================================
     const LUGARES_POR_DISTRITO = {
-        // ===== Distrito: Chiriquí Grande (6 corregimientos oficiales)=====
-        "Chiriquí Grande": [
-            "Chiriquí Grande (Centro)",
-            "Bajo Cedro",
-            "Bajo Cedro, Río Auyama",
-            "Bajo Cedro, Valle Saron",
-            "Miramar",
-            "Punta Peña",
-            "Punta Peña, Loma La Fe",
-            "Punta Robalo",
-            "Punta Robalo, Palma Real",
-            "Rambala",
+        // ===== Distrito: Almirante (10 corregimientos oficiales) =====
+        "Almirante": [
+            "Almirante (Centro)",
+            "Almirante, Barriada San Agustín",
+            "Almirante, Nuevo Paraiso",
+            "Bajo Culubre",
+            "Barriada Guaymí",
+            "Barriada Guaymí, Milla 3",
+            "Barrio Francés",
+            "Cauchero, Loma Azul",
+            "Cauchero, Loma Estrella",
+            "Cauchero, Quebrada Pinzón",
+            "Cauchero, Quebrada Plátano",
+            "Cauchero, Quebrada Pueblo",
+            "Ceiba",
+            "Miraflores",
+            "Miraflores, Alto Refugio",
+            "Miraflores, Ojo De Agua",
+            "Miraflores, Tibite",
+            "Nance de Riscó",
+            "Nance de Riscó, Alto Gavilán",
+            "Nance de Riscó, Bajo la Esperanza",
+            "Nance de Riscó, Barriada Santén",
+            "Nance de Riscó, Charco La Pava",
+            "Nance de Riscó, Valle del Rey",
+            "Valle de Agua Arriba",
+            "Valle de Agua Arriba, Quebrada Cacao",
+            "Valle de Agua Arriba, Quebrada Pastor",
+            "Valle de Agua Arriba, Quebrada Pitty",
+            "Valle de Agua Arriba, Río Oeste Abajo",
+            "Valle de Agua Arriba, Río Oeste Arriba",
+            "Valle de Agua Arriba, Valle De Agua Abajo",
+            "Valle de Agua Arriba, Valle Las Perlas",
+            "Valle de Riscó",
+            "Valle de Riscó, Nudobidi",
+            "Valle de Riscó, Oriente de Riscó",
+            "Valle de Riscó, Palo Seco",
+            "Valle de Riscó, Punta Peña de Riscó",
+            "Valle de Riscó, Soledad de Riscó",
+        ],
+
+        // ===== Distrito: Bocas del Toro (6 corregimientos oficiales)=====
+        "Bocas del Toro": [
+            "Bastimentos",
+            "Boca del Drago",
+            "Bocas del Toro (Centro)",
+            "Punta Laurel",
+            "San Cristóbal",
+            "Tierra Oscura",
         ],
 
         // ===== Distrito: Changuinola (19 corregimientos oficiales) =====
         "Changuinola": [
+            "Barranco Adentro",
+            "Barriada 4 de Abril",
             "Changuinola (Centro)",
             "Changuinola, El Cuadrante",
-            "Barriada 4 de Abril",
-            "Barranco Adentro",
             "Cochigró",
             "El Empalme",
+            "El Empalme, Finca 15",
             "El Silencio",
             "Finca 4",
             "Finca 6",
@@ -2250,114 +2288,67 @@
             "Guabito",
             "Guabito, Puente Blanco",
             "La Gloria",
-            "La Gloria, Vista Hermosa",
             "La Gloria, Junquito",
-            "La Gloria, Quebrada Banano",
             "La Gloria, Milla 5",
             "La Gloria, Milla 7",
+            "La Gloria, Quebrada Banano",
+            "La Gloria, Vista Hermosa",
             "La Mesa",
             "Las Delicias",
             "Las Tablas",
         ],
 
-        // ===== Distrito: Almirante (10 corregimientos oficiales) =====
-        "Almirante": [
-            "Almirante (Centro)",
-            "Almirante, Barriada San Agustín",
-            "Almirante, Nuevo Paraiso",
-
-            "Bajo Culubre",
-            "Barriada Guaymí",
-            "Barriada Guaymí, Milla 3",
-
-            "Barrio Francés",
-
-            "Cauchero, Loma Azul",
-            "Cauchero, Loma Estrella",
-            "Cauchero, Quebrada Plátano",
-            "Cauchero, Quebrada Pinzón",
-            "Cauchero, Quebrada Pueblo",
-
-            "Ceiba",
-
-            "Miraflores",
-            "Miraflores, Alto Refugio",
-            "Miraflores, Ojo De Agua",
-            "Miraflores, Tibite",
-
-            "Nance de Riscó",
-            "Nance de Riscó, Charco La Pava",
-            "Nance de Riscó, Alto Gavilán",
-            "Nance de Riscó, Bajo la Esperanza",
-            "Nance de Riscó, Valle del Rey",
-            "Nance de Riscó, Barriada Santén",
-
-            "Valle de Agua Arriba",
-            "Valle de Agua Arriba, Río Oeste Arriba",
-            "Valle de Agua Arriba, Río Oeste Abajo",
-            "Valle de Agua Arriba, Valle Las Perlas",
-            "Valle de Agua Arriba, Quebrada Cacao",
-            "Valle de Agua Arriba, Quebrada Pitty",
-            "Valle de Agua Arriba, Quebrada Pastor",
-            "Valle de Agua Arriba, Valle De Agua Abajo",
-
-            "Valle de Riscó",
-            "Valle de Riscó, Nudobidi",
-            "Valle de Riscó, Oriente de Riscó",
-            "Valle de Riscó, Palo Seco",
-            "Valle de Riscó, Soledad de Riscó",
-            "Valle de Riscó, Punta Peña de Riscó",
+        // ===== Distrito: Chiriquí Grande (6 corregimientos oficiales)=====
+        "Chiriquí Grande": [
+            "Bajo Cedro",
+            "Bajo Cedro, Río Auyama",
+            "Bajo Cedro, Valle Saron",
+            "Chiriquí Grande (Centro)",
+            "Miramar",
+            "Punta Peña",
+            "Punta Peña, Loma La Fe",
+            "Punta Robalo",
+            "Punta Robalo, Palma Real",
+            "Rambala",
         ],
 
-        // ===== Distrito: Bocas del Toro (6 corregimientos oficiales)=====
-        "Bocas del Toro": [
-            "Bocas del Toro (Centro)",
-            "Bastimentos",
-            "Boca del Drago",
-            "Punta Laurel",
-            "Tierra Oscura",
-            "San Cristóbal",
+        // ===== Comarca Ngäbe-Buglé (9 distritos, 70 corregimientos oficiales) =====
+        // ===== Distrito: Jirondai
+        "Jirondai": [
+            "Buri, Pueblo Nuevo",
+            "Mancreek, Guabal",
+            "Tu Gwai, Dos Bocas",
+            "Tu Gwai, Norteño",
+            "Tu Gwai, Silico Creek",
+        ],
+
+        // ===== Distrito: Kankintú
+        "Kankintú": [
+            "Kankintú (Centro)",
+        ],
+
+        //===== Distrito: Muná
+        "Muná": [
+            "Sitio Prado, Cañazas",
         ],
 
         // ===== Comarca Naso Tjër Di (1 distrito, 3 corregimientos oficiales)
         // ===== Distrito: Naso Tjër Di
         "Naso Tjër Di": [
-            "Teribe, Santa Rosa",
-            "San San Drui", 
             "Bonyik",
+            "San San Drui",
+            "Teribe, Santa Rosa",
         ],
 
-        // ===== Comarca Ngäbe-Buglé (9 distritos, 70 corregimientos oficiales) =====
+        // ----- Distritos de la Comarca Ngäbe-Buglé sin datos cargados todavía -----
         // ===== Distrito: Besiko
         //"Besiko": ["Soloy", "Boca de Balsa", "Cerro Banco", "Cerro de Patena", "Camarón Arriba", "Emplanada de Chorcha", "Namnoni", "Niba"],
-
-        // ===== Distrito: Jirondai
-        "Jirondai": [
-            //"Guariviara", "Samboa",
-            "Buri, Pueblo Nuevo",
-            "Mancreek, Guabal", 
-            "Tu Gwai, Norteño",
-            "Tu Gwai, Silico Creek",
-            "Tu Gwai, Dos Bocas",
-        ],
-
-        // ===== Distrito: Kankintú
-        "Kankintú": [
-            //"Bisira", "Guoroní", "Mununí", "Piedra Roja", "Tolote", "Calante",
-            "Kankintú (Centro)",
-        ],
 
         // ===== Distrito: Kusapín
         //"Kusapín": ["Kusapín", "Bahía Azul", "Río Chiriquí", "Tobobe", "Cañaveral"],
 
         // ===== Distrito: Mironó
         //"Mironó": ["Hato Pilón", "Cascabel", "Hato Corotú", "Hato Culantro", "Hato Jobo", "Hato Julí", "Quebrada de Loro", "Salto Dupi"],
-
-        //===== Distrito: Muná
-        "Muná": [
-            //"Chichica", "Alto Caballero", "Bagama", "Cerro Caña", "Cerro Puerco", "Krúa", "Maraca", "Nibra", "Peña Blanca", "Rokari", "Umaní", "Diko", "Kikari", "Mreeni", "Dikeri",
-            "Sitio Prado, Cañazas",
-        ],
 
         //===== Distrito: Dole Duima
         //"Nole Duima": ["Cerro Iglesias", "Lajero", "Hato Chamí", "Susamá", "Jadeberi"],
