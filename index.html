@@ -3294,6 +3294,12 @@
         const tableBody = document.getElementById('invoice-items');
         tableBody.innerHTML = '';
         
+        // Mantener los productos de la factura siempre ordenados
+        // alfabéticamente por descripción.
+        products.sort((a, b) =>
+            (a.description || '').localeCompare(b.description || '', 'es', { sensitivity: 'base' })
+        );
+        
         products.forEach((product, index) => {
             const row = document.createElement('tr');
             
