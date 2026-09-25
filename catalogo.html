@@ -139,6 +139,17 @@
             box-shadow: none;
         }
 
+        .action-btn.dark.active {
+            background-color: var(--yellow-color);
+            color: var(--gray-700);
+            border-color: var(--yellow-color);
+        }
+
+        .action-btn.dark.active:hover {
+            background-color: var(--yellow-color);
+            color: var(--gray-700);
+        }
+
         /* Barra de filtros arriba de las estadísticas */
         .filters-bar {
             display: flex;
@@ -740,7 +751,7 @@
         
         .product-brand {
             font-size: 12px;
-            color: var(--accent-color);
+            color: var(--success-color);
             font-weight: 600;
             margin-bottom: 8px;
         }
@@ -772,7 +783,7 @@
         }
         
         .price-main {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             color: var(--primary-dark);
             margin-bottom: 4px;
@@ -952,6 +963,84 @@
             margin-top: 0;
         }
 
+        /* Regleta calibradora de tornillos (mm y pulgadas).
+           Solo se muestra en la categoría "TORNILLOS Y FIJACIONES" y solo
+           cuando el usuario activa el botón de la regla en la barra superior. */
+        .bolt-gauge-wrapper {
+            display: none;
+            width: 100%;
+            margin: 0 0 10px 0;
+            clear: both;
+        }
+
+        body.ruler-gauge-active .bolt-gauge-wrapper {
+            display: block;
+        }
+
+        .bolt-gauge-plate {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .bolt-gauge-hole {
+            cursor: pointer;
+            transition: fill 0.12s ease, stroke 0.12s ease;
+        }
+
+        .bolt-gauge-hole:hover {
+            fill: var(--secondary-color);
+            stroke: #303030;
+            stroke-width: 1.75;
+        }
+
+        /* Círculo seleccionado actualmente como filtro de tamaño */
+        .bolt-gauge-hole.active {
+            fill: var(--accent-color);
+            stroke: var(--primary-dark);
+            stroke-width: 2;
+        }
+
+        /* Oculta las tarjetas que no coinciden con el tamaño elegido en la regleta */
+        .product-card.hidden-by-gauge {
+            display: none !important;
+        }
+
+        /* Oculta etiquetas, encabezados de subcategoría y grids completos
+           que no tienen ningún producto para el tamaño elegido en la regleta */
+        .subcat-tag.hidden-by-gauge,
+        .subcategory-header.hidden-by-gauge,
+        .products-grid.hidden-by-gauge {
+            display: none !important;
+        }
+
+        .bolt-gauge-notch {
+            cursor: pointer;
+            transition: fill 0.12s ease;
+        }
+
+        .bolt-gauge-notch:hover {
+            fill: rgba(255, 255, 255, 0.55);
+        }
+
+        #bolt-gauge-tooltip {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            background: var(--gray-700);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            display: none;
+        }
+
         /* Etiquetas con la última palabra de cada producto, junto a la subcategoría */
         .subcat-tags {
             display: flex;
@@ -986,7 +1075,164 @@
         .product-card.hidden-by-tag {
             display: none !important;
         }
-        
+
+        /* ==========================================================
+           MODO DE VISUALIZACIÓN: LISTA
+           Se activa agregando la clase "list-view" al <body>.
+           El modo tarjeta (cuadrícula) sigue siendo el predeterminado.
+           Solo está disponible en pantallas grandes (más de 1280px);
+           en pantallas pequeñas y medianas (hasta 1280px) siempre se ve el modo
+           tarjeta normal, sin importar si la clase "list-view" está
+           activa.
+           ========================================================== */
+        @media (min-width: 1281px) {
+            body.list-view .products-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            body.list-view .product-card {
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: wrap;
+                min-height: unset;
+                padding: 10px 16px;
+                gap: 14px;
+            }
+
+            body.list-view .product-card:hover {
+                transform: none;
+            }
+
+            body.list-view .product-card .product-bg-image {
+                display: none;
+            }
+
+            body.list-view .product-thumb {
+                position: static;
+                order: 7;
+                width: 52px;
+                height: 52px;
+                flex-shrink: 0;
+                box-shadow: none;
+            }
+
+            /* Cuando el producto no tiene imagen (la miniatura se elimina del
+               DOM al fallar la carga), reservamos su ancho + separación en el
+               lado derecho de la tarjeta para que el nombre no crezca de más
+               y arrastre marca, costo, cotizar y precio fuera de su columna. */
+            body.list-view .product-card:not(:has(.product-thumb)) {
+                padding-right: calc(16px + 52px + 14px);
+            }
+
+            body.list-view .product-category,
+            body.list-view .product-subcategory {
+                display: none;
+            }
+
+            body.list-view .product-brand {
+                order: 3;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                width: 130px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            body.list-view .product-name {
+                order: 2;
+                flex: 1 1 220px;
+                min-width: 0;
+                -webkit-line-clamp: 1;
+                margin-bottom: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            body.list-view .product-code {
+                order: 1;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                width: 140px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* Cuando el producto no tiene "Referencia" (solo aparece el div
+               de "Código"), reservamos el mismo ancho que ocuparía el campo
+               faltante para que las columnas siguientes (marca, costo,
+               cotizar, precio) no se recorran ni pierdan su alineación. */
+            body.list-view .product-card:not(:has(.product-code + .product-code)) .product-code {
+                margin-right: 140px;
+            }
+
+            body.list-view .badges-container {
+                order: 4;
+                flex-direction: row;
+                align-items: center;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                gap: 6px;
+                width: 210px;
+                justify-content: flex-start;
+            }
+
+            body.list-view .badges-container > div {
+                display: flex;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
+            body.list-view .quote-row {
+                position: static;
+                opacity: 1;
+                pointer-events: auto;
+                order: 5;
+                flex-shrink: 0;
+                width: 100px;
+                text-align: center;
+            }
+
+            body.list-view .price-section {
+                order: 6;
+                margin-top: 0;
+                padding-top: 0;
+                flex-shrink: 0;
+                text-align: right;
+                width: 140px;
+            }
+
+            body.list-view .price-main {
+                font-size: 18px;
+                margin-bottom: 0;
+            }
+
+            body.list-view .price-tax {
+                font-size: 11px;
+            }
+
+            /* Evitar que al pasar el mouse sobre la miniatura se oculte
+               la información del producto (comportamiento pensado solo
+               para el modo tarjeta) */
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .badges-container,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .quote-row,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-category,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-subcategory,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-brand,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-name,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-code,
+            body.list-view .product-card.has-image:has(.product-thumb:hover) > .price-section {
+                opacity: 1;
+            }
+
+            body.list-view .product-card.has-image:has(.product-thumb:hover) .product-thumb {
+                opacity: 1;
+            }
+        }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .products-grid {
@@ -1137,6 +1383,15 @@
             }
         }
 
+        /* El modo lista solo está disponible en pantallas grandes (más de
+           1280px). En pantallas pequeñas y medianas (hasta 1280px) se oculta el botón de
+           cambio a lista, ya que esa vista no aplica ahí. */
+        @media (max-width: 1280px) {
+            #view-toggle-btn {
+                display: none !important;
+            }
+        }
+
         /* ============================================================
            DESTACADOS: en pantallas grandes, las tarjetas de producto
            se agrupan una tras otra en fila (una sola cuadrícula
@@ -1144,7 +1399,7 @@
            Para eso se ocultan los títulos de subcategoría dentro de
            esta sección y cada "products-grid" deja de formar su
            propia cuadrícula (display: contents) para que las tarjetas
-           pasen a ser hijas directas de la cuadrícula principal.
+           pasen a ser hijas directas de la cuadr��cula principal.
            En teléfono (max-width: 600px) no se aplica: se conserva el
            comportamiento normal, agrupado por subcategoría.
            ============================================================ */
@@ -1159,12 +1414,45 @@
                 display: contents;
             }
 
+            /* Se oculta siempre en la cuadrícula continua de Destacados
+               (display: contents en .products-grid), sin importar si la
+               clase "list-view" está activa en el body: por debajo de
+               1281px la vista lista no tiene ningún otro efecto visual
+               (ver comentario más abajo), así que si no se oculta aquí
+               también, el título queda como un elemento suelto dentro
+               de la cuadrícula de 4/3/2 columnas y se desordena entre
+               las tarjetas de producto. Solo se vuelve a mostrar cuando
+               la vista lista real está activa en pantallas grandes
+               (min-width: 1281px), donde Destacados pasa a verse en una
+               sola columna agrupada por subcategoría (ver más abajo). */
             #catalog-content.showing-destacados .subcategory-header {
                 display: none;
             }
 
             #catalog-content.showing-destacados .category-header {
                 grid-column: 1 / -1;
+            }
+        }
+
+        /* En modo lista, Destacados debe verse igual que el resto de
+           categorías: una sola columna, agrupada por subcategoría, en
+           vez de la cuadrícula continua de 4 columnas. Solo aplica en
+           pantallas grandes, igual que el resto del modo lista. */
+        @media (min-width: 1281px) {
+            body.list-view #catalog-content.showing-destacados {
+                display: block;
+            }
+
+            body.list-view #catalog-content.showing-destacados .products-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            /* Aquí sí debe verse el título de subcategoría, igual que en
+               el resto de las categorías en vista lista. */
+            body.list-view #catalog-content.showing-destacados .subcategory-header {
+                display: flex;
             }
         }
 
@@ -1350,6 +1638,29 @@
                         </svg>
                         <!--Calculadora-->
                     </a>
+                    <button type="button" id="view-toggle-btn" class="action-btn dark" onclick="toggleViewMode()" title="Cambiar a vista de lista">
+                        <svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8a13 13 0 0 1-1.66 2.043C11.879 11.332 10.12 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                        </svg>
+                        <svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="display:none;">
+                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-1.79.234l1.192 1.192A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486zm-2.943 1.299.712.712q-.933.309-2.128.309c-5 0-8-5.5-8-5.5s.939-1.721 2.641-3.238l.712.712A13 13 0 0 0 1.172 8q.086.13.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5a6 6 0 0 0 2.416-.963z"/>
+                            <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"/>
+                        </svg>
+                    </button>
+                    <button type="button" id="ruler-toggle-btn" class="action-btn dark" onclick="toggleRulerGauge()" title="Mostrar regleta calibradora (solo en Tornillos y Fijaciones)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16">
+                            <g transform="rotate(90 8 8)">
+                                <rect x="1" y="5" width="14" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                                <line x1="3" y1="5" x2="3" y2="7.6" stroke="currentColor" stroke-width="1"/>
+                                <line x1="5" y1="5" x2="5" y2="6.5" stroke="currentColor" stroke-width="1"/>
+                                <line x1="7" y1="5" x2="7" y2="7.6" stroke="currentColor" stroke-width="1"/>
+                                <line x1="9" y1="5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1"/>
+                                <line x1="11" y1="5" x2="11" y2="7.6" stroke="currentColor" stroke-width="1"/>
+                                <line x1="13" y1="5" x2="13" y2="6.5" stroke="currentColor" stroke-width="1"/>
+                            </g>
+                        </svg>
+                    </button>
                     <button onclick="printCatalog()" class="action-btn dark">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
@@ -1458,6 +1769,9 @@
             "37489314", // Bloque 6
             "26758751", // BARRA DEF. G60 1/2”X30’
             "23111348", // BARRA DEF. G60 3/8”X30’
+            //"82528228", //BARRA LISA 1/2"X6M
+            //"78866767", //BARRA LISA 1/4"X6M
+            //"22259353", //BARRA CUADRADA 1/2”X6M
             "71178481", // CEMENTO INTEROCEANICO GRIS 42.5KG
             "83353415", //ZINC GALV. #26X42 ONDUL. 12’
             "33217654", //ZINC GALV. #28X42 ONDUL. 12’
@@ -1514,12 +1828,26 @@
         // reordenaba miles de productos en cada clic, mientras que elegir una
         // categoría puntual solo reordenaba un subconjunto pequeño).
         function sortProductList() {
+            const TORNILLOS_Y_FIJACIONES = "TORNILLOS Y FIJACIONES";
             productList.sort((a, b) => {
                 const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
                 if (catCompare !== 0) return catCompare;
                 const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
                 if (subCompare !== 0) return subCompare;
-                return (a.Price || 0) - (b.Price || 0);
+                const priceCompare = (a.Price || 0) - (b.Price || 0);
+                if (priceCompare !== 0) return priceCompare;
+
+                // A igual categoría, subcategoría (mismo nombre/calibre) y
+                // precio, en "Tornillos y Fijaciones" se ordena por tamaño
+                // (de menor a mayor), como se ven en un tiquete, en vez de
+                // dejar el orden en que vienen en el Excel.
+                if (String(a.Category).trim().toUpperCase() === TORNILLOS_Y_FIJACIONES) {
+                    const tagA = getLastWordTag(a.Description, a.Category);
+                    const tagB = getLastWordTag(b.Description, b.Category);
+                    return compareTagsForSort(tagA, tagB);
+                }
+
+                return 0;
             });
         }
 
@@ -1870,11 +2198,85 @@
             }
         }
 
-        // Obtener la última palabra del nombre del producto para usarla como etiqueta
-        function getLastWordTag(description) {
+        // Quita acentos y normaliza a mayúsculas, para poder comparar nombres
+        // de categoría sin importar tildes ("PLOMERÍA" === "PLOMERIA").
+        function normalizeCategoryName(category) {
+            return String(category || '')
+                .trim()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase();
+        }
+
+        // Obtiene la etiqueta del producto. En TORNILLOS Y FIJACIONES y en
+        // PLOMERÍA, cuando el nombre termina en una palabra descriptiva (por
+        // ejemplo "INOX"), la medida válida es el valor numérico inmediatamente
+        // anterior: "TOR HEX G2 NC 1/4-20X1 INOX" -> "1/4-20X1". Si al recorrer
+        // hacia atrás no se encuentra ningún valor numérico, se usa la última
+        // palabra tal cual (comportamiento por defecto).
+        function getLastWordTag(description, category = '') {
             if (!description) return '';
             const parts = String(description).trim().split(/\s+/).filter(Boolean);
-            return parts.length ? parts[parts.length - 1].toUpperCase() : '';
+            if (!parts.length) return '';
+
+            const normalizedCategory = normalizeCategoryName(category);
+            const isTornillosYFijaciones = normalizedCategory === 'TORNILLOS Y FIJACIONES';
+            const isPlomeria = normalizedCategory === 'PLOMERIA';
+            if (!isTornillosYFijaciones && !isPlomeria) {
+                return parts[parts.length - 1].toUpperCase();
+            }
+
+            // Para "Tornillos y Fijaciones" y "Plomería" el verdadero valor de medida no
+            // siempre es la última palabra: puede haber una o varias
+            // palabras finales que no son parte de la medida, como:
+            //   - una palabra puramente descriptiva sin dígitos ni "/"
+            //     (ej. "INOX" en "... PHS 10X2 INOX")
+            //   - una anotación de empaque entre paréntesis (ej. "(2PZ)"
+            //     en "... PHS 10X1/2 (2PZ)")
+            // Se recorre desde el final saltando esas palabras hasta
+            // encontrar la que realmente contiene la medida.
+            const isDescriptiveWord = (word) => /[A-ZÁÉÍÓÚÑ]+$/i.test(word) && !/[0-9/]/.test(word);
+            const isPackagingAnnotation = (word) => /^\(.*\)$/.test(word);
+
+            let idx = parts.length - 1;
+            while (idx > 0 && (isDescriptiveWord(parts[idx]) || isPackagingAnnotation(parts[idx]))) {
+                idx--;
+            }
+
+            // Si tras recorrer todas las palabras no se encontró ninguna que
+            // parezca contener realmente una medida (con dígitos o "/"), es
+            // que no hay un valor válido que extraer: se deja la última
+            // palabra tal cual, igual que en el resto de categorías.
+            if (isDescriptiveWord(parts[idx]) || isPackagingAnnotation(parts[idx])) {
+                return parts[parts.length - 1].toUpperCase();
+            }
+
+            return parts[idx].toUpperCase();
+        }
+
+        // Convierte una etiqueta de medida (ej. "10X1/2", "1/4-20X1") en un
+        // arreglo de números en el orden en que aparecen, resolviendo
+        // fracciones (ej. "1/2" -> 0.5), para poder comparar tamaños de
+        // tornillo de forma numérica en vez de alfabética.
+        function parseTagForSort(tag) {
+            if (!tag) return [];
+            const tokens = String(tag).match(/\d+\/\d+|\d+(?:\.\d+)?/g) || [];
+            return tokens.map(t => t.includes('/') ? fractionToDecimal(t) : parseFloat(t));
+        }
+
+        // Compara dos etiquetas de medida componente por componente (calibre,
+        // luego largo, etc.), como se ordenarían en un tiquete: de menor a
+        // mayor tamaño.
+        function compareTagsForSort(tagA, tagB) {
+            const a = parseTagForSort(tagA);
+            const b = parseTagForSort(tagB);
+            const len = Math.max(a.length, b.length);
+            for (let i = 0; i < len; i++) {
+                const av = a[i] !== undefined ? a[i] : 0;
+                const bv = b[i] !== undefined ? b[i] : 0;
+                if (av !== bv) return av - bv;
+            }
+            return 0;
         }
 
         // Extraer subcategoría de la primera (o primeras) palabra(s) del nombre del producto
@@ -1888,10 +2290,23 @@
 
             // Para la categoría "TORNILLOS Y FIJACIONES" se usan las dos primeras
             // palabras del nombre del producto como subcategoría, excepto
-            // para "CLAVOS" "GANCHO" "TARUGOS", que no necesitan esa subdivisión
+            // para "CLAVOS" "GANCHO" "TARUGOS", que no necesitan esa subdivisión,
+            // y para "TUERCA HEX" y "TOR HEX", que usan las tres primeras palabras
             const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
             const firstWordUpper = words[0].toUpperCase();
+            const secondWordUpper = (words[1] || "").toUpperCase();
             const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO");
+            const isTuercaHex = firstWordUpper.startsWith("TUERCA") && secondWordUpper.startsWith("HEX");
+            const isTorHex = firstWordUpper.startsWith("TOR") && secondWordUpper.startsWith("HEX");
+            // NOTA: la lógica de "última palabra descriptiva -> tomar el valor
+            // numérico anterior" para la etiqueta de tamaño se maneja en
+            // getLastWordTag() (aplica a TORNILLOS Y FIJACIONES y PLOMERÍA).
+            // Esta función (extractSubcategoryFromName) solo decide cómo se
+            // agrupan los productos en subcategorías (por nombre), no la
+            // etiqueta de tamaño individual de cada producto.
+            if (isTornillosYFijaciones && (isTuercaHex || isTorHex)) {
+                return words.slice(0, 3).map(capitalize).join(" ");
+            }
             if (isTornillosYFijaciones && !isSinSubdivision && words.length > 1) {
                 return `${capitalize(words[0])} ${capitalize(words[1])}`;
             }
@@ -2022,26 +2437,78 @@
             return null;
         }
 
-        // Comparador para subcategorías: si ambos valores son numéricos (incluyendo
-        // medidas en pulgadas con fracción como 2-1/2) los compara como números
-        // (para que 80 quede antes que 100, y 2-1/2 no quede antes que 2); si ambos
-        // comparten el mismo prefijo de texto/símbolo seguido de número (ej: #6 y #10,
-        // o M6 y M10) los compara por ese número para que #10 no quede antes que #6;
-        // y en cualquier otro caso usa el orden alfabético normal en español.
-        function compareSubcategory(a, b) {
-            const numA = parseSubcategoryNumber(a);
-            const numB = parseSubcategoryNumber(b);
-            if (numA !== null && numB !== null) return numA - numB;
-            if (numA !== null && numB === null) return -1; // los números van antes que el texto
-            if (numA === null && numB !== null) return 1;  // el texto va después de los números
+        // Igual que parseSubcategoryNumber, pero además devuelve cuántos
+        // caracteres del inicio del texto ocupa el número reconocido, para
+        // poder quitarlo y seguir comparando el resto de la etiqueta.
+        // Se usa para etiquetas de tornillos con varios números seguidos,
+        // por ejemplo "6-9X1" (calibre #6 - 9 hilos X 1" de largo) o
+        // "8-9X2-1/2": el primer número (6, 8...) NO es milimétrico, es un
+        // calibre en pulgadas (#6, #8...), y tras él vienen más números
+        // (hilos, largo) que también hay que comparar para ordenar bien.
+        function parseLeadingSubcategoryToken(value) {
+            const str = String(value).trim();
 
-            const prefA = parseSubcategoryPrefixedNumber(a);
-            const prefB = parseSubcategoryPrefixedNumber(b);
+            // Entero y fracción, ej: "2-1/2", "2 1/2"
+            let match = str.match(/^(\d+)[\s-](\d+)\/(\d+)/);
+            if (match) {
+                const whole = parseFloat(match[1]);
+                const num = parseFloat(match[2]);
+                const den = parseFloat(match[3]);
+                if (den !== 0) return { value: whole + (num / den), length: match[0].length };
+            }
+
+            // Solo fracción, ej: "1/2", "3/4"
+            match = str.match(/^(\d+)\/(\d+)/);
+            if (match) {
+                const num = parseFloat(match[1]);
+                const den = parseFloat(match[2]);
+                if (den !== 0) return { value: num / den, length: match[0].length };
+            }
+
+            // Entero o decimal simple, ej: "80", "100", "2.5", "6", "14"
+            match = str.match(/^(\d+(?:\.\d+)?)/);
+            if (match) return { value: parseFloat(match[1]), length: match[0].length };
+
+            return null;
+        }
+
+        // Comparador para subcategorías y etiquetas: si ambos valores son
+        // numéricos (incluyendo medidas en pulgadas con fracción como 2-1/2)
+        // los compara como números (para que 80 quede antes que 100, y 2-1/2
+        // no quede antes que 2). Si tras comparar el primer número ambos
+        // valores empatan (por ejemplo "6-9X1" y "6-18X1" empiezan igual en
+        // "6", o "6-9X1" y "6-9X3/4" empiezan igual en "6-9"), en vez de
+        // darlos por iguales se sigue comparando el resto de la etiqueta
+        // (el siguiente número), para que por ejemplo "6-9X3/4" quede antes
+        // que "6-9X1", y "6-18X3/4" no quede después de "6-18X1". Si ambos
+        // comparten el mismo prefijo de texto/símbolo seguido de número (ej:
+        // #6 y #10, o M6 y M10) los compara por ese número para que #10 no
+        // quede antes que #6; y en cualquier otro caso usa el orden
+        // alfabético normal en español.
+        function compareSubcategory(a, b) {
+            const strA = String(a).trim();
+            const strB = String(b).trim();
+            const tokenA = parseLeadingSubcategoryToken(strA);
+            const tokenB = parseLeadingSubcategoryToken(strB);
+
+            if (tokenA && tokenB) {
+                if (tokenA.value !== tokenB.value) return tokenA.value - tokenB.value;
+
+                const restA = strA.slice(tokenA.length).replace(/^[\s\-Xx]+/, '');
+                const restB = strB.slice(tokenB.length).replace(/^[\s\-Xx]+/, '');
+                if (restA === '' && restB === '') return 0;
+                return compareSubcategory(restA, restB);
+            }
+            if (tokenA && !tokenB) return -1; // los números van antes que el texto
+            if (!tokenA && tokenB) return 1;  // el texto va después de los números
+
+            const prefA = parseSubcategoryPrefixedNumber(strA);
+            const prefB = parseSubcategoryPrefixedNumber(strB);
             if (prefA && prefB && prefA.prefix.toLowerCase() === prefB.prefix.toLowerCase()) {
                 return prefA.num - prefB.num;
             }
 
-            return String(a).localeCompare(String(b), "es", { sensitivity: "base" });
+            return strA.localeCompare(strB, "es", { sensitivity: "base" });
         }
 
         // Poblar filtros con todos los productos
@@ -2143,6 +2610,13 @@
 
         // Manejar entrada de búsqueda - actualiza filtros dinámicamente
         function handleSearchInput() {
+            // Si el usuario escribe algo distinto en la barra de búsqueda,
+            // se quita cualquier filtro de calibre activo de la regleta
+            // (igual que al tocar el ícono de la regleta para ocultarla),
+            // para que no queden productos ocultos por un filtro de un
+            // tornillo distinto al que ahora se busca.
+            clearGaugeFilterAndReset();
+
             const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
             
             if (searchTerm) {
@@ -2335,7 +2809,14 @@
                 if (catCompare !== 0) return catCompare;
                 const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
                 if (subCompare !== 0) return subCompare;
-                return (a.Price || 0) - (b.Price || 0);
+                const priceCompare = (a.Price || 0) - (b.Price || 0);
+                if (priceCompare !== 0) return priceCompare;
+                if (String(a.Category).trim().toUpperCase() === "TORNILLOS Y FIJACIONES") {
+                    const tagA = getLastWordTag(a.Description, a.Category);
+                    const tagB = getLastWordTag(b.Description, b.Category);
+                    return compareTagsForSort(tagA, tagB);
+                }
+                return 0;
             });
 
             let currentCategory = null;
@@ -2353,6 +2834,9 @@
                     categoryHeader.className = 'category-header';
                     categoryHeader.textContent = category;
                     featuredContent.appendChild(categoryHeader);
+                    if (String(category).trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
+                        featuredContent.appendChild(createBoltGaugeElement());
+                    }
                     currentCategory = category;
                     currentSubcategory = null;
                     currentGrid = null;
@@ -2363,6 +2847,7 @@
 
                     const subcategoryHeader = document.createElement('div');
                     subcategoryHeader.className = 'subcategory-header';
+                    subcategoryHeader.setAttribute('data-group', groupKey);
                     const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
                     const subLabel = document.createElement('span');
                     subLabel.textContent = subcategory.toUpperCase();
@@ -2373,7 +2858,7 @@
                     const groupProducts = featured.filter(p =>
                         p.Category === category && p.Subcategory === subcategory);
                     const uniqueTags = [...new Set(
-                        groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                        groupProducts.map(p => getLastWordTag(p.Description, p.Category)).filter(Boolean)
                     )].sort(compareSubcategory);
 
                     if (uniqueTags.length > 0) {
@@ -2452,6 +2937,12 @@
             catalogContentEl.classList.toggle("showing-destacados", categoryFilter === DESTACADOS_VALUE);
             // Render inmediato (sin retraso) para evitar el parpadeo al filtrar
             loadMoreProducts(true);
+
+            // Si había un filtro de calibre activo (círculo de la regleta),
+            // se vuelve a aplicar sobre las tarjetas recién renderizadas.
+            if (activeGaugeFilter) {
+                applyGaugeFilter();
+            }
         }
 
         // Cargar más productos (scroll infinito)
@@ -2515,6 +3006,9 @@
                             categoryHeader.className = 'category-header';
                             categoryHeader.textContent = category;
                             catalogContent.appendChild(categoryHeader);
+                            if (String(category).trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
+                                catalogContent.appendChild(createBoltGaugeElement());
+                            }
                             renderedGroups[`cat_${category}`] = true;
                         }
                         currentCategory = category;
@@ -2532,6 +3026,7 @@
                         if (!renderedGroups[groupKey]) {
                             const subcategoryHeader = document.createElement('div');
                             subcategoryHeader.className = 'subcategory-header';
+                            subcategoryHeader.setAttribute('data-group', groupKey);
                             const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
                             const subLabel = document.createElement('span');
                             subLabel.textContent = subcategory.toUpperCase();
@@ -2542,7 +3037,7 @@
                             const groupProducts = filteredProducts.filter(p =>
                                 p.Category === category && p.Subcategory === subcategory);
                             const uniqueTags = [...new Set(
-                                groupProducts.map(p => getLastWordTag(p.Description)).filter(Boolean)
+                                groupProducts.map(p => getLastWordTag(p.Description, p.Category)).filter(Boolean)
                             )].sort(compareSubcategory);
 
                             if (uniqueTags.length > 0) {
@@ -2567,7 +3062,7 @@
                         }
                         
                         // Crear nuevo grid o buscar el existente
-                        const existingGrid = document.querySelector(`[data-group="${CSS.escape(groupKey)}"]`);
+                        const existingGrid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
                         if (existingGrid) {
                             currentGrid = existingGrid;
                         } else {
@@ -2631,6 +3126,16 @@
         // Si se vuelve a hacer clic en la misma etiqueta activa, se restauran
         // todos los productos de la subcategoría.
         function filterProductsByTag(groupKey, tagValue, tagElement) {
+            // Antes se quitaba aquí cualquier filtro de calibre (círculo de
+            // la regleta) que estuviera activo. Eso hacía que, después de
+            // buscar un tamaño en la regleta y dar clic en una etiqueta para
+            // ver el producto puntual, se volvieran a mostrar TODOS los
+            // demás tornillos (de otros tamaños/subcategorías) que no tenían
+            // nada que ver con la búsqueda. Ahora el filtro de calibre se
+            // deja activo: la etiqueta solo acota dentro de lo que ya
+            // coincidía con el tamaño elegido, sin volver a mostrar el
+            // resto.
+
             // Antes de filtrar por etiqueta, cargar TODOS los productos que
             // falten (sin esperar a que el usuario desplace hacia abajo), para
             // que la etiqueta muestre absolutamente todos los productos que le
@@ -2639,7 +3144,7 @@
                 loadMoreProducts(true);
             }
 
-            const grid = document.querySelector(`[data-group="${CSS.escape(groupKey)}"]`);
+            const grid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
             if (!grid) return;
 
             const wasActive = tagElement.classList.contains('active');
@@ -2661,7 +3166,8 @@
 
             cards.forEach(card => {
                 const description = card.getAttribute('data-description') || '';
-                const cardTag = getLastWordTag(description);
+                const cardCategory = card.getAttribute('data-category') || '';
+                const cardTag = getLastWordTag(description, cardCategory);
                 card.classList.toggle('hidden-by-tag', cardTag !== tagValue);
             });
         }
@@ -2710,7 +3216,7 @@
                 : '';
 
             return `
-                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}">
+                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-category="${escapeForAttribute(product.Category)}" data-subcategory="${escapeForAttribute(product.Subcategory)}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}">
                     ${imageTag}
                     ${thumbTag}
                     <div class="badges-container">
@@ -2725,7 +3231,7 @@
 
                     <div class="quote-row">
                         <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" onclick="handleProductClick(this)">
-                            <span>Cotizar</span>
+                            <span>COTIZAR</span>
                         </button>
                     </div>
                     
@@ -2858,7 +3364,6 @@
             selectedProducts.push(selectedProduct);
 
             localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-            localStorage.setItem("selectedProduct", JSON.stringify(selectedProduct));
 
             showNotification(`Producto "${description}" (${quantity} unidades) agregado a la factura`);
         }
@@ -2881,6 +3386,600 @@
         function printCatalog() {
             window.print();
         }
+
+        // Alternar entre vista de tarjetas (cuadrícula) y vista de lista.
+        // El modo tarjeta es el predeterminado (no se agrega ninguna clase).
+        function toggleViewMode() {
+            const isListView = document.body.classList.toggle('list-view');
+            updateViewToggleIcon(isListView);
+            try {
+                localStorage.setItem('catalogViewMode', isListView ? 'list' : 'grid');
+            } catch (e) {
+                console.error('No se pudo guardar la preferencia de vista:', e);
+            }
+        }
+
+        // Muestra el ojo abierto en modo tarjeta y el ojo cerrado en modo lista
+        function updateViewToggleIcon(isListView) {
+            const openEye = document.getElementById('icon-eye-open');
+            const closedEye = document.getElementById('icon-eye-closed');
+            const btn = document.getElementById('view-toggle-btn');
+            if (!openEye || !closedEye) return;
+            openEye.style.display = isListView ? 'none' : 'block';
+            closedEye.style.display = isListView ? 'block' : 'none';
+            if (btn) {
+                btn.title = isListView ? 'Cambiar a vista de tarjetas' : 'Cambiar a vista de lista';
+            }
+        }
+
+        // Al cargar la página, restaurar la preferencia de vista guardada
+        // (si no hay ninguna guardada, se queda en modo tarjeta por defecto)
+        (function initViewMode() {
+            let savedMode = null;
+            try {
+                savedMode = localStorage.getItem('catalogViewMode');
+            } catch (e) {
+                savedMode = null;
+            }
+            if (savedMode === 'list') {
+                document.body.classList.add('list-view');
+                updateViewToggleIcon(true);
+            } else {
+                updateViewToggleIcon(false);
+            }
+        })();
+
+        // ==========================================================
+        // Regleta calibradora de tornillos (mm / pulgadas)
+        // Solo aparece justo después del título de la categoría
+        // "TORNILLOS Y FIJACIONES", y solo cuando el botón de la regla
+        // (junto al botón de vista) está activado.
+        // ==========================================================
+
+        function fractionToDecimal(frac) {
+            const parts = String(frac).split('/');
+            if (parts.length === 2) {
+                return parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+            return parseFloat(frac);
+        }
+
+        function gcdNum(a, b) {
+            return b === 0 ? a : gcdNum(b, a % b);
+        }
+
+        function simplifyFraction(num, den) {
+            if (num === 0) return '0';
+            if (num === den) return '1"';
+            const g = gcdNum(num, den);
+            return `${num / g}/${den / g}"`;
+        }
+
+        // Escapa comillas dobles para poder usarlas dentro de atributos
+        // HTML delimitados también por comillas dobles (ej. 0.118" o 5/16").
+        function escapeAttr(str) {
+            return String(str).replace(/"/g, '&quot;');
+        }
+
+        // Construye el SVG de la regleta calibradora con dos filas de
+        // agujeros (milímetros y pulgadas) y reglas graduadas arriba y abajo.
+        function buildBoltGaugeSVG() {
+            const mmSizes = [22, 20, 18, 16, 14, 12, 10, 8, 7, 6, 5, 4, 3];
+            // Tornillos pequeños identificados por número de calibre (con su
+            // diámetro real en pulgadas) seguidos de los tamaños en fracción
+            // de pulgada, tal como se solicitó.
+            // "fraction" es la fracción de pulgada equivalente a cada calibre
+            // numérico, tal como la especificó Cesar. Solo se usa en el
+            // tooltip (al pasar el mouse); la etiqueta visible de la regleta
+            // sigue mostrando "#4", "#5", etc.
+            const inchGaugeSizes = [
+                { label: '4', decimal: 0.112, fraction: '7/64' },
+                { label: '5', decimal: 0.125, fraction: '1/8' },
+                { label: '6', decimal: 0.138, fraction: '9/64' },
+                { label: '8', decimal: 0.15625, fraction: '5/32' },
+                { label: '10', decimal: 0.1875, fraction: '3/16' },
+                { label: '12', decimal: 0.21875, fraction: '7/32' }
+            ];
+            const inchFractionSizes = ['1/4', '5/16', '3/8', '7/16', '1/2', '9/16', '5/8', '3/4', '1'];
+            const inchItems = [
+                ...inchGaugeSizes.map(g => ({ label: g.label, decimal: g.decimal, fraction: g.fraction, isFraction: false })),
+                ...inchFractionSizes.map(f => ({ label: f, decimal: fractionToDecimal(f), isFraction: true }))
+            ].sort((a, b) => a.decimal - b.decimal);
+
+            const rowStartX = 100, rowEndX = 920;
+            const rowSpan = rowEndX - rowStartX;
+
+            // Fuente y color iguales a los títulos de categoría/subcategoría
+            // del catálogo, para que la regleta combine con el resto del sitio.
+            const fontStack = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+            const primaryColor = "#303030";
+            const primaryDark = "#3c3c3d";
+
+            // Mide el ancho real de un texto (usando un canvas oculto) para
+            // que el fondo redondeado de cada badge se ajuste a su contenido
+            // en lugar de usar una estimación fija por cantidad de caracteres.
+            function measureTextWidth(text, fontSize, fontWeight = '600') {
+                if (!measureTextWidth._ctx) {
+                    measureTextWidth._ctx = document.createElement('canvas').getContext('2d');
+                }
+                measureTextWidth._ctx.font = `${fontWeight} ${fontSize}px ${fontStack}`;
+                return measureTextWidth._ctx.measureText(text).width;
+            }
+
+            // Regla superior graduada en milímetros (100 a 0 mm), con marcas intermedias.
+            // (Se sube 14px respecto al borde del rectángulo para reducir el
+            // espacio vacío que quedaba libre ahora que el título está afuera.)
+            let topRuler = '';
+            for (let mm = 0; mm <= 100; mm += 10) {
+                const x = rowStartX + ((100 - mm) / 100) * rowSpan;
+                topRuler += `<line x1="${x.toFixed(1)}" y1="28" x2="${x.toFixed(1)}" y2="36" stroke="${primaryColor}" stroke-width="1.5"/>`;
+                topRuler += `<text x="${x.toFixed(1)}" y="24" font-size="9" fill="${primaryColor}" text-anchor="middle" font-family="${fontStack}">${mm}</text>`;
+                if (mm < 100) {
+                    const minorX = rowStartX + ((100 - (mm + 5)) / 100) * rowSpan;
+                    topRuler += `<line x1="${minorX.toFixed(1)}" y1="28" x2="${minorX.toFixed(1)}" y2="35" stroke="${primaryColor}" stroke-width="1.5"/>`;
+                }
+            }
+            topRuler += `<line x1="${rowStartX}" y1="36" x2="${rowEndX}" y2="36" stroke="${primaryColor}" stroke-width="1.5"/>`;
+
+            // Fila de agujeros en milímetros: cada círculo queda centrado
+            // exactamente debajo de su etiqueta, como en la referencia.
+            let mmHoles = '';
+            const mmBadgeY = 40;
+            const mmCircleTopY = mmBadgeY + 24;
+            mmSizes.forEach((size, i) => {
+                const x = rowStartX + (i / (mmSizes.length - 1)) * rowSpan;
+                const r = Math.min(6 + size * 1.0, 26);
+                // El borde superior común evita que los círculos pequeños
+                // queden más abajo que sus etiquetas.
+                const cy = mmCircleTopY + r;
+                const inchEquiv = (size / 25.4).toFixed(3);
+                const label = `M${size} - Ø ${size}mm (${inchEquiv}")`;
+                const badgeText = String(size);
+                const badgeW = Math.max(18, measureTextWidth(badgeText, 9.5) + 13);
+                mmHoles += `<circle class="bolt-gauge-hole" data-size-label="${escapeAttr(label)}" data-unit="mm" data-filter-value="${size}" data-display-label="${size} mm" onclick="handleGaugeHoleClick(this)" cx="${x.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="transparent" stroke="${primaryColor}" stroke-width="1.5" pointer-events="all"/>`;
+                mmHoles += `<rect x="${(x - badgeW / 2).toFixed(1)}" y="${mmBadgeY.toFixed(1)}" width="${badgeW}" height="16" rx="5" fill="${primaryColor}" pointer-events="none"/>`;
+                mmHoles += `<text x="${x.toFixed(1)}" y="${(mmBadgeY + 11.5).toFixed(1)}" font-size="9.5" fill="#ffffff" text-anchor="middle" font-family="${fontStack}" font-weight="600" pointer-events="none">${badgeText}</text>`;
+            });
+
+            // Fila de agujeros en pulgadas (calibre numérico + fracciones)
+            // Misma lógica: línea base común para los círculos y etiquetas
+            // alineadas en una sola fila horizontal.
+            let inchHoles = '';
+            // La escala de pulgadas se acerca a la fila métrica para
+            // aprovechar el espacio vertical, como en la referencia.
+            const inchBaselineY = 149;
+            const inchBadgeY = inchBaselineY + 7;
+            inchItems.forEach((item, i) => {
+                const x = rowStartX + (i / (inchItems.length - 1)) * rowSpan;
+                const r = Math.min(6 + item.decimal * 26, 28);
+                const cy = inchBaselineY - r;
+                const mmEquiv = (item.decimal * 25.4).toFixed(2);
+                const displayLabel = item.isFraction ? `${item.label}"` : `#${item.label}`;
+                const label = item.isFraction
+                    ? `${item.label}" - Ø ${mmEquiv}mm`
+                    : `${item.label} - Ø ${mmEquiv}mm (${item.fraction}")`;
+                const badgeW = Math.max(18, measureTextWidth(displayLabel, 9.5) + 13);
+                const filterUnit = item.isFraction ? 'in-fraction' : 'in-gauge';
+                inchHoles += `<circle class="bolt-gauge-hole" data-size-label="${escapeAttr(label)}" data-unit="${filterUnit}" data-filter-value="${escapeAttr(item.label)}" data-display-label="${escapeAttr(displayLabel)}" onclick="handleGaugeHoleClick(this)" cx="${x.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="transparent" stroke="${primaryColor}" stroke-width="1.5" pointer-events="all"/>`;
+                inchHoles += `<rect x="${(x - badgeW / 2).toFixed(1)}" y="${inchBadgeY.toFixed(1)}" width="${badgeW}" height="16" rx="5" fill="${primaryColor}" pointer-events="none"/>`;
+                inchHoles += `<text x="${x.toFixed(1)}" y="${(inchBadgeY + 11.5).toFixed(1)}" font-size="9.5" fill="#ffffff" text-anchor="middle" font-family="${fontStack}" font-weight="600" pointer-events="none">${displayLabel}</text>`;
+            });
+
+            // Regla inferior graduada en pulgadas en incrementos de 1/32".
+            // Se muestra la fracción en cada segunda línea (1/16", 1/8", etc.).
+            let bottomRuler = '';
+            for (let s = 0; s <= 32; s++) {
+                const x = rowStartX + (s / 32) * rowSpan;
+                const showFraction = s % 2 === 0;
+                // Fracciones "impares" de 1/16 (1/16, 3/16, 5/16, 7/16, 9/16,
+                // 11/16, 13/16, 15/16): en lugar de la línea, el valor sube
+                // y ocupa el sitio de esa línea (sin línea ni etiqueta abajo).
+                const isHighlighted = s % 4 === 2;
+                if (isHighlighted) {
+                    // Línea muy corta, apenas para dar un poco de espacio
+                    // antes del valor (que queda elevado, cerca de la regla).
+                    bottomRuler += `<line x1="${x.toFixed(1)}" y1="176" x2="${x.toFixed(1)}" y2="180" stroke="${primaryColor}" stroke-width="1.5"/>`;
+                    bottomRuler += `<text x="${x.toFixed(1)}" y="190" font-size="9" fill="${primaryColor}" text-anchor="middle" font-family="${fontStack}">${simplifyFraction(s, 32)}</text>`;
+                    continue;
+                }
+                const tickLen = showFraction ? 8 : 5;
+                bottomRuler += `<line x1="${x.toFixed(1)}" y1="176" x2="${x.toFixed(1)}" y2="${176 + tickLen}" stroke="${primaryColor}" stroke-width="1.5"/>`;
+                if (showFraction) {
+                    const fractionLabel = simplifyFraction(s, 32);
+                    // Los cuartos (1/4", 1/2", 3/4") se destacan con el mismo
+                    // fondo redondeado que el resto de las etiquetas (badges).
+                    const isQuarterMark = (s % 8 === 0) && s !== 0 && s !== 32;
+                    if (isQuarterMark) {
+                        const badgeW = Math.max(16, measureTextWidth(fractionLabel, 9) + 11);
+                        const badgeY = 186; //Espacio entre fracciones y la linea
+                        const badgeH = 13;
+                        bottomRuler += `<rect x="${(x - badgeW / 2).toFixed(1)}" y="${badgeY}" width="${badgeW}" height="${badgeH}" rx="4" fill="${primaryColor}"/>`;
+                        bottomRuler += `<text x="${x.toFixed(1)}" y="${(badgeY + badgeH / 2 + 3).toFixed(1)}" font-size="9" fill="#ffffff" text-anchor="middle" font-family="${fontStack}" font-weight="600">${fractionLabel}</text>`;
+                    } else {
+                        bottomRuler += `<text x="${x.toFixed(1)}" y="197" font-size="9" fill="${primaryColor}" text-anchor="middle" font-family="${fontStack}">${fractionLabel}</text>`;
+                    }
+                }
+            }
+            bottomRuler += `<line x1="${rowStartX}" y1="176" x2="${rowEndX}" y2="176" stroke="${primaryColor}" stroke-width="1.5"/>`;
+
+            return `
+                <svg class="bolt-gauge-plate" viewBox="0 0 1000 213" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="980" height="193" rx="14" fill="none" stroke="${primaryDark}" stroke-width="1.5"/>
+                    <text x="0" y="0" transform="translate(960, 106) rotate(90)" font-size="10" font-weight="600" fill="${primaryColor}" text-anchor="middle" font-family="${fontStack}">REGLETA CALIBRADOR</text>
+                    <text x="26" y="49" font-size="10" font-weight="600" fill="${primaryColor}" font-family="${fontStack}">MM</text>
+                    <text x="26" y="184" font-size="10" font-weight="600" fill="${primaryColor}" font-family="${fontStack}">IN</text>
+                    ${topRuler}
+                    ${mmHoles}
+                    ${inchHoles}
+                    ${bottomRuler}
+                </svg>
+            `;
+        }
+
+        // Crea el contenedor de la regleta calibradora, listo para insertarse
+        // justo después del encabezado de categoría "TORNILLOS Y FIJACIONES".
+        function createBoltGaugeElement() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'bolt-gauge-wrapper';
+            wrapper.innerHTML = buildBoltGaugeSVG();
+            return wrapper;
+        }
+
+        // Tooltip flotante que sigue al mouse mientras se pasa por cada
+        // agujero de la regleta, mostrando el tamaño exacto en mm y pulgadas.
+        function setupBoltGaugeTooltip() {
+            let tooltip = document.getElementById('bolt-gauge-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'bolt-gauge-tooltip';
+                document.body.appendChild(tooltip);
+            }
+            document.addEventListener('mouseover', (e) => {
+                const hole = e.target.closest('.bolt-gauge-hole');
+                if (hole) {
+                    tooltip.textContent = hole.getAttribute('data-size-label') || '';
+                    tooltip.style.display = 'block';
+                }
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (tooltip.style.display === 'block') {
+                    tooltip.style.left = (e.clientX + 14) + 'px';
+                    tooltip.style.top = (e.clientY + 14) + 'px';
+                }
+            });
+            document.addEventListener('mouseout', (e) => {
+                const hole = e.target.closest('.bolt-gauge-hole');
+                const toEl = e.relatedTarget;
+                if (hole && (!toEl || !toEl.closest || !toEl.closest('.bolt-gauge-hole'))) {
+                    tooltip.style.display = 'none';
+                }
+            });
+        }
+
+        // ==========================================================
+        // Filtrado de productos al hacer clic en un círculo de la regleta.
+        //
+        // Cada tarjeta de producto ya tiene una "etiqueta" (subcat-tag)
+        // calculada por getLastWordTag(), que toma la ÚLTIMA palabra del
+        // nombre del producto, por ejemplo:
+        //   "TORNILLO HEX 6-9 GALV"      -> etiqueta "6-9"
+        //   "TORNILLO CABEZA 1/4X47/64"  -> etiqueta "1/4X47/64"
+        //
+        // Al hacer clic en un círculo de la regleta (mm, calibre en
+        // pulgada o fracción de pulgada), tomamos SOLO el primer valor de
+        // esa etiqueta (antes del "-" o la "X") y lo comparamos con el
+        // tamaño marcado en el círculo. Si coinciden, el producto se
+        // muestra; si no, se oculta. El filtro se aplica a TODA la
+        // categoría "TORNILLOS Y FIJACIONES", sin importar la subcategoría.
+        // ==========================================================
+
+        // Extrae el primer valor de una etiqueta: una fracción ("1/4"),
+        // un decimal ("0.190") o un entero ("6"), ignorando lo que
+        // venga después de un separador como "-", "X" o "x".
+        function extractFirstTagValue(tag) {
+            if (!tag) return null;
+            const normalizedTag = String(tag).trim();
+            // En milímetros se aceptan formatos como "M8", "8M" y "8-32",
+            // pero nunca un número seguido de letras (por ejemplo "100PZ").
+            // La unidad M se conserva en la etiqueta, pero el valor devuelto es numérico.
+            const match = normalizedTag.match(/^(?:M)?(\d+\/\d+|\d+(?:\.\d+)?)(?:M)?(?=$|[-\sXx])/i);
+            return match ? match[1] : null;
+        }
+
+        // Convierte ese primer valor a un número decimal comparable,
+        // resolviendo fracciones (ej. "1/4" -> 0.25).
+        function firstTagValueToDecimal(value) {
+            if (value === null || value === undefined || value === '') return NaN;
+            return String(value).includes('/') ? fractionToDecimal(value) : parseFloat(value);
+        }
+
+        // Estado del filtro de calibre actualmente activo (null si ninguno).
+        let activeGaugeFilter = null; // { unit, value, displayLabel }
+
+        // Se llama al hacer clic en cualquier círculo de la regleta.
+        function handleGaugeHoleClick(circleEl) {
+            const unit = circleEl.getAttribute('data-unit');
+            const rawValue = circleEl.getAttribute('data-filter-value');
+            const displayLabel = circleEl.getAttribute('data-display-label') || rawValue;
+            const value = firstTagValueToDecimal(rawValue);
+
+            const isSameSelection = activeGaugeFilter &&
+                activeGaugeFilter.unit === unit &&
+                Math.abs(activeGaugeFilter.value - value) < 0.001;
+
+            document.querySelectorAll('.bolt-gauge-hole.active').forEach(c => c.classList.remove('active'));
+
+            if (isSameSelection) {
+                // Clic sobre el mismo círculo ya activo: se quita el filtro.
+                activeGaugeFilter = null;
+                clearGaugeFilter();
+                return;
+            }
+
+            // Un filtro de calibre reemplaza cualquier filtro por etiqueta
+            // de subcategoría que estuviera activo, para no combinar dos
+            // criterios distintos a la vez.
+            document.querySelectorAll('.subcat-tag.active').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.product-card.hidden-by-tag').forEach(c => c.classList.remove('hidden-by-tag'));
+
+            circleEl.classList.add('active');
+            activeGaugeFilter = { unit, value, displayLabel };
+            applyGaugeFilter();
+        }
+
+        // Determina si una etiqueta (tag) coincide con el filtro de calibre
+        // activo. Se usa tanto para las tarjetas de producto como para las
+        // "etiquetas" (subcat-tag) que aparecen junto a cada subcategoría.
+        // SIEMPRE se toma el PRIMER valor de la etiqueta (antes del "-" o
+        // la "X"), nunca el último, vía extractFirstTagValue().
+        // Busca el calibre numérico escrito entre paréntesis, por ejemplo
+        // "ARANDELA PLANA USS (#10) 3/16X1/2" -> calibre #10.
+        function extractParentheticalGauge(description) {
+            const match = String(description || '').match(/\(\s*#\s*(\d+)\s*\)/i);
+            return match ? Number(match[1]) : null;
+        }
+
+        // Equivalencias reales de los calibres numéricos de la regleta.
+        // Se usan para reconocer productos que muestran únicamente el diámetro
+        // en pulgadas, por ejemplo 3/16X1-1/4 para el calibre #10.
+        function inchGaugeFractionForValue(value) {
+            const gaugeFractions = {
+                4: 7 / 64,
+                5: 1 / 8,
+                6: 9 / 64,
+                8: 5 / 32,
+                10: 3 / 16
+            };
+            const gauge = Object.keys(gaugeFractions).find(key =>
+                Math.abs(Number(key) - value) < 0.01
+            );
+            return gauge ? gaugeFractions[gauge] : null;
+        }
+
+        function tagMatchesGaugeFilter(tag, unit, value, description = '', subcategory = '') {
+            const normalizedSubcategory = String(subcategory || '').trim().toUpperCase();
+            const isTorTecho = normalizedSubcategory.startsWith('TOR TECHO');
+            // isTorCal ("tornillo calibre"): agrupa todos los tornillos cuya
+            // medida se identifica por un calibre numérico en pulgadas
+            // (#6, #8, #10, #12, #14...) en vez de milímetros o fracción
+            // directa. Agregar aquí cualquier otro tornillo que deba
+            // detectarse con esta misma lógica.
+            const isTorCal = normalizedSubcategory.startsWith('TOR GYPSUM') ||
+                normalizedSubcategory.startsWith('TOR K-LATH') ||
+                normalizedSubcategory.startsWith('TOR LAMINA') ||
+                normalizedSubcategory.startsWith('TOR MADERA') ||
+                //normalizedSubcategory.startsWith('TOR ESTUFA') ||
+                isTorTecho;
+
+            // "Tor Gypsum", "Tor K-Lath", "Tor Lamina" y "Tor Techo":
+            // el primer número de su etiqueta (6, 8, 10, 12, 14...) es
+            // siempre un calibre en pulgadas (#6, #8, #10...), nunca
+            // milímetros. Por eso nunca debe salir al hacer clic en un
+            // círculo de milímetros, y sí debe salir al hacer clic en su
+            // calibre exacto (#6, #8, #10, #12...) aunque la etiqueta sea un
+            // entero sin fracción, como "6-9X1", "8-9X2-1/2" o "10X1" (p. ej.
+            // "TOR LAMINA PHS 10X1" -> calibre #10).
+            if (isTorCal) {
+                const firstValue = extractFirstTagValue(tag);
+                if (firstValue === null) return false;
+                const firstDecimal = firstTagValueToDecimal(firstValue);
+
+                if (unit === 'in-gauge') {
+                    return Math.abs(firstDecimal - value) < 0.01;
+                }
+
+                // Caso especial del calibre #14: en la regleta la fila de
+                // calibres numéricos solo llega hasta #12, pero #14
+                // equivale en la práctica a 1/4", que sí existe como
+                // agujero en la fila de fracciones. Aplica tanto a "Tor
+                // Techo" (ver ejemplo "TOR TECHO ... 14") como a "Tor
+                // Lamina" (ej. "TOR LAMINA PLANA PHS 14X1-1/4"). Por eso el
+                // calibre #14 debe reconocerse también al hacer clic en el
+                // agujero de 1/4".
+                const isTorLamina = normalizedSubcategory.startsWith('TOR LAMINA');
+                if ((isTorTecho || isTorLamina) && unit === 'in-fraction' && Math.abs(firstDecimal - 14) < 0.01) {
+                    return Math.abs(value - 0.25) < 0.001;
+                }
+
+                return false;
+            }
+
+            // Los calibres numéricos se identifican exclusivamente por el
+            // número entre paréntesis; no se debe confundir la longitud del
+            // clavo ni una fracción de la descripción con su calibre.
+            if (unit === 'in-gauge') {
+                // Un calibre numérico puede venir indicado explícitamente entre
+                // paréntesis (#10), pero también puede aparecer solo como su
+                // diámetro equivalente en pulgadas (3/16X1-1/4). En ambos
+                // casos debe encontrar el producto en la regleta.
+                const parentheticalGauge = extractParentheticalGauge(description);
+                if (parentheticalGauge !== null && Math.abs(parentheticalGauge - value) < 0.01) {
+                    return true;
+                }
+
+                const firstGaugeValue = extractFirstTagValue(tag);
+                if (!firstGaugeValue || !firstGaugeValue.includes('/')) return false;
+                const gaugeFraction = inchGaugeFractionForValue(value);
+                return gaugeFraction !== null &&
+                    Math.abs(firstTagValueToDecimal(firstGaugeValue) - gaugeFraction) < 0.001;
+            }
+
+            const firstValueRaw = extractFirstTagValue(tag);
+            if (firstValueRaw === null) return false;
+
+            const hasSlash = firstValueRaw.includes('/');
+            const isInteger = /^\d+$/.test(firstValueRaw);
+            const firstValueDecimal = firstTagValueToDecimal(firstValueRaw);
+
+            // La regleta superior representa milímetros enteros únicamente:
+            // "M10", "10M" y "8-32" son válidos; "3/8" y "3.5" son pulgadas
+            // o medidas fraccionarias, no calibre milimétrico. Las etiquetas como
+            // "100PZ" ya fueron descartadas por extractFirstTagValue().
+            if (unit === 'mm' && isInteger) {
+                return Math.abs(firstValueDecimal - value) < 0.01;
+            } else if (unit === 'in-fraction' && hasSlash) {
+                return Math.abs(firstValueDecimal - value) < 0.001;
+            }
+            return false;
+        }
+
+        // Aplica (o vuelve a aplicar, por ejemplo tras recargar la lista de
+        // productos) el filtro de calibre activo sobre todas las tarjetas,
+        // así como sobre las etiquetas (subcat-tag) y los encabezados de
+        // subcategoría / grids que queden sin ningún producto visible.
+        function applyGaugeFilter() {
+            if (!activeGaugeFilter) return;
+            const { unit, value } = activeGaugeFilter;
+
+            // Carga TODOS los productos pendientes (sin esperar el scroll)
+            // para que el filtro de calibre se aplique sobre el catálogo
+            // completo desde el primer clic, no solo sobre lo ya cargado.
+            while (displayedCount < filteredProducts.length) {
+                loadMoreProducts(true);
+            }
+
+            const allCards = document.querySelectorAll('.product-card[data-category]');
+            const cards = Array.from(allCards).filter(card =>
+                (card.getAttribute('data-category') || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES'
+            );
+
+            cards.forEach(card => {
+                // Los clavos se miden por longitud, no por calibre, por lo
+                // que deben ocultarse mientras se consulta cualquier calibre.
+                const subcategory = (card.getAttribute('data-subcategory') || '').trim().toUpperCase();
+                if (subcategory.startsWith('CLAVO')) {
+                    card.classList.add('hidden-by-gauge');
+                    return;
+                }
+
+                const description = card.getAttribute('data-description') || '';
+                const cardCategory = card.getAttribute('data-category') || '';
+                const tag = getLastWordTag(description, cardCategory);
+                const matches = tagMatchesGaugeFilter(tag, unit, value, description, subcategory);
+
+                card.classList.toggle('hidden-by-gauge', !matches);
+            });
+
+            // Ahora propagamos el filtro a las etiquetas (subcat-tag) y a los
+            // encabezados/grids de subcategoría: si una etiqueta no
+            // pertenece al tamaño elegido, se oculta; y si TODAS las
+            // etiquetas/tarjetas de una subcategoría quedan ocultas, se
+            // oculta también su encabezado y su grid completos. Los CLAVOS
+            // quedan siempre exentos, igual que sus tarjetas.
+            document.querySelectorAll('.subcategory-header[data-group]').forEach(header => {
+                const groupKey = header.getAttribute('data-group');
+                const grid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
+                if (!grid) return;
+
+                const gridCards = Array.from(grid.querySelectorAll('.product-card'));
+                const belongsToTornillos = gridCards.some(card =>
+                    (card.getAttribute('data-category') || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES'
+                );
+                if (!belongsToTornillos) return;
+
+                header.querySelectorAll('.subcat-tag').forEach(tagEl => {
+                    const tagValue = tagEl.getAttribute('data-tag') || tagEl.textContent;
+                    const matchingCard = gridCards.find(card => getLastWordTag(
+                        card.getAttribute('data-description') || '',
+                        card.getAttribute('data-category') || ''
+                    ) === tagValue);
+                    const tagDescription = matchingCard ? (matchingCard.getAttribute('data-description') || '') : '';
+                    const tagSubcategory = matchingCard ? (matchingCard.getAttribute('data-subcategory') || '') : '';
+                    const matches = tagMatchesGaugeFilter(tagValue, unit, value, tagDescription, tagSubcategory);
+                    tagEl.classList.toggle('hidden-by-gauge', !matches);
+                });
+
+                const hasVisibleCard = gridCards.some(card => !card.classList.contains('hidden-by-gauge'));
+                header.classList.toggle('hidden-by-gauge', !hasVisibleCard);
+                grid.classList.toggle('hidden-by-gauge', !hasVisibleCard);
+            });
+        }
+
+        // Quita el filtro de calibre: vuelve a mostrar todas las tarjetas
+        // ocultas por este filtro.
+        function clearGaugeFilter() {
+            document.querySelectorAll('.product-card.hidden-by-gauge').forEach(card => {
+                card.classList.remove('hidden-by-gauge');
+            });
+            document.querySelectorAll('.subcat-tag.hidden-by-gauge').forEach(tagEl => {
+                tagEl.classList.remove('hidden-by-gauge');
+            });
+            document.querySelectorAll('.subcategory-header.hidden-by-gauge').forEach(header => {
+                header.classList.remove('hidden-by-gauge');
+            });
+            document.querySelectorAll('.products-grid.hidden-by-gauge').forEach(grid => {
+                grid.classList.remove('hidden-by-gauge');
+            });
+        }
+
+        // Botón "Quitar filtro" del banner.
+        function clearGaugeFilterAndReset() {
+            activeGaugeFilter = null;
+            document.querySelectorAll('.bolt-gauge-hole.active').forEach(c => c.classList.remove('active'));
+            clearGaugeFilter();
+        }
+
+        // Activa/desactiva la visibilidad de la regleta calibradora.
+        // El diagrama solo existe en el DOM dentro de "TORNILLOS Y FIJACIONES",
+        // así que aquí solo se alterna una clase en <body>.
+        function toggleRulerGauge() {
+            const isActive = document.body.classList.toggle('ruler-gauge-active');
+            updateRulerToggleIcon(isActive);
+            if (!isActive) {
+                // Al ocultar la regleta, los círculos ya no son visibles,
+                // así que también quitamos el filtro por calibre activo.
+                clearGaugeFilterAndReset();
+            }
+            try {
+                localStorage.setItem('catalogRulerGauge', isActive ? 'on' : 'off');
+            } catch (e) {
+                console.error('No se pudo guardar la preferencia de la regleta:', e);
+            }
+        }
+
+        function updateRulerToggleIcon(isActive) {
+            const btn = document.getElementById('ruler-toggle-btn');
+            if (!btn) return;
+            btn.classList.toggle('active', isActive);
+            btn.title = isActive ? 'Ocultar regleta calibradora' : 'Mostrar regleta calibradora (solo en Tornillos y Fijaciones)';
+        }
+
+        // Restaura la preferencia guardada de la regleta calibradora
+        (function initRulerMode() {
+            let saved = null;
+            try {
+                saved = localStorage.getItem('catalogRulerGauge');
+            } catch (e) {
+                saved = null;
+            }
+            if (saved === 'on') {
+                document.body.classList.add('ruler-gauge-active');
+                updateRulerToggleIcon(true);
+            } else {
+                updateRulerToggleIcon(false);
+            }
+            setupBoltGaugeTooltip();
+        })();
     </script>
 </body>
 </html>

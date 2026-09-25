@@ -685,11 +685,11 @@
     #product-search {
         width: 100%;
         padding: 12px 54px 12px 54px;
-        border: 1px solid var(--gray-200);
-        border-radius: 8px;
+        border: 1px solid var(--gray-300);
+        border-radius: 6px;
         font-size: 16px;
         transition: all 0.3s;
-        background-color: var(--gray-100);
+        background-color: white;
     }
     
     #product-search:focus {
@@ -754,9 +754,9 @@
         overflow-anchor: none;
         border: 1px solid var(--gray-400);
         border-radius: 12px;
+        padding: 6px 6px 0 6px;
         background-color: white;
         display: none;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         z-index: 100;
     }
     
@@ -771,7 +771,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background-color 0.2s;
+        transition: background-color 0.15s ease;
     }
     
     .search-result-item:last-child {
@@ -779,11 +779,11 @@
     }
     
     .search-result-item:hover {
-        background-color: rgba(158, 158, 158, 0.15);
+        background-color: var(--gray-100);
     }
     
     .search-result-item.selected {
-        background-color: rgba(142, 143, 143, 0.15);
+        background-color: var(--gray-100);
     }
     
     .product-info {
@@ -854,7 +854,7 @@
     }
     
     .product-price-tag .price-base {
-        font-size: 10px;
+        font-size: 12px;
         color: var(--gray-500);
     }
     
@@ -862,6 +862,11 @@
         font-size: 18px;
         color: var(--primary-color);
         font-weight: bold;
+    }
+
+    .product-price-tag .price-label {
+        font-size: 12px;
+        color: var(--gray-400);
     }
     
     .no-results {
@@ -1749,8 +1754,8 @@
     }
     
     .modal-product-price .price-label {
-        font-size: 10px;
-        color: var(--gray-400);
+        font-size: 12px;
+        color: var(--gray-500);
     }
     
     .modal-no-results {
@@ -1962,19 +1967,19 @@
         </svg>
         PDF
     </button>
-    <button onclick="document.getElementById('excel-file').click()" class="action-btn product-btn">
+    <button onclick="document.getElementById('excel-file').click()" class="action-btn product-btn" title="Cargar Productos">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
         <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0"/>
         </svg>
         <!--Cargar Productos-->
     </button>
-    <a href="catalogo.html" class="action-btn catalog-btn" style="text-decoration: none;">
+    <a href="catalogo.html" class="action-btn catalog-btn" style="text-decoration: none;" title="Ver Catálogo">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
         <path d="M0 13a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 16 13V6a1.5 1.5 0 0 0-1.5-1.5h-13A1.5 1.5 0 0 0 0 6zM2 3a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 0-1h-11A.5.5 0 0 0 2 3m2-2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7A.5.5 0 0 0 4 1"/>
         </svg>
         <!--Ver Catálogo-->
     </a>
-    <button onclick="clearInvoice()" class="action-btn clear-btn">
+    <button onclick="clearInvoice()" class="action-btn clear-btn" title="Limpiar">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
         <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
         </svg>
@@ -2862,7 +2867,12 @@
         for (let i = 0; i < visibleCount; i++) {
             height += items[i].offsetHeight;
         }
-        searchResults.style.maxHeight = height + 'px';
+        // Sumar el padding y el borde propios del panel (box-sizing: border-box
+        // hace que max-height los incluya), si no, se recorta parte del 4to producto.
+        const panelStyles = window.getComputedStyle(searchResults);
+        const extra = parseFloat(panelStyles.paddingTop) + parseFloat(panelStyles.paddingBottom) +
+            parseFloat(panelStyles.borderTopWidth) + parseFloat(panelStyles.borderBottomWidth);
+        searchResults.style.maxHeight = (height + extra) + 'px';
     }
 
     function searchProducts(query) {
@@ -2954,11 +2964,10 @@
                     <div class="product-price-tag">
                         ${exempt ? `
                         <div class="price-total">$${price.toFixed(2)}</div>
-                        <div class="price-base">Exento de ITBMS (7%)</div>
+                        <div class="price-label">Exento de ITBMS (7%)</div>
                         ` : `
-                        <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
-                        <div class="price-base">con ITBMS (7%)</div>
+                        <div class="price-base">$${price.toFixed(2)} sin ITBMS (7%)</div>
                         `}
                     </div>
                     ${getProductImageHtml(product.Code, 'product-thumb')}
@@ -4912,9 +4921,8 @@
                         <div class="price-total">$${price.toFixed(2)}</div>
                         <div class="price-label">Exento de ITBMS (7%)</div>
                         ` : `
-                        <div class="price-base">$${price.toFixed(2)}</div>
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
-                        <div class="price-label">con ITBMS (7%)</div>
+                        <div class="price-base">$${price.toFixed(2)} sin ITBMS (7%)</div>
                         `}
                     </div>
                     ${getProductImageHtml(product.Code, 'modal-product-thumb')}
