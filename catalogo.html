@@ -34,6 +34,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
+            zoom: 90%;
         }
         
         /* Header fijo con búsqueda */
@@ -561,31 +562,81 @@
         }
 
         /* Fila del botón "Cotizar": va justo debajo de la fila de badges
-           (costo, margen, ganancia), alineada a la derecha. Se posiciona
+           (costo, margen, ganancia), alineada a la derecha, 6px más
+           adentro que el padding normal de la tarjeta (20px). Se posiciona
            de forma absoluta para que no desplace el resto de la información
            de la tarjeta (categoría, marca, nombre, etc.) */
         .quote-row {
             position: absolute;
             top: 52px;
-            right: 20px;
+            right: 14px;
             left: 20px;
-            display: flex;
-            justify-content: flex-end;
-            opacity: 0;
-            pointer-events: none;
+            height: 24px;
             z-index: 3;
+        }
+
+        /* Badge de existencia (Disponible / Agotado / Consulta): visible por
+           defecto, ocupa el mismo lugar que el botón "Cotizar" (superpuestos
+           con position:absolute) para que no haya salto de layout al
+           intercambiarse con el hover. */
+        .stock-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+            text-transform: uppercase;
+            white-space: nowrap;
+            opacity: 1;
+            pointer-events: none;
             transition: opacity 0.25s ease;
         }
 
-        /* Mostrar el botón "Cotizar" solo cuando el mouse está sobre la tarjeta */
-        .product-card:hover .quote-row {
+        /* Disponible: verde (mismo verde que ya usaba "Cotizar") */
+        .stock-badge.stock-available {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* Agotado: rojo de la paleta (--danger-color) */
+        .stock-badge.stock-out {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+
+        /* Consulta: naranja (mismo color que el badge de margen) */
+        .stock-badge.stock-consult {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+
+        /* Mostrar el botón "Cotizar" y ocultar el badge de existencia
+           solo cuando el mouse está sobre la tarjeta */
+        .product-card:hover .stock-badge {
+            opacity: 0;
+        }
+
+        .product-card:hover .quote-tab {
             opacity: 1;
             pointer-events: auto;
         }
 
         /* Pestaña "Cotizar": mismo estilo que la barra de categoría
-           (fondo blanco y texto en color primario), ancho ajustado al texto */
+           (fondo blanco y texto en color primario), ancho ajustado al texto.
+           Superpuesta al badge de existencia; oculta hasta que se pasa el
+           mouse por la tarjeta. */
         .quote-tab {
+            position: absolute;
+            top: 0;
+            right: 0;
             width: auto;
             border: none;
             background-color: #e8f5e9;
@@ -598,11 +649,14 @@
             justify-content: center;
             padding: 4px 12px;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
             line-height: 1.4;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .quote-tab:hover {
@@ -703,6 +757,21 @@
             justify-content: space-between;
             margin-bottom: 12px;
         }
+
+        /* Grupo de badges "% margen" y "+$ ganancia": en tarjeta se corre
+           un poco más a la derecha, 6px más adentro que el padding normal
+           de la tarjeta, igual que el badge de existencia y "Cotizar".
+           En modo lista no aplica (ver "body.list-view .badges-container"). */
+        body:not(.list-view) .badges-right {
+            margin-right: -4px;
+        }
+
+        /* Badge "Costo": mismo margen que el grupo de la derecha, pero
+           hacia la izquierda, para que ambos lados queden simétricos.
+           En modo lista no aplica. */
+        body:not(.list-view) .badges-left {
+            margin-left: -4px;
+        }
         
         .badge {
             font-size: 13px;
@@ -797,6 +866,18 @@
         .price-tax span {
             color: var(--primary-color);
             font-weight: 600;
+        }
+
+        /* Mismo margen (-6px) que el badge de "Costo", pero aplicado a toda
+           la información de la tarjeta (categoría, marca, nombre,
+           referencia, código y precios), para que quede alineada. Solo en
+           modo tarjeta; en lista no aplica. */
+        body:not(.list-view) .product-category,
+        body:not(.list-view) .product-brand,
+        body:not(.list-view) .product-name,
+        body:not(.list-view) .product-code,
+        body:not(.list-view) .price-section {
+            margin-left: -4px;
         }
         
         /* Loading indicator */
@@ -928,6 +1009,55 @@
             width: 100%;
         }
         
+        /* Tickets de existencias (barra de estadísticas): Agotado / Consultar / Disponible.
+           Usan los mismos colores que el badge de existencia de las tarjetas. */
+        .stock-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-left: 0;
+        }
+
+        /* Misma estética que los botones de control de la barra superior
+           (.action-btn): esquinas de 8px, icono, transición suave y leve
+           elevación al pasar el mouse. En reposo el icono es gris oscuro;
+           al pasar el mouse toma el color de su existencia y lo mantiene
+           al hacer clic (ticket activo). */
+        .stock-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 8px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            background-color: rgba(64, 64, 64, 0.04);
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+        }
+
+        .stock-tag svg {
+            display: block;
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            overflow: visible;
+        }
+
+        .stock-tag:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Hover y activo: color de la existencia con su fondo suave */
+        .stock-tag.stock-available:hover,
+        .stock-tag.stock-available.active { background-color: #e8f5e9; color: #2e7d32; border-color: #e8f5e9; }
+        .stock-tag.stock-out:hover,
+        .stock-tag.stock-out.active       { background-color: #ffebee; color: var(--danger-color); border-color: #ffebee; }
+        .stock-tag.stock-consult:hover,
+        .stock-tag.stock-consult.active   { background-color: #fff3e0; color: #e65100; border-color: #fff3e0; }
+
         .category-header:first-child,
         #catalog-content > .category-header:first-of-type {
             margin-top: 0;
@@ -1187,13 +1317,32 @@
             }
 
             body.list-view .quote-row {
-                position: static;
+                position: relative;
+                /* Anular el top/right/left absolutos de la tarjeta: en lista
+                   .quote-row pasa a ser un ítem normal del flex (position:
+                   relative), y si se dejan esos valores, el recuadro se
+                   desplaza fuera del área visible de la fila (que tiene
+                   overflow:hidden) y no se ve nada. */
+                top: auto;
+                right: auto;
+                left: auto;
                 opacity: 1;
-                pointer-events: auto;
                 order: 5;
                 flex-shrink: 0;
                 width: 100px;
+                height: 24px;
                 text-align: center;
+            }
+
+            /* En la lista, el badge y el botón "Cotizar" quedan centrados
+               en la misma columna de 100px (en vez de pegados a la derecha
+               como en la tarjeta) */
+            body.list-view .stock-badge,
+            body.list-view .quote-tab {
+                left: 0;
+                right: 0;
+                margin: 0 auto;
+                width: fit-content;
             }
 
             body.list-view .price-section {
@@ -1383,11 +1532,15 @@
             }
         }
 
-        /* El modo lista solo está disponible en pantallas grandes (más de
-           1280px). En pantallas pequeñas y medianas (hasta 1280px) se oculta el botón de
-           cambio a lista, ya que esa vista no aplica ahí. */
+        /* El modo lista y la regleta calibradora solo están disponibles en
+           pantallas grandes (más de 1280px). En pantallas pequeñas y
+           medianas (hasta 1280px) se ocultan sus botones (y la regleta),
+           ya que esas funciones no aplican ahí. */
         @media (max-width: 1280px) {
-            #view-toggle-btn {
+            #view-toggle-btn,
+            #ruler-toggle-btn,
+            .bolt-gauge-wrapper,
+            body.ruler-gauge-active .bolt-gauge-wrapper {
                 display: none !important;
             }
         }
@@ -1557,7 +1710,13 @@
                 display: none;
             }
 
-            /* .subcat-tags,*/
+            /* No imprimir el recuadro de existencia (Disponible/Agotado/
+               Consulta) ni el botón "Cotizar" */
+            .quote-row {
+                display: none;
+            }
+
+            .stock-tags,
             .search-container,
             .stats-bar,
             .filters-bar {
@@ -1626,13 +1785,13 @@
                 </div>
 
                 <div class="header-actions">
-                    <button onclick="document.getElementById('excel-file').click()" class="action-btn primary">
+                    <button onclick="document.getElementById('excel-file').click()" class="action-btn primary" title="Cargar Productos">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0"/>
                         </svg>
                         <!--Cargar Productos-->
                     </button>
-                    <a href="calculadora.html" class="action-btn calc" style="text-decoration: none;">
+                    <a href="calculadora.html" class="action-btn calc" style="text-decoration: none;" title="Calculadora">
                         <svg class="icono-calculadora" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M12 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM4.5 1.5h7a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5zM4 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM4 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-6 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
                         </svg>
@@ -1649,16 +1808,11 @@
                         </svg>
                     </button>
                     <button type="button" id="ruler-toggle-btn" class="action-btn dark" onclick="toggleRulerGauge()" title="Mostrar regleta calibradora (solo en Tornillos y Fijaciones)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16">
-                            <g transform="rotate(90 8 8)">
-                                <rect x="1" y="5" width="14" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/>
-                                <line x1="3" y1="5" x2="3" y2="7.6" stroke="currentColor" stroke-width="1"/>
-                                <line x1="5" y1="5" x2="5" y2="6.5" stroke="currentColor" stroke-width="1"/>
-                                <line x1="7" y1="5" x2="7" y2="7.6" stroke="currentColor" stroke-width="1"/>
-                                <line x1="9" y1="5" x2="9" y2="6.5" stroke="currentColor" stroke-width="1"/>
-                                <line x1="11" y1="5" x2="11" y2="7.6" stroke="currentColor" stroke-width="1"/>
-                                <line x1="13" y1="5" x2="13" y2="6.5" stroke="currentColor" stroke-width="1"/>
-                            </g>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Icono de tornillo: cabeza, cuerpo roscado y punta -->
+                            <rect x="2.5" y="1" width="11" height="3" rx="1"/>
+                            <path d="M5.5 4v8L8 15l2.5-3V4"/>
+                            <path d="M5.5 6.6l5-1.2M5.5 9.2l5-1.2M5.5 11.8l5-1.2"/>
                         </svg>
                     </button>
                     <button onclick="printCatalog()" class="action-btn dark">
@@ -1700,6 +1854,14 @@
 
         <div class="stats-bar">
             <div class="stats-info">
+                <div class="stat-item">
+                    <span class="stat-label">Existencias:</span>
+                    <span class="stock-tags" id="stock-filter-tags">
+                        <span class="stock-tag stock-out" data-stock="stock-out" role="button" tabindex="0" title="Agotado" aria-label="Agotado"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></span>
+                        <span class="stock-tag stock-consult" data-stock="stock-consult" role="button" tabindex="0" title="Consultar" aria-label="Consultar"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/></svg></span>
+                        <span class="stock-tag stock-available" data-stock="stock-available" role="button" tabindex="0" title="Disponible" aria-label="Disponible"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/></svg></span>
+                    </span>
+                </div>
                 <div class="stat-item">
                     <span class="stat-label">Total productos:</span>
                     <span class="stat-value" id="total-products">0</span>
@@ -1750,6 +1912,7 @@
         const PRODUCTS_PER_LOAD = 16; // Mostrar 16 productos inicialmente (4 filas de 4)
         let isLoading = false;
         let renderedGroups = {}; // Para trackear qué grupos ya se renderizaron
+        let activeStockFilter = null; // 'stock-out' | 'stock-consult' | 'stock-available' | null
         let defaultCategoryApplied = false; // Para seleccionar "Destacados" solo la primera vez
 
         // ============================================================
@@ -1857,6 +2020,20 @@
             document.getElementById("category-filter").addEventListener("change", handleCategoryChange);
             document.getElementById("subcategory-filter").addEventListener("change", handleSubcategoryChange);
             document.getElementById("brand-filter").addEventListener("change", filterProducts);
+            // Tickets de existencias: un clic filtra, otro clic sobre el mismo lo quita
+            document.querySelectorAll("#stock-filter-tags .stock-tag").forEach(tagEl => {
+                const toggle = () => {
+                    const value = tagEl.getAttribute("data-stock");
+                    activeStockFilter = (activeStockFilter === value) ? null : value;
+                    document.querySelectorAll("#stock-filter-tags .stock-tag").forEach(t =>
+                        t.classList.toggle("active", t.getAttribute("data-stock") === activeStockFilter));
+                    filterProducts();
+                };
+                tagEl.addEventListener("click", toggle);
+                tagEl.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+                });
+            });
             document.getElementById("search-input").addEventListener("input", debounce(handleSearchInput, 300));
 
             // Cargar productos guardados
@@ -2222,7 +2399,8 @@
             const normalizedCategory = normalizeCategoryName(category);
             const isTornillosYFijaciones = normalizedCategory === 'TORNILLOS Y FIJACIONES';
             const isPlomeria = normalizedCategory === 'PLOMERIA';
-            if (!isTornillosYFijaciones && !isPlomeria) {
+            const isConstruccion = normalizedCategory === 'CONSTRUCCION';
+            if (!isTornillosYFijaciones && !isPlomeria && !isConstruccion) {
                 return parts[parts.length - 1].toUpperCase();
             }
 
@@ -2348,7 +2526,16 @@
                     Brand: product.Brand || product.Marca || product.marca || "Sin Marca",
                     Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
                     Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0),
-                    Impuesto: parseFloat(impuestoRaw)
+                    Impuesto: parseFloat(impuestoRaw),
+                    // Existencia del producto: admite "Cantidad", "Unidades",
+                    // "Existencia" o "Stock" (en cualquier capitalización).
+                    // > 0 => Disponible, 0 => Agotado, < 0 => Consulta.
+                    Quantity: parseFloat(
+                        product.Quantity ?? product.Cantidad ?? product.cantidad ??
+                        product.Unidades ?? product.unidades ??
+                        product.Existencia ?? product.existencia ??
+                        product.Stock ?? product.stock ?? 0
+                    )
                 };
             });
 
@@ -2920,7 +3107,11 @@
                     (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
                     (product.Category && product.Category.toLowerCase().includes(searchTerm));
 
-                return matchesCategory && matchesSubcategory && matchesBrand && matchesSearch;
+                // Ticket de existencias (barra de estadísticas): Agotado / Consultar / Disponible
+                const matchesStock = !activeStockFilter ||
+                    getStockStatus(product.Quantity).className === activeStockFilter;
+
+                return matchesCategory && matchesSubcategory && matchesBrand && matchesSearch && matchesStock;
             });
 
             // No hace falta reordenar aquí: productList ya está ordenado por
@@ -3183,9 +3374,25 @@
         }
 
         // Crear tarjeta de producto
+        // Determina el estado de existencia del producto según su cantidad/unidades:
+        // > 0 => Unidades, ej. "4 UND" (verde), 0 => Agotado (rojo), < 0 => Consulta (naranja).
+        function getStockStatus(quantity) {
+            const qty = parseFloat(quantity);
+            const value = isNaN(qty) ? 0 : qty;
+            if (value > 0) {
+                // Muestra las unidades en vez de la palabra "Disponible" (ej: 4 UND, 660 UND)
+                const units = Number.isInteger(value) ? value : parseFloat(value.toFixed(2));
+                return { label: units + ' UND', className: 'stock-available' };
+            } else if (value === 0) {
+                return { label: 'Agotado', className: 'stock-out' };
+            }
+            return { label: 'Consultar', className: 'stock-consult' };
+        }
+
         function createProductCard(product) {
             const price = product.Price || 0;
             const cost = product.Cost || 0;
+            const stockStatus = getStockStatus(product.Quantity);
             const refCode = (product.Code !== undefined && product.Code !== null)
                 ? product.Code.toString().trim()
                 : '';
@@ -3216,20 +3423,21 @@
                 : '';
 
             return `
-                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-category="${escapeForAttribute(product.Category)}" data-subcategory="${escapeForAttribute(product.Subcategory)}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}">
+                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-category="${escapeForAttribute(product.Category)}" data-subcategory="${escapeForAttribute(product.Subcategory)}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" data-quantity="${product.Quantity}">
                     ${imageTag}
                     ${thumbTag}
                     <div class="badges-container">
-                        <div>
+                        <div class="badges-left">
                             ${cost > 0 ? `<span class="badge badge-cost">Costo: $${cost.toFixed(2)}</span>` : ''}
                         </div>
-                        <div>
+                        <div class="badges-right">
                             ${cost > 0 ? `<span class="badge badge-margin">${margin.toFixed(0)}%</span>` : ''}
                             ${cost > 0 ? `<span class="badge badge-profit">+$${profit.toFixed(2)}</span>` : ''}
                         </div>
                     </div>
 
                     <div class="quote-row">
+                        <span class="stock-badge ${stockStatus.className}">${stockStatus.label}</span>
                         <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" onclick="handleProductClick(this)">
                             <span>COTIZAR</span>
                         </button>
@@ -3408,6 +3616,8 @@
             openEye.style.display = isListView ? 'none' : 'block';
             closedEye.style.display = isListView ? 'block' : 'none';
             if (btn) {
+                // Amarillo mientras la vista de lista está activa (igual que la regleta)
+                btn.classList.toggle('active', isListView);
                 btn.title = isListView ? 'Cambiar a vista de tarjetas' : 'Cambiar a vista de lista';
             }
         }
@@ -3942,6 +4152,20 @@
         // Activa/desactiva la visibilidad de la regleta calibradora.
         // El diagrama solo existe en el DOM dentro de "TORNILLOS Y FIJACIONES",
         // así que aquí solo se alterna una clase en <body>.
+        // Si la pantalla se reduce (≤1280px) la regleta se oculta, así que
+        // también se quita cualquier filtro por calibre que estuviera activo.
+        (function watchSmallScreenForGauge() {
+            if (!window.matchMedia) return;
+            const mq = window.matchMedia('(max-width: 1280px)');
+            const onChange = (e) => {
+                if (e.matches && typeof activeGaugeFilter !== 'undefined' && activeGaugeFilter) {
+                    clearGaugeFilterAndReset();
+                }
+            };
+            if (mq.addEventListener) mq.addEventListener('change', onChange);
+            else if (mq.addListener) mq.addListener(onChange);
+        })();
+
         function toggleRulerGauge() {
             const isActive = document.body.classList.toggle('ruler-gauge-active');
             updateRulerToggleIcon(isActive);
