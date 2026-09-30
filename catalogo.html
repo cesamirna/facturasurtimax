@@ -34,7 +34,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             min-height: 100vh;
-            zoom: 90%;
+            /* zoom: 90%;*/
         }
         
         /* Header fijo con búsqueda */
@@ -46,6 +46,7 @@
             z-index: 1000;
             background: var(--primary-color);
             padding: 15px 15px;
+            margin-bottom: 6px;
         }
         
         .header-content {
@@ -53,7 +54,7 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
         
         .header-top {
@@ -61,7 +62,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 14px;
+            gap: 10px;
         }
         
         .logo-section {
@@ -486,7 +487,7 @@
 
         /* Contenido principal */
         .main-content {
-            padding-top: 25px;
+            padding-top: 8px;
             padding-bottom: 110px;
             max-width: 1400px;
             margin: 0 auto;
@@ -1508,7 +1509,7 @@
 
             /* El contenido ya no necesita el gran espacio superior del header fijo */
             .main-content {
-                padding-top: 20px;
+                padding-top: 6px;
                 padding-left: 12px;
                 padding-right: 12px;
             }
@@ -1681,6 +1682,24 @@
                 position: relative;
                 background: none;
                 box-shadow: none;
+                /* Encabezado compacto al imprimir: el título queda pegado
+                   al borde superior de la hoja (sin el relleno de pantalla) */
+                padding: 0 15px 0 15px;
+                margin: 0;
+            }
+
+            .header-content,
+            .header-top,
+            .logo-section {
+                gap: 8px;
+                margin: 0;
+                padding: 0;
+                min-height: 0;
+            }
+
+            .logo-section h1 {
+                margin: 0;
+                line-height: 1.2;
             }
             
             .header-actions,
@@ -1695,7 +1714,13 @@
             }
 
             .main-content {
-                padding-top: 20px;
+                padding-top: 4px;
+            }
+
+            /* Sin separación extra arriba de la primera barra de categoría */
+            #catalog-content > .category-header:first-child,
+            #catalog-content > *:first-child {
+                margin-top: 0;
             }
             
             .product-card {
@@ -2468,12 +2493,12 @@
 
             // Para la categoría "TORNILLOS Y FIJACIONES" se usan las dos primeras
             // palabras del nombre del producto como subcategoría, excepto
-            // para "CLAVOS" "GANCHO" "TARUGOS", que no necesitan esa subdivisión,
+            // para "CLAVOS" "GANCHO" "TARUGOS" "ALCAYATA", que no necesitan esa subdivisión,
             // y para "TUERCA HEX" y "TOR HEX", que usan las tres primeras palabras
             const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
             const firstWordUpper = words[0].toUpperCase();
             const secondWordUpper = (words[1] || "").toUpperCase();
-            const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO");
+            const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO") || firstWordUpper.startsWith("ALCAYATA");
             const isTuercaHex = firstWordUpper.startsWith("TUERCA") && secondWordUpper.startsWith("HEX");
             const isTorHex = firstWordUpper.startsWith("TOR") && secondWordUpper.startsWith("HEX");
             // NOTA: la lógica de "última palabra descriptiva -> tomar el valor
@@ -3386,7 +3411,9 @@
             } else if (value === 0) {
                 return { label: 'Agotado', className: 'stock-out' };
             }
-            return { label: 'Consultar', className: 'stock-consult' };
+            // Cantidad negativa: se muestra el exceso por debajo de cero (ej: -3 UND)
+            const negUnits = Number.isInteger(value) ? value : parseFloat(value.toFixed(2));
+            return { label: negUnits + ' UND', className: 'stock-consult' };
         }
 
         function createProductCard(product) {

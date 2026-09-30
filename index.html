@@ -40,7 +40,7 @@
         background-color: var(--bg-light);
         color: var(--text-dark);
         padding-top: 80px;
-        zoom: 90%;
+        /* zoom: 90%;*/
     }
     
     .invoice {
@@ -114,18 +114,67 @@
     }
     
     .info {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 20px;
+        row-gap: 10px;
+        align-items: center;
         margin-bottom: 10px;
         padding: 18px;
         background-color: var(--gray-100);
         border-radius: 8px;
         border: 1px solid var(--gray-200);
-    }
-    
-    .info-left, .info-right {
-        width: 60%;
         font-size: 14px;
+    }
+
+    /* Las filas no generan caja: los 6 campos se reparten en 3 columnas iguales.
+       Cada campo es etiqueta + dato pegados; las etiquetas de una misma columna
+       empiezan en el mismo punto (Teléfono / Vendedor, Cliente / Correo...). */
+    .info-row {
+        display: contents;
+    }
+
+    .info .info-row > p {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        min-width: 0;
+    }
+
+    .info-row > p > b {
+        white-space: nowrap;
+    }
+
+    /* En pantalla el correo siempre se muestra. Al imprimir / generar el PDF,
+       si está vacío se quita y Vendedor ocupa su lugar (primera columna) */
+    body.pdf-capture .info .hide-when-empty.empty-value {
+        display: none !important;
+    }
+
+    @media print {
+        .info .hide-when-empty.empty-value {
+            display: none !important;
+        }
+        .invoice .info {
+            row-gap: 8px;
+        }
+    }
+
+    body.pdf-capture .info {
+        row-gap: 8px;
+    }
+
+    @media (max-width: 700px) {
+        .info {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .info-row > p > b {
+            min-width: 5.5em;
+        }
+        body.pdf-capture .info .hide-when-empty.empty-value {
+            display: none !important;
+        }
     }
     
     .info-label {
@@ -140,7 +189,9 @@
         border: 1px solid var(--gray-300);
         border-radius: 6px;
         padding: 8px 12px;
-        width: 60%;
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
         font-size: 14px;
         transition: all 0.3s;
         background-color: white;
@@ -766,9 +817,9 @@
     }
     
     .search-result-item {
-        padding: 6px 18px;
+        padding: 6px 10px 6px 10px;
         cursor: pointer;
-        border-bottom: 1px solid var(--gray-200);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -780,11 +831,11 @@
     }
     
     .search-result-item:hover {
-        background-color: var(--gray-100);
+        background-color: #fafafa;
     }
     
     .search-result-item.selected {
-        background-color: var(--gray-100);
+        background-color: #fafafa;
     }
     
     .product-info {
@@ -839,7 +890,7 @@
         border-radius: 8px;
         border: 1px solid var(--gray-200);
         background-color: white;
-        margin-left: 14px;
+        margin-left: 8px;
         flex-shrink: 0;
     }
 
@@ -850,7 +901,7 @@
         border-radius: 8px;
         border: 1px solid var(--gray-200);
         background-color: white;
-        margin-left: 16px;
+        margin-left: 8px;
         flex-shrink: 0;
     }
     
@@ -860,14 +911,14 @@
     }
     
     .product-price-tag .price-total {
-        font-size: 18px;
+        font-size: 16px;
         color: var(--primary-color);
         font-weight: bold;
     }
 
     .product-price-tag .price-label {
         font-size: 12px;
-        color: var(--gray-400);
+        color: var(--gray-500);
     }
     
     .no-results {
@@ -1604,8 +1655,8 @@
     }
     
     .modal-product-item {
-        padding: 10px 24px;
-        border-bottom: 1px solid var(--gray-200);
+        padding: 10px 12px 10px 14px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         cursor: pointer;
         display: flex;
         justify-content: space-between;
@@ -1616,7 +1667,7 @@
     .modal-category-header {
         background-color: #ffffff;
         color: var(--gray-700);
-        padding: 12px 24px;
+        padding: 12px 14px;
         border-left: 6px solid var(--gray-700);
         font-weight: 600;
         font-size: 14px;
@@ -1630,7 +1681,7 @@
     .modal-subcategory-header {
         /* Misma apariencia que en catálogo: icono junto al título,
            sin caja de fondo */
-        padding: 10px 24px;
+        padding: 10px 14px;
         background-color: transparent;
         color: var(--gray-700);
         font-weight: 600;
@@ -1639,7 +1690,7 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
-        border-bottom: 1px solid var(--gray-200);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
     .modal-subcategory-header svg {
@@ -1684,11 +1735,11 @@
     }
     
     .modal-product-item:hover {
-        background-color: rgba(64, 64, 64, 0.08);
+        background-color: rgba(64, 64, 64, 0.035);
     }
     
     .modal-product-item.selected {
-        background-color: rgba(64, 64, 64, 0.15);
+        background-color: rgba(64, 64, 64, 0.07);
         border-left: 4px solid var(--gray-700);
     }
     
@@ -1749,7 +1800,7 @@
     }
     
     .modal-product-price .price-total {
-        font-size: 18px;
+        font-size: 16px;
         color: var(--primary-dark);
         font-weight: bold;
     }
@@ -1816,6 +1867,100 @@
     .search-modal-footer .close-btn:hover {
         background-color: var(--gray-400);
         color: white;
+    }
+
+    /* ===== Iconos de existencias y regla en el pie del modal (igual que en catálogo) ===== */
+    .search-modal-footer .keyboard-hints {
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .modal-footer-filters {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    /* Tickets de existencias: Agotado / Consultar / Disponible */
+    .stock-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-left: 0;
+    }
+
+    .stock-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 8px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        line-height: 1;
+        cursor: pointer;
+        user-select: none;
+        background-color: rgba(64, 64, 64, 0.04);
+        color: #404040;
+        transition: all 0.3s ease;
+    }
+
+    .stock-tag svg {
+        display: block;
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        overflow: visible;
+    }
+
+    .stock-tag:hover {
+        transform: translateY(-2px);
+    }
+
+    .stock-tag.stock-available:hover,
+    .stock-tag.stock-available.active { background-color: #e8f5e9; color: #2e7d32; border-color: #e8f5e9; }
+    .stock-tag.stock-out:hover,
+    .stock-tag.stock-out.active       { background-color: #ffebee; color: #e53935; border-color: #ffebee; }
+    .stock-tag.stock-consult:hover,
+    .stock-tag.stock-consult.active   { background-color: #fff3e0; color: #e65100; border-color: #fff3e0; }
+
+    /* Referencia del producto, a la derecha del código */
+    .product-ref::before {
+        content: "|";
+        margin: 0 5px;
+        opacity: 0.35;
+    }
+
+    .modal-product-meta .product-ref {
+        margin-left: -5px;
+    }
+
+    .modal-product-meta .product-ref::before {
+        margin: 0 5px 0 0;
+    }
+
+    /* Tíquet de existencia sobre el precio (lista de index y modal) */
+    .stock-badge-row {
+        display: flex;
+        justify-content: flex-end;
+        margin: 3px 0 0;
+    }
+
+    .stock-tag.stock-badge-static {
+        cursor: default;
+        border: none;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        line-height: 1.4;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .stock-tag.stock-badge-static:hover {
+        transform: none;
     }
 
     /* Estilos de impresión - MEJORADOS */
@@ -2019,13 +2164,13 @@
     </div>
     
     <div class="info">
-        <div class="info-left">
+        <div class="info-row">
             <p><b>Cliente:</b> <input type="text" id="client-name"></p>
-            <p><b>Dirección:</b> <input type="text" id="client-address" autocomplete="off"></p>
-            <p id="client-email-row" class="hide-when-empty"><b>Correo:</b> <input type="email" id="client-email"></p>
-        </div>
-        <div class="info-right">
             <p><b>Teléfono:</b> <input type="text" id="client-phone"></p>
+            <p class="info-wide"><b>Dirección:</b> <input type="text" id="client-address" autocomplete="off"></p>
+        </div>
+        <div class="info-row">
+            <p id="client-email-row" class="hide-when-empty"><b>Correo:</b> <input type="email" id="client-email"></p>
             <p><b>Vendedor:</b> <input type="text" id="seller-name"></p>
             <p class="no-print"><b>Orden No.</b> <input type="text" id="order-number" style="color: #e94560; font-weight: bold;"></p>
         </div>
@@ -2178,6 +2323,13 @@
                     </svg>
                 </button>
             </div>
+                <span class="modal-footer-filters">
+                <span class="stock-tags" id="modal-stock-filter-tags">
+                <span class="stock-tag stock-out" data-stock="stock-out" role="button" tabindex="0" title="Agotado" aria-label="Agotado"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></span>
+                <span class="stock-tag stock-consult" data-stock="stock-consult" role="button" tabindex="0" title="Consultar" aria-label="Consultar"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/></svg></span>
+                <span class="stock-tag stock-available" data-stock="stock-available" role="button" tabindex="0" title="Disponible" aria-label="Disponible"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/></svg></span>
+            </span>
+                </span>
         </div>
         <div class="search-modal-body">
             <ul id="modal-product-list" class="modal-product-list">
@@ -2960,7 +3112,7 @@
                         <div class="product-category">${category}</div>
                         <div class="product-brand">${productBrand}</div>
                         <div class="product-name">${product.Description || 'Sin descripción'}</div>
-                        <div class="product-code">Código: ${code}</div>
+                        <div class="product-code">Código: ${code}${product.Reference ? `<span class="product-ref">${escapeHtml(product.Reference)}</span>` : ''}</div>
                     </div>
                     <div class="product-price-tag">
                         ${exempt ? `
@@ -2970,6 +3122,7 @@
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-base">$${price.toFixed(2)} sin ITBMS (7%)</div>
                         `}
+                        ${getStockBadgeHtml(product.Quantity)}
                     </div>
                     ${getProductImageHtml(product.Code, 'product-thumb')}
                 </div>
@@ -4100,7 +4253,15 @@
                 Brand: product.Brand || product.Marca || product.marca || "GENERICA",
                 Cost: parseFloat(product.Cost || product.Costo || product.costo || product.Compra || 0),
                 Price: parseFloat(product.Price || product.Precio || product.precio || product.PrecioVenta || product.Precio1 || product["Precio 1"] || product["precio 1"] || 0),
-                Impuesto: parseFloat(impuestoRaw)
+                Impuesto: parseFloat(impuestoRaw),
+                // Existencia del producto (igual que en catálogo): > 0 => Disponible,
+                // 0 => Agotado, < 0 => Consultar.
+                Quantity: parseFloat(
+                    product.Quantity ?? product.Cantidad ?? product.cantidad ??
+                    product.Unidades ?? product.unidades ??
+                    product.Existencia ?? product.existencia ??
+                    product.Stock ?? product.stock ?? 0
+                )
             };
         });
 
@@ -4125,7 +4286,7 @@
         const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
         const firstWordUpper = words[0].toUpperCase();
         const secondWordUpper = (words[1] || "").toUpperCase();
-        const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO");
+        const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO") || firstWordUpper.startsWith("ALCAYATA");
         const isTuercaHex = firstWordUpper.startsWith("TUERCA") && secondWordUpper.startsWith("HEX");
         const isTorHex = firstWordUpper.startsWith("TOR") && secondWordUpper.startsWith("HEX");
         if (isTornillosYFijaciones && (isTuercaHex || isTorHex)) {
@@ -4719,6 +4880,9 @@
         // trabajará sobre esos resultados; si no, sobre todo el catálogo.
         modalSearchPool = initialTerm ? filterProductsByTerm(productList || [], initialTerm) : (productList || []);
         
+        // Cada vez que se abre el modal, el filtro de existencias empieza limpio
+        resetModalStockFilters();
+        
         // Ejecutar el renderizado inicial (ya filtrado al fijar el pool, por eso se pasa vacío)
         filterAndRenderModalProducts('');
         
@@ -4791,6 +4955,11 @@
         // en todo el catálogo.
         const pool = modalSearchPool || productList;
         modalFilteredProducts = showAll ? pool.slice() : filterProductsByTerm(pool, term);
+
+        // Tickets de existencias (pie del modal): Agotado / Consultar / Disponible
+        if (activeModalStockFilter) {
+            modalFilteredProducts = modalFilteredProducts.filter(p => getModalStockClass(p.Quantity) === activeModalStockFilter);
+        }
         
         // Ordenar por categoría, subcategoría (igual que en catálogo) y precio
         modalFilteredProducts.sort((a, b) => {
@@ -4825,7 +4994,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <p>No se encontraron productos con "${searchTerm}"</p>
+                    <p>${term ? `No se encontraron productos con "${escapeHtml(searchTerm)}"` : 'No se encontraron productos con ese filtro de existencias'}</p>
                 </div>
             `;
         } else {
@@ -4904,18 +5073,18 @@
                     : '';
                 const subIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.687-.12h8.66l-.31-.31L8.373 1.5H2.5a1 1 0 0 0-1 .981z"/></svg>';
 
-                header += `<li class="modal-subcategory-header">${subIcon}<span>${subcategory ? escapeHtml(subcategory).toUpperCase() : 'SIN SUBCATEGORÍA'}</span>${tagsHtml}</li>`;
+                header += `<li class="modal-subcategory-header" data-group="${escapeHtml(groupKey)}" data-category="${escapeHtml(category)}">${subIcon}<span>${subcategory ? escapeHtml(subcategory).toUpperCase() : 'SIN SUBCATEGORÍA'}</span>${tagsHtml}</li>`;
             }
 
             html += header + `
-                <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" data-group="${escapeHtml(groupKey)}" data-description="${escapeHtml(product.Description || '')}" onclick="selectProductFromModal(${originalIndex})">
+                <li class="modal-product-item" data-index="${originalIndex}" data-modal-index="${index}" data-group="${escapeHtml(groupKey)}" data-category="${escapeHtml(category)}" data-subcategory="${escapeHtml(subcategory)}" data-description="${escapeHtml(product.Description || '')}" onclick="selectProductFromModal(${originalIndex})">
                     <div class="modal-product-info">
                         <div class="modal-product-meta">
                             <span class="modal-product-brand">${escapeHtml(productBrand)}</span>
                         </div>
                         <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="modal-product-meta">
-                            <span class="modal-product-code">Código: ${escapeHtml(code)}</span>
+                            <span class="modal-product-code">Código: ${escapeHtml(code)}</span>${product.Reference ? `<span class="modal-product-code product-ref">${escapeHtml(product.Reference)}</span>` : ''}
                         </div>
                     </div>
                     <div class="modal-product-price">
@@ -4926,6 +5095,7 @@
                         <div class="price-total">$${priceWithTax.toFixed(2)}</div>
                         <div class="price-base">$${price.toFixed(2)} sin ITBMS (7%)</div>
                         `}
+                        ${getStockBadgeHtml(product.Quantity)}
                     </div>
                     ${getProductImageHtml(product.Code, 'modal-product-thumb')}
                 </li>
@@ -5025,8 +5195,63 @@
         showNotification('Producto seleccionado: ' + product.Description);
     }
     
+    // ============ EXISTENCIAS EN EL MODAL ============
+    let activeModalStockFilter = null; // 'stock-out' | 'stock-consult' | 'stock-available' | null
+
+    // Misma regla que catálogo: > 0 disponible, 0 agotado, < 0 consultar.
+    // Si el producto no trae el dato de existencias (lista cargada antes de este
+    // cambio) no coincide con ningún ticket hasta volver a cargar la lista.
+    function getModalStockClass(quantity) {
+        if (quantity === undefined || quantity === null || quantity === '') return null;
+        const qty = parseFloat(quantity);
+        if (isNaN(qty)) return null;
+        if (qty > 0) return 'stock-available';
+        if (qty === 0) return 'stock-out';
+        return 'stock-consult';
+    }
+
+    // Tíquet de existencia con la cantidad disponible, arriba del precio
+    // (lista de index y modal): > 0 verde, 0 rojo, < 0 naranja ("Consultar").
+    function getStockBadgeHtml(quantity) {
+        const cls = getModalStockClass(quantity);
+        if (!cls) return '';
+        const qty = parseFloat(quantity);
+        const qtyText = Number.isInteger(qty) ? String(qty) : qty.toFixed(2).replace(/\.?0+$/, '');
+        const text = cls === 'stock-out' ? 'Agotado' : `${qtyText} UND`;
+        return `<div class="stock-badge-row"><span class="stock-tag ${cls} active stock-badge-static" title="Existencia: ${qtyText}">${text}</span></div>`;
+    }
+
+    // Deja limpio el filtro de existencias (al abrir el modal)
+    function resetModalStockFilters() {
+        activeModalStockFilter = null;
+        document.querySelectorAll('#modal-stock-filter-tags .stock-tag').forEach(t => t.classList.remove('active'));
+    }
+
+    (function initModalStock() {
+        // Tickets de existencias: un clic filtra, otro clic sobre el mismo lo quita
+        document.querySelectorAll('#modal-stock-filter-tags .stock-tag').forEach(tagEl => {
+            const toggle = () => {
+                const value = tagEl.getAttribute('data-stock');
+                activeModalStockFilter = (activeModalStockFilter === value) ? null : value;
+                document.querySelectorAll('#modal-stock-filter-tags .stock-tag').forEach(t =>
+                    t.classList.toggle('active', t.getAttribute('data-stock') === activeModalStockFilter));
+                const input = document.getElementById('modal-search-input');
+                filterAndRenderModalProducts(input ? input.value : '');
+            };
+            tagEl.addEventListener('click', toggle);
+            tagEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation(); // evita que Enter seleccione un producto del modal
+                    toggle();
+                }
+            });
+        });
+
+    })();
+
     function handleModalKeydown(e) {
-        let items = document.querySelectorAll('.modal-product-item');
+        let items = document.querySelectorAll('.modal-product-item:not(.hidden-by-tag)');
         
         if (e.key === 'Escape') {
             e.preventDefault();
@@ -5036,7 +5261,7 @@
             // Si llegamos al final de lo renderizado, cargamos el siguiente lote
             if (modalSelectedIndex + 1 >= items.length && modalRenderedCount < modalFilteredProducts.length) {
                 renderModalBatch();
-                items = document.querySelectorAll('.modal-product-item');
+                items = document.querySelectorAll('.modal-product-item:not(.hidden-by-tag)');
             }
             if (items.length === 0) return;
             modalSelectedIndex = Math.min(modalSelectedIndex + 1, items.length - 1);
