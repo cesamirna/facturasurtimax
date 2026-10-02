@@ -1924,19 +1924,19 @@
     .stock-tag.stock-consult:hover,
     .stock-tag.stock-consult.active   { background-color: #fff3e0; color: #e65100; border-color: #fff3e0; }
 
-    /* Referencia del producto, a la derecha del código */
-    .product-ref::before {
+    /* Referencia del producto (product.Reference) primero, y a su lado el código, separados por "|" */
+    .product-ref::after {
         content: "|";
         margin: 0 5px;
         opacity: 0.35;
     }
 
     .modal-product-meta .product-ref {
-        margin-left: -5px;
+        margin-right: -5px;
     }
 
-    .modal-product-meta .product-ref::before {
-        margin: 0 5px 0 0;
+    .modal-product-meta .product-ref::after {
+        margin: 0 0 0 5px;
     }
 
     /* Tíquet de existencia sobre el precio (lista de index y modal) */
@@ -3112,7 +3112,7 @@
                         <div class="product-category">${category}</div>
                         <div class="product-brand">${productBrand}</div>
                         <div class="product-name">${product.Description || 'Sin descripción'}</div>
-                        <div class="product-code">Código: ${code}${product.Reference ? `<span class="product-ref">${escapeHtml(product.Reference)}</span>` : ''}</div>
+                        <div class="product-code">${product.Reference ? `<span class="product-ref">${escapeHtml(product.Reference)}</span>` : ''}Código: ${code}</div>
                     </div>
                     <div class="product-price-tag">
                         ${exempt ? `
@@ -5084,7 +5084,7 @@
                         </div>
                         <div class="modal-product-name">${product.Description || 'Sin descripción'}</div>
                         <div class="modal-product-meta">
-                            <span class="modal-product-code">Código: ${escapeHtml(code)}</span>${product.Reference ? `<span class="modal-product-code product-ref">${escapeHtml(product.Reference)}</span>` : ''}
+                            ${product.Reference ? `<span class="modal-product-code product-ref">${escapeHtml(product.Reference)}</span>` : ''}<span class="modal-product-code">Código: ${escapeHtml(code)}</span>
                         </div>
                     </div>
                     <div class="modal-product-price">
@@ -5217,7 +5217,7 @@
         if (!cls) return '';
         const qty = parseFloat(quantity);
         const qtyText = Number.isInteger(qty) ? String(qty) : qty.toFixed(2).replace(/\.?0+$/, '');
-        const text = cls === 'stock-out' ? 'Agotado' : `${qtyText} UND`;
+        const text = cls === 'stock-out' ? 'Agotado' : `${qtyText} UDS`;
         return `<div class="stock-badge-row"><span class="stock-tag ${cls} active stock-badge-static" title="Existencia: ${qtyText}">${text}</span></div>`;
     }
 
