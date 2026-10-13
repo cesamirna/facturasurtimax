@@ -277,20 +277,69 @@
             position: relative;
         }
         
-        .search-container input {
-            width: 100%;
-            padding: 14px 20px 14px 50px;
-            border: none;
+        .search-box {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0 6px;
+            padding: 0 20px 0 38px;
             border-radius: 8px;
-            font-size: 14px;
             background-color: white;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.3s ease;
+            cursor: text;
         }
-        
+
+        .search-box:focus-within {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-container input {
+            flex: 1 1 120px;
+            min-width: 120px;
+            padding: 14px 0;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-color);
+        }
+
         .search-container input:focus {
             outline: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Palabras ya buscadas (Enter): cada una acota los resultados anteriores */
+        .search-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--primary-color);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 6px 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .search-chip-remove {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: background-color 0.2s ease;
+        }
+
+        .search-chip-remove:hover {
+            background-color: var(--danger-color);
         }
         
         .search-container input::placeholder {
@@ -299,10 +348,11 @@
         
         .search-icon {
             position: absolute;
-            left: 18px;
-            top: 50%;
+            left: 12px;
+            top: 24px;
             transform: translateY(-50%);
             color: var(--primary-color);
+            pointer-events: none;
         }
         
         .filter-select {
@@ -772,6 +822,17 @@
            En modo lista no aplica. */
         body:not(.list-view) .badges-left {
             margin-left: -4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        /* Impuesto (7%) calculado sobre el costo, junto al badge "Costo".
+           Usa el mismo fondo, color y fuente que .badge-cost. Solo en
+           modo tarjeta; en lista se oculta para no alterar las columnas. */
+        body.list-view .badge-cost-tax {
+            display: none;
         }
         
         .badge {
@@ -785,7 +846,7 @@
         }
         
         .badge-cost {
-            background-color: var(--secondary-color);
+            background-color: rgba(224, 224, 224, 0.6);
             color: var(--primary-dark);
         }
         
@@ -802,6 +863,13 @@
         .badge-profit {
             background-color: #e8f5e9;
             color: #2e7d32;
+        }
+
+        /* Margen o ganancia negativos: se marcan en rojo (--danger-color) */
+        .badge-margin.badge-negative,
+        .badge-profit.badge-negative {
+            background-color: #ffebee;
+            color: var(--danger-color);
         }
         
         /* Info del producto */
@@ -1008,7 +1076,55 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             clear: both;
             width: 100%;
+            position: relative;
+            /* Título a la izquierda y flecha de ocultar/mostrar al final */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
+
+        /* Flecha al final de la barra de categoría (sin círculo, solo la
+           flecha). Misma estética que los tickets de existencias: gris
+           oscuro en reposo, transición suave y leve elevación al pasar el
+           mouse. Flecha abajo = productos visibles; flecha arriba = ocultos. */
+        .category-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 8px;
+            /* Centrada exactamente en el medio (vertical) de la barra y
+               fuera del flujo, así no aumenta su alto original. */
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            border-radius: 8px;
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .category-toggle svg {
+            display: block;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        .category-toggle:hover {
+            transform: translateY(calc(-50% - 2px));
+        }
+
+        .category-toggle .arrow-up { display: none; }
+        .category-header.cards-collapsed .category-toggle .arrow-down { display: none; }
+        .category-header.cards-collapsed .category-toggle .arrow-up { display: block; }
+        .category-header.cards-collapsed .category-toggle { color: var(--danger-color); }
         
         /* Tickets de existencias (barra de estadísticas): Agotado / Consultar / Disponible.
            Usan los mismos colores que el badge de existencia de las tarjetas. */
@@ -1088,6 +1204,22 @@
 
         .subcategory-header svg {
             flex-shrink: 0;
+            cursor: pointer;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .subcategory-header svg:hover {
+            transform: scale(1.12);
+        }
+
+        /* Carpeta pulsada: el icono se pone rojo y se ocultan las tarjetas
+           de esa subcategoría (las etiquetas/tickets siguen visibles) */
+        .subcategory-header.cards-collapsed svg {
+            color: var(--danger-color);
+        }
+
+        .subcategory-header.cards-collapsed + .products-grid {
+            display: none !important;
         }
         
         .subcategory-header:first-of-type {
@@ -1181,7 +1313,7 @@
         }
 
         .subcat-tag {
-            background: var(--secondary-color);
+            background-color: rgba(224, 224, 224, 0.6); /* mismo color que .badge-cost */
             color: var(--primary-dark);
             font-size: 11px;
             font-weight: 600;
@@ -1193,7 +1325,7 @@
         }
 
         .subcat-tag:hover {
-            background: #c7c7c7;
+            background-color: rgba(224, 224, 224, 0.95);
             color: var(--primary-dark);
         }
 
@@ -1741,6 +1873,10 @@
                 display: none;
             }
 
+            .category-toggle {
+                display: none !important;
+            }
+
             .stock-tags,
             .search-container,
             .stats-bar,
@@ -1806,7 +1942,10 @@
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                         </svg>
                     </span>
-                    <input type="text" id="search-input" placeholder="Buscar por código, nombre, marca o categoría...">
+                    <div class="search-box" id="search-box">
+                        <span id="search-chips" style="display: contents;"></span>
+                        <input type="text" id="search-input" placeholder="Buscar por código, nombre, marca o categoría..." autocomplete="off">
+                    </div>
                 </div>
 
                 <div class="header-actions">
@@ -1937,6 +2076,8 @@
         const PRODUCTS_PER_LOAD = 16; // Mostrar 16 productos inicialmente (4 filas de 4)
         let isLoading = false;
         let renderedGroups = {}; // Para trackear qué grupos ya se renderizaron
+        const collapsedGroups = new Set(); // Subcategorías con la carpeta en rojo (tarjetas ocultas)
+        const collapsedCategories = new Set(); // Categorías con la flecha hacia arriba (todas sus subcategorías ocultas)
         let activeStockFilter = null; // 'stock-out' | 'stock-consult' | 'stock-available' | null
         let defaultCategoryApplied = false; // Para seleccionar "Destacados" solo la primera vez
 
@@ -2016,7 +2157,6 @@
         // reordenaba miles de productos en cada clic, mientras que elegir una
         // categoría puntual solo reordenaba un subconjunto pequeño).
         function sortProductList() {
-            const TORNILLOS_Y_FIJACIONES = "TORNILLOS Y FIJACIONES";
             productList.sort((a, b) => {
                 const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
                 if (catCompare !== 0) return catCompare;
@@ -2025,17 +2165,11 @@
                 const priceCompare = (a.Price || 0) - (b.Price || 0);
                 if (priceCompare !== 0) return priceCompare;
 
-                // A igual categoría, subcategoría (mismo nombre/calibre) y
-                // precio, en "Tornillos y Fijaciones" se ordena por tamaño
-                // (de menor a mayor), como se ven en un tiquete, en vez de
-                // dejar el orden en que vienen en el Excel.
-                if (String(a.Category).trim().toUpperCase() === TORNILLOS_Y_FIJACIONES) {
-                    const tagA = getLastWordTag(a.Description, a.Category);
-                    const tagB = getLastWordTag(b.Description, b.Category);
-                    return compareTagsForSort(tagA, tagB);
-                }
-
-                return 0;
+                // A igual categoría, subcategoría y precio, en TODAS las
+                // categorías se ordena por tamaño (de menor a mayor) según
+                // la medida que aparece en el nombre, en vez de dejar el
+                // orden en que vienen en el Excel.
+                return compareProductsBySize(a, b);
             });
         }
 
@@ -2059,6 +2193,7 @@
                     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
                 });
             });
+            setupSearchChips();
             document.getElementById("search-input").addEventListener("input", debounce(handleSearchInput, 300));
 
             // Cargar productos guardados
@@ -2105,6 +2240,179 @@
         // barra fija con backdrop-filter no siempre se genera. El uso de
         // closest(".custom-select") hace que no importe si el toque cae sobre
         // el icono, el texto o el borde del botón: siempre se resuelve igual.
+        // Clic en el icono de carpeta de una subcategoría: oculta/muestra las
+        // tarjetas de esa subcategoría (las etiquetas quedan visibles) y pone
+        // el icono en rojo mientras están ocultas.
+        document.addEventListener("click", (e) => {
+            const icon = e.target.closest && e.target.closest(".subcategory-header > svg");
+            if (!icon) return;
+            const header = icon.closest(".subcategory-header");
+            if (header) {
+                const collapsing = !header.classList.contains("cards-collapsed");
+                setGroupCollapsed(header, collapsing);
+                if (collapsing) fillViewportWithProducts();
+            }
+        });
+
+        // Oculta o muestra las tarjetas de una subcategoría (misma lógica
+        // de la carpeta). Se usa tanto al pulsar la carpeta como al pulsar
+        // la flecha de la categoría.
+        function setGroupCollapsed(header, collapsing) {
+            const groupKey = header.getAttribute("data-group");
+            const grid = groupKey
+                ? document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`)
+                : null;
+            header.classList.toggle("cards-collapsed", collapsing);
+
+            if (grid && groupKey && !groupKey.startsWith("featured|||")) {
+                if (collapsing) {
+                    // Se eliminan las tarjetas del DOM (mucho más liviano
+                    // que solo esconderlas) y se recuerda el grupo.
+                    collapsedGroups.add(groupKey);
+                    grid.textContent = "";
+                } else {
+                    collapsedGroups.delete(groupKey);
+                    rebuildGroupCards(groupKey, grid, header);
+                }
+            }
+        }
+
+        // Flecha al final de la barra de categoría: oculta (flecha hacia
+        // arriba) o muestra (flecha hacia abajo) los productos de TODAS las
+        // subcategorías de esa categoría. Los títulos y etiquetas de las
+        // subcategorías siguen visibles.
+        document.addEventListener("click", (e) => {
+            const toggle = e.target.closest && e.target.closest(".category-toggle");
+            if (!toggle) return;
+            const catHeader = toggle.closest(".category-header");
+            if (!catHeader) return;
+
+            const category = catHeader.getAttribute("data-category");
+            const collapsing = !catHeader.classList.contains("cards-collapsed");
+            catHeader.classList.toggle("cards-collapsed", collapsing);
+            if (collapsing) collapsedCategories.add(category);
+            else collapsedCategories.delete(category);
+
+            // Subcategorías que siguen a esta categoría, hasta la siguiente categoría
+            const headers = [];
+            let el = catHeader.nextElementSibling;
+            while (el && !el.classList.contains("category-header")) {
+                if (el.classList.contains("subcategory-header")) headers.push(el);
+                el = el.nextElementSibling;
+            }
+
+            if (collapsing) {
+                headers.forEach(h => setGroupCollapsed(h, true));
+                fillViewportWithProducts();
+            } else {
+                // La flecha ya cambió; el trabajo pesado de volver a crear las
+                // tarjetas se hace justo después para que el icono responda al instante.
+                requestAnimationFrame(() => setTimeout(() => expandGroups(headers), 0));
+            }
+        });
+
+        // Muestra de nuevo varias subcategorías de una sola vez. Es mucho más
+        // rápido que hacerlo una por una: recorre la lista de productos una
+        // sola vez, y aplica el filtro de calibre una sola vez al final.
+        function expandGroups(headers) {
+            const itemsByGroup = {};
+            const shown = filteredProducts.slice(0, displayedCount);
+            for (let i = 0; i < shown.length; i++) {
+                const p = shown[i];
+                const key = `${p.Category}|||${p.Subcategory}`;
+                (itemsByGroup[key] || (itemsByGroup[key] = [])).push(p);
+            }
+
+            headers.forEach(header => {
+                const groupKey = header.getAttribute("data-group");
+                header.classList.remove("cards-collapsed");
+                if (!groupKey || groupKey.startsWith("featured|||")) return;
+                collapsedGroups.delete(groupKey);
+                const grid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
+                if (!grid) return;
+
+                grid.innerHTML = (itemsByGroup[groupKey] || []).map(createProductCard).join("");
+
+                const activeTag = header.querySelector(".subcat-tag.active");
+                if (activeTag) {
+                    const tagValue = activeTag.getAttribute("data-tag");
+                    grid.querySelectorAll(".product-card").forEach(card => {
+                        const cardTag = getLastWordTag(
+                            card.getAttribute("data-description") || "",
+                            card.getAttribute("data-category") || ""
+                        );
+                        card.classList.toggle("hidden-by-tag", cardTag !== tagValue);
+                    });
+                }
+            });
+
+            if (activeGaugeFilter) applyGaugeFilter();
+        }
+
+        // Crea la barra de categoría con la flecha al final
+        function createCategoryHeader(category) {
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'category-header';
+            categoryHeader.setAttribute('data-category', category);
+            const label = document.createElement('span');
+            label.textContent = category;
+            const toggle = document.createElement('span');
+            toggle.className = 'category-toggle';
+            toggle.setAttribute('role', 'button');
+            toggle.setAttribute('title', 'Ocultar / mostrar productos de la categoría');
+            toggle.innerHTML =
+                '<svg class="arrow-down" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/></svg>' +
+                '<svg class="arrow-up" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/></svg>';
+            categoryHeader.appendChild(label);
+            categoryHeader.appendChild(toggle);
+            return categoryHeader;
+        }
+
+        // Vuelve a crear las tarjetas de una subcategoría al mostrarla de
+        // nuevo, solo con los productos ya procesados por el scroll infinito
+        // (los siguientes se agregarán solos al seguir cargando).
+        function rebuildGroupCards(groupKey, grid, header) {
+            const items = filteredProducts
+                .slice(0, displayedCount)
+                .filter(p => `${p.Category}|||${p.Subcategory}` === groupKey);
+            const frag = document.createDocumentFragment();
+            const tmp = document.createElement("div");
+            tmp.innerHTML = items.map(createProductCard).join("");
+            while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+            grid.appendChild(frag);
+
+            // Reaplicar la etiqueta activa de esta subcategoría, si la había
+            const activeTag = header.querySelector(".subcat-tag.active");
+            if (activeTag) {
+                const tagValue = activeTag.getAttribute("data-tag");
+                grid.querySelectorAll(".product-card").forEach(card => {
+                    const cardTag = getLastWordTag(
+                        card.getAttribute("data-description") || "",
+                        card.getAttribute("data-category") || ""
+                    );
+                    card.classList.toggle("hidden-by-tag", cardTag !== tagValue);
+                });
+            }
+            if (activeGaugeFilter) applyGaugeFilter();
+        }
+
+        // Al ocultar tarjetas la página se acorta y puede no quedar scroll,
+        // por lo que el scroll infinito nunca cargaba el resto de las
+        // subcategorías. Aquí se siguen cargando lotes mientras el contenido
+        // no llene la pantalla (o hasta agotar los productos).
+        function fillViewportWithProducts() {
+            let guard = 0;
+            while (
+                displayedCount < filteredProducts.length &&
+                document.documentElement.scrollHeight <= window.innerHeight + 600 &&
+                guard++ < 200
+            ) {
+                const before = displayedCount;
+                loadMoreProducts(true);
+                if (displayedCount === before) break;
+            }
+        }
+
         document.addEventListener("pointerdown", (e) => {
             const insideSelect = e.target.closest && e.target.closest(".custom-select");
             if (!insideSelect) closeAllCustomSelects();
@@ -2350,6 +2658,130 @@
             }
         });
 
+        // Búsqueda por varias palabras: cada palabra adicional que se escribe
+        // (separada por espacio) acota más los resultados. Un producto coincide
+        // solo si TODAS las palabras aparecen en su descripción, código,
+        // referencia, marca o categoría (sin importar el orden ni los acentos).
+        function normalizeSearchText(text) {
+            return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // La MARCA no se busca por parte: solo coincide si se escribe completa
+        // tal como está (ej. "truper" o "sherwin williams"; "tru" no trae los
+        // productos de Truper). Descripción, código, referencia y categoría
+        // sí se buscan por partes. Misma regla que index.html.
+        function productMatchesSearch(product, searchTerm) {
+            const terms = normalizeSearchText(searchTerm).split(/\s+/).filter(Boolean);
+            if (terms.length === 0) return true;
+            if (product._searchBase === undefined) {
+                product._searchBase = normalizeSearchText([
+                    product.Description,
+                    product.Code,
+                    product.Reference,
+                    product.Category
+                ].join(' | '));
+                product._searchBrand = normalizeSearchText(getProductBrand(product)).trim();
+            }
+            const text = product._searchBase;
+
+            // Palabras que forman la marca completa (en orden y exactas) → cubiertas por la marca
+            const cubiertoPorMarca = new Array(terms.length).fill(false);
+            const marcaPalabras = product._searchBrand ? product._searchBrand.split(/\s+/) : [];
+            if (marcaPalabras.length) {
+                for (let i = 0; i + marcaPalabras.length <= terms.length; i++) {
+                    if (marcaPalabras.every((w, k) => terms[i + k] === w)) {
+                        for (let k = 0; k < marcaPalabras.length; k++) cubiertoPorMarca[i + k] = true;
+                    }
+                }
+            }
+
+            // Marca de varias palabras (ej. "sherwin williams"): basta con escribir la primera palabra ("sherwin")
+            if (marcaPalabras.length > 1) {
+                terms.forEach((t, i) => {
+                    if (t === marcaPalabras[0]) cubiertoPorMarca[i] = true;
+                });
+            }
+
+            const esNumero = t => /^[0-9]+$/.test(t);
+            const escapar = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return terms.every((t, i) => {
+                if (cubiertoPorMarca[i]) return true;
+                if (!esNumero(t)) return text.includes(t);
+                // Número: debe ser un número completo (el 4 no coincide con 14 ni con 24)
+                // y, si va seguido de una palabra (ej. "4 circuito"), esa palabra debe ir pegada a él.
+                const siguiente = terms[i + 1];
+                const patron = (siguiente && !esNumero(siguiente))
+                    ? '(^|[^0-9])' + t + '[\\s\\-]*' + escapar(siguiente)
+                    : '(^|[^0-9])' + t + '([^0-9]|$)';
+                return new RegExp(patron).test(text);
+            });
+        }
+
+        // ============================================================
+        // Búsqueda "dentro de la búsqueda": al escribir una palabra y
+        // pulsar Enter, queda fijada como etiqueta y el cuadro se vacía
+        // para escribir otra palabra que busca SOLO dentro de los
+        // productos que ya se están mostrando. Con Retroceso (cuadro
+        // vacío) o con la "x" se quita la última / una etiqueta.
+        // ============================================================
+        let searchChips = [];
+
+        function getSearchTerm() {
+            const typed = document.getElementById("search-input").value;
+            return (searchChips.join(" ") + " " + typed).toLowerCase().trim();
+        }
+
+        function renderSearchChips() {
+            const container = document.getElementById("search-chips");
+            container.innerHTML = "";
+            searchChips.forEach((chip, i) => {
+                const el = document.createElement("span");
+                el.className = "search-chip";
+                el.appendChild(document.createTextNode(chip));
+                const x = document.createElement("span");
+                x.className = "search-chip-remove";
+                x.title = "Quitar";
+                x.textContent = "\u00d7";
+                x.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    removeSearchChip(i);
+                });
+                el.appendChild(x);
+                container.appendChild(el);
+            });
+        }
+
+        function removeSearchChip(index) {
+            searchChips.splice(index, 1);
+            renderSearchChips();
+            handleSearchInput();
+            document.getElementById("search-input").focus();
+        }
+
+        function setupSearchChips() {
+            const input = document.getElementById("search-input");
+            const box = document.getElementById("search-box");
+
+            box.addEventListener("click", () => input.focus());
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    const value = input.value.trim();
+                    if (!value) return;
+                    e.preventDefault();
+                    searchChips.push(value);
+                    input.value = "";
+                    renderSearchChips();
+                    handleSearchInput();
+                } else if (e.key === "Backspace" && input.value === "" && searchChips.length > 0) {
+                    e.preventDefault();
+                    searchChips.pop();
+                    renderSearchChips();
+                    handleSearchInput();
+                }
+            });
+        }
+
         // Debounce para búsqueda
         function debounce(func, wait) {
             let timeout;
@@ -2425,8 +2857,60 @@
             const isTornillosYFijaciones = normalizedCategory === 'TORNILLOS Y FIJACIONES';
             const isPlomeria = normalizedCategory === 'PLOMERIA';
             const isConstruccion = normalizedCategory === 'CONSTRUCCION';
-            if (!isTornillosYFijaciones && !isPlomeria && !isConstruccion) {
+            const isHerramientas = normalizedCategory === 'HERRAMIENTAS';
+            if (!isTornillosYFijaciones && !isPlomeria && !isConstruccion && !isHerramientas) {
                 return parts[parts.length - 1].toUpperCase();
+            }
+
+            // PLOMERÍA: si el nombre contiene una medida en fracción de
+            // pulgada (ej. "CODO PVC 3/4 45° PRESION" -> "3/4"), esa es la
+            // etiqueta. Se admiten medidas mixtas ("1-1/2" o "1 1/2") y
+            // fracciones con largo ("1/2X20"). Si no hay ninguna fracción,
+            // se continúa con el comportamiento normal (última palabra
+            // válida) más abajo.
+            if (isPlomeria) {
+                // También se reconocen medidas enteras ("CODO PVC 2 90° PRESION"
+                // -> "2"). Un entero solo cuenta como medida si es una palabra
+                // numérica sola (opcionalmente con comillas de pulgada), no va
+                // pegado a letras/símbolos (como "90°" o "100PZ") ni viene
+                // justo después de SDR/SCH/CED/CLASE (que indican espesor, no
+                // diámetro). Se toma la PRIMERA medida (fracción o entero)
+                // que aparezca, de izquierda a derecha.
+                for (let i = 0; i < parts.length; i++) {
+                    const word = parts[i];
+                    const prev = i > 0 ? parts[i - 1] : '';
+                    const next = i + 1 < parts.length ? parts[i + 1] : '';
+                    const next2 = i + 2 < parts.length ? parts[i + 2] : '';
+
+                    // Medida compuesta pegada: "3X2" (3" por 2"), "3X2-1/2",
+                    // "2X1-1/2", "4X3". La etiqueta es la medida completa.
+                    if (/^\d+(?:-\d+\/\d+|\/\d+)?[Xx]\d+(?:-\d+\/\d+|\/\d+|\.\d+)?["”]?$/.test(word)) {
+                        return word.toUpperCase();
+                    }
+
+                    // Medida compuesta separada por espacios: "3 X 2" -> "3X2"
+                    if (/^\d+(?:-\d+\/\d+|\/\d+)?["”]?$/.test(word) &&
+                        /^[Xx]$/.test(next) &&
+                        /^\d+(?:-\d+\/\d+|\/\d+|\.\d+)?["”]?$/.test(next2)) {
+                        return (word + 'X' + next2).toUpperCase();
+                    }
+
+                    if (/^\d+(?:-\d+)?\/\d+/.test(word)) {
+                        if (/^\d+$/.test(prev)) {
+                            return (prev + ' ' + word).toUpperCase();
+                        }
+                        return word.toUpperCase();
+                    }
+                    if (/^\d+["”]?$/.test(word)) {
+                        if (/^(SDR|SCH|CED|CLASE|CL)$/i.test(prev)) continue;
+                        if (/^(°|GRADOS?)$/i.test(next)) continue;
+                        // Medida mixta escrita con espacio: "1 1/2"
+                        if (/^\d+\/\d+/.test(next)) {
+                            return (word + ' ' + next).toUpperCase();
+                        }
+                        return word.toUpperCase();
+                    }
+                }
             }
 
             // Para "Tornillos y Fijaciones" y "Plomería" el verdadero valor de medida no
@@ -2478,6 +2962,43 @@
                 const av = a[i] !== undefined ? a[i] : 0;
                 const bv = b[i] !== undefined ? b[i] : 0;
                 if (av !== bv) return av - bv;
+            }
+            return 0;
+        }
+
+        // Extrae TODOS los valores numéricos del nombre, en el orden en que
+        // aparecen, resolviendo fracciones y medidas mixtas. Ejemplo:
+        //   'HOJA DISCO LIJA 5" #120 VELCRO' -> [5, 120]
+        //   'HOJA DISCO LIJA 5" #80 VELCRO'  -> [5, 80]
+        //   'TUBO 1-1/2 X 20'                -> [1.5, 20]
+        function parseDescriptionNumbers(description) {
+            const tokens = String(description || '').match(/\d+[\s-]\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?/g) || [];
+            return tokens.map(t => {
+                let m = t.match(/^(\d+)[\s-](\d+)\/(\d+)$/);
+                if (m) return parseFloat(m[1]) + parseFloat(m[2]) / parseFloat(m[3]);
+                if (t.includes('/')) return fractionToDecimal(t);
+                return parseFloat(t);
+            });
+        }
+
+        // Desempate de productos con la misma categoría, subcategoría y
+        // precio, válido para TODAS las categorías: primero por la medida
+        // final (etiqueta), y si empatan, comparando uno a uno los números
+        // del nombre (de menor a mayor). Así "#80" va antes que "#120".
+        function compareProductsBySize(a, b) {
+            const tagCompare = compareTagsForSort(
+                getLastWordTag(a.Description, a.Category),
+                getLastWordTag(b.Description, b.Category)
+            );
+            if (tagCompare !== 0) return tagCompare;
+
+            const na = parseDescriptionNumbers(a.Description);
+            const nb = parseDescriptionNumbers(b.Description);
+            const len = Math.max(na.length, nb.length);
+            for (let i = 0; i < len; i++) {
+                if (na[i] === undefined) return -1;
+                if (nb[i] === undefined) return 1;
+                if (na[i] !== nb[i]) return na[i] - nb[i];
             }
             return 0;
         }
@@ -2821,7 +3342,17 @@
         }
 
         // Manejar entrada de búsqueda - actualiza filtros dinámicamente
+        // Último término de búsqueda que ya se dibujó en pantalla. Al pulsar
+        // Enter la palabra pasa del cuadro a una etiqueta, pero el término
+        // efectivo es el mismo: no hay que volver a dibujar el catálogo (eso
+        // era lo que hacía parpadear la lista).
+        let lastRenderedSearchTerm = "";
+
         function handleSearchInput() {
+            const currentTerm = getSearchTerm().replace(/\s+/g, " ");
+            if (currentTerm === lastRenderedSearchTerm) return;
+            lastRenderedSearchTerm = currentTerm;
+
             // Si el usuario escribe algo distinto en la barra de búsqueda,
             // se quita cualquier filtro de calibre activo de la regleta
             // (igual que al tocar el ícono de la regleta para ocultarla),
@@ -2829,17 +3360,13 @@
             // tornillo distinto al que ahora se busca.
             clearGaugeFilterAndReset();
 
-            const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+            const searchTerm = getSearchTerm();
             
             if (searchTerm) {
                 // Filtrar productos por término de búsqueda primero
                 const matchingProducts = productList.filter(product => {
                     const productBrand = getProductBrand(product);
-                    return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
-                           (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
-                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
-                           (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
-                           (product.Category && product.Category.toLowerCase().includes(searchTerm));
+                    return productMatchesSearch(product, searchTerm);
                 });
                 
                 // Actualizar los filtros con solo las opciones disponibles en los resultados
@@ -2863,18 +3390,14 @@
             const categoryFilter = document.getElementById("category-filter").value;
             const subcategorySelect = document.getElementById("subcategory-filter");
             const brandSelect = document.getElementById("brand-filter");
-            const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+            const searchTerm = getSearchTerm();
             
             // Obtener productos base (filtrados por búsqueda si hay)
             let baseProducts = productList;
             if (searchTerm) {
                 baseProducts = productList.filter(product => {
                     const productBrand = getProductBrand(product);
-                    return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
-                           (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
-                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
-                           (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
-                           (product.Category && product.Category.toLowerCase().includes(searchTerm));
+                    return productMatchesSearch(product, searchTerm);
                 });
             }
             
@@ -2942,18 +3465,14 @@
             const categoryFilter = document.getElementById("category-filter").value;
             const subcategoryFilter = document.getElementById("subcategory-filter").value;
             const brandSelect = document.getElementById("brand-filter");
-            const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+            const searchTerm = getSearchTerm();
             
             // Obtener productos base (filtrados por búsqueda si hay)
             let baseProducts = productList;
             if (searchTerm) {
                 baseProducts = productList.filter(product => {
                     const productBrand = getProductBrand(product);
-                    return (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
-                           (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
-                           (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
-                           (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
-                           (product.Category && product.Category.toLowerCase().includes(searchTerm));
+                    return productMatchesSearch(product, searchTerm);
                 });
             }
             
@@ -3023,12 +3542,8 @@
                 if (subCompare !== 0) return subCompare;
                 const priceCompare = (a.Price || 0) - (b.Price || 0);
                 if (priceCompare !== 0) return priceCompare;
-                if (String(a.Category).trim().toUpperCase() === "TORNILLOS Y FIJACIONES") {
-                    const tagA = getLastWordTag(a.Description, a.Category);
-                    const tagB = getLastWordTag(b.Description, b.Category);
-                    return compareTagsForSort(tagA, tagB);
-                }
-                return 0;
+                // Mismo precio: se ordena por tamaño en todas las categorías
+                return compareProductsBySize(a, b);
             });
 
             let currentCategory = null;
@@ -3042,9 +3557,7 @@
 
                 if (category !== currentCategory) {
                     if (currentGrid) featuredContent.appendChild(currentGrid);
-                    const categoryHeader = document.createElement('div');
-                    categoryHeader.className = 'category-header';
-                    categoryHeader.textContent = category;
+                    const categoryHeader = createCategoryHeader(category);
                     featuredContent.appendChild(categoryHeader);
                     if (String(category).trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
                         featuredContent.appendChild(createBoltGaugeElement());
@@ -3112,7 +3625,7 @@
             const categoryFilter = document.getElementById("category-filter").value;
             const subcategoryFilter = document.getElementById("subcategory-filter").value;
             const brandFilter = document.getElementById("brand-filter").value;
-            const searchTerm = document.getElementById("search-input").value.toLowerCase().trim();
+            const searchTerm = getSearchTerm();
 
             filteredProducts = productList.filter(product => {
                 // "Destacados" es una categoría especial basada en FEATURED_CODES,
@@ -3125,12 +3638,7 @@
                 const productBrand = getProductBrand(product);
                 const matchesBrand = !brandFilter || productBrand === brandFilter;
                 
-                const matchesSearch = !searchTerm || 
-                    (product.Description && product.Description.toLowerCase().includes(searchTerm)) ||
-                    (product.Code && product.Code.toString().toLowerCase().includes(searchTerm)) ||
-                    (product.Reference && product.Reference.toString().toLowerCase().includes(searchTerm)) ||
-                    (productBrand && productBrand.toLowerCase().includes(searchTerm)) ||
-                    (product.Category && product.Category.toLowerCase().includes(searchTerm));
+                const matchesSearch = !searchTerm || productMatchesSearch(product, searchTerm);
 
                 // Ticket de existencias (barra de estadísticas): Agotado / Consultar / Disponible
                 const matchesStock = !activeStockFilter ||
@@ -3145,6 +3653,8 @@
 
             displayedCount = 0;
             renderedGroups = {};
+            collapsedGroups.clear(); // el catálogo se vuelve a dibujar: carpetas de nuevo abiertas
+            collapsedCategories.clear(); // y las flechas de categoría de nuevo hacia abajo
             const catalogContentEl = document.getElementById("catalog-content");
             catalogContentEl.innerHTML = "";
             // Marca el contenedor cuando se está mostrando "Destacados" para
@@ -3218,9 +3728,8 @@
                         
                         // Solo agregar header si no existe ya
                         if (!renderedGroups[`cat_${category}`]) {
-                            const categoryHeader = document.createElement('div');
-                            categoryHeader.className = 'category-header';
-                            categoryHeader.textContent = category;
+                            const categoryHeader = createCategoryHeader(category);
+                            if (collapsedCategories.has(category)) categoryHeader.classList.add('cards-collapsed');
                             catalogContent.appendChild(categoryHeader);
                             if (String(category).trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
                                 catalogContent.appendChild(createBoltGaugeElement());
@@ -3273,6 +3782,13 @@
                                 subcategoryHeader.appendChild(tagsContainer);
                             }
 
+                            // Si la categoría está oculta (flecha hacia arriba), las
+                            // subcategorías que se carguen después nacen ocultas.
+                            if (collapsedCategories.has(category)) {
+                                subcategoryHeader.classList.add('cards-collapsed');
+                                collapsedGroups.add(groupKey);
+                            }
+
                             catalogContent.appendChild(subcategoryHeader);
                             renderedGroups[groupKey] = true;
                         }
@@ -3289,6 +3805,10 @@
                         currentSubcategory = subcategory;
                     }
                     
+                    // Si la subcategoría está oculta (carpeta en rojo), no se crea
+                    // la tarjeta: así no se gastan imágenes ni DOM en lo oculto.
+                    if (collapsedGroups.has(groupKey)) continue;
+
                     // Agregar producto al grid actual
                     const productHTML = createProductCard(product);
                     const tempDiv = document.createElement('div');
@@ -3352,12 +3872,30 @@
             // coincidía con el tamaño elegido, sin volver a mostrar el
             // resto.
 
-            // Antes de filtrar por etiqueta, cargar TODOS los productos que
-            // falten (sin esperar a que el usuario desplace hacia abajo), para
-            // que la etiqueta muestre absolutamente todos los productos que le
-            // pertenecen y no solo los que ya se habían cargado hasta ese punto.
-            while (displayedCount < filteredProducts.length) {
+            // Si la carpeta de esta subcategoría estaba cerrada (en rojo), se
+            // vuelve a abrir para poder mostrar el producto de la etiqueta.
+            if (collapsedGroups.has(groupKey)) {
+                const collapsedHeader = tagElement.closest('.subcategory-header');
+                const collapsedGrid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
+                collapsedGroups.delete(groupKey);
+                if (collapsedHeader) collapsedHeader.classList.remove('cards-collapsed');
+                if (collapsedGrid && collapsedHeader) rebuildGroupCards(groupKey, collapsedGrid, collapsedHeader);
+            }
+
+            // Antes de filtrar por etiqueta hay que tener cargados todos los
+            // productos de ESTA subcategoría (no todo el catálogo, que era lo
+            // que lo hacía lento). Como la lista está ordenada, los productos
+            // de una subcategoría son consecutivos: basta cargar hasta el
+            // último de ellos.
+            let lastGroupIndex = -1;
+            for (let i = filteredProducts.length - 1; i >= 0; i--) {
+                const p = filteredProducts[i];
+                if (`${p.Category}|||${p.Subcategory}` === groupKey) { lastGroupIndex = i; break; }
+            }
+            while (displayedCount <= lastGroupIndex && displayedCount < filteredProducts.length) {
+                const before = displayedCount;
                 loadMoreProducts(true);
+                if (displayedCount === before) break;
             }
 
             const grid = document.querySelector(`.products-grid[data-group="${CSS.escape(groupKey)}"]`);
@@ -3439,14 +3977,14 @@
             // Si el producto no tiene código, no se intenta mostrar imagen.
             // Si la imagen no existe en la carpeta "imagenes", se oculta automáticamente (onerror).
             const imageTag = refCode
-                ? `<img class="product-bg-image" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
+                ? `<img class="product-bg-image" loading="lazy" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
                 : '';
 
             // Miniatura en la esquina inferior derecha (solo si hay imagen),
             // tal como estaba siempre. Si ninguna extensión existe, se
             // oculta automáticamente (onerror).
             const thumbTag = refCode
-                ? `<img class="product-thumb" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
+                ? `<img class="product-thumb" loading="lazy" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
                 : '';
 
             return `
@@ -3456,10 +3994,11 @@
                     <div class="badges-container">
                         <div class="badges-left">
                             ${cost > 0 ? `<span class="badge badge-cost">Costo: $${cost.toFixed(2)}</span>` : ''}
+                            ${cost > 0 && !isExempt ? `<span class="badge badge-cost badge-cost-tax">$${(cost * 0.07).toFixed(2)}</span>` : ''}
                         </div>
                         <div class="badges-right">
-                            ${cost > 0 ? `<span class="badge badge-margin">${margin.toFixed(0)}%</span>` : ''}
-                            ${cost > 0 ? `<span class="badge badge-profit">+$${profit.toFixed(2)}</span>` : ''}
+                            ${cost > 0 ? `<span class="badge badge-margin${margin < 0 ? ' badge-negative' : ''}">${margin.toFixed(0)}%</span>` : ''}
+                            ${cost > 0 ? `<span class="badge badge-profit${profit < 0 ? ' badge-negative' : ''}">${profit < 0 ? '-' : '+'}$${Math.abs(profit).toFixed(2)}</span>` : ''}
                         </div>
                     </div>
 
@@ -3475,7 +4014,7 @@
                     <div class="product-brand">${escapeHtml(productBrand)}</div>
                     <div class="product-name">${escapeHtml(product.Description)}</div>
                     ${product.Reference ? `<div class="product-code" style="margin-bottom:0;">${escapeHtml(product.Reference)}</div>` : ''}
-                    <div class="product-code">Código: ${escapeHtml(product.Code)}</div>
+                    <div class="product-code">Código: ${refCode ? escapeHtml(refCode) : 'Sin código'}</div>
                     
                     <div class="price-section">
                         <div class="price-main"><span>$${priceWithTax.toFixed(2)}</span></div>
@@ -3692,6 +4231,21 @@
             return `${num / g}/${den / g}"`;
         }
 
+        // Convierte milímetros a la fracción de pulgada más cercana (en
+        // 64avos, simplificada). Ej: 10 mm -> 25/64", 16 mm -> 5/8".
+        function mmToInchFraction(mm) {
+            const inches = mm / 25.4;
+            const whole = Math.floor(inches);
+            let num = Math.round((inches - whole) * 64);
+            let den = 64;
+            let wholePart = whole;
+            if (num === 64) { wholePart += 1; num = 0; }
+            if (num === 0) return `${wholePart}"`;
+            const g = gcdNum(num, den);
+            const frac = `${num / g}/${den / g}`;
+            return wholePart > 0 ? `${wholePart}-${frac}"` : `${frac}"`;
+        }
+
         // Escapa comillas dobles para poder usarlas dentro de atributos
         // HTML delimitados también por comillas dobles (ej. 0.118" o 5/16").
         function escapeAttr(str) {
@@ -3769,8 +4323,8 @@
                 // El borde superior común evita que los círculos pequeños
                 // queden más abajo que sus etiquetas.
                 const cy = mmCircleTopY + r;
-                const inchEquiv = (size / 25.4).toFixed(3);
-                const label = `M${size} - Ø ${size}mm (${inchEquiv}")`;
+                const inchEquiv = mmToInchFraction(size);
+                const label = `M${size} - Ø ${size}mm (${inchEquiv})`;
                 const badgeText = String(size);
                 const badgeW = Math.max(18, measureTextWidth(badgeText, 9.5) + 13);
                 mmHoles += `<circle class="bolt-gauge-hole" data-size-label="${escapeAttr(label)}" data-unit="mm" data-filter-value="${size}" data-display-label="${size} mm" onclick="handleGaugeHoleClick(this)" cx="${x.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="transparent" stroke="${primaryColor}" stroke-width="1.5" pointer-events="all"/>`;

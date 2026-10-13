@@ -2941,7 +2941,60 @@
       const subcategory = (product.Subcategory || '').toLowerCase();
       const productBrand = getProductBrand(product).toLowerCase();
       product._searchIndex = [description, code, reference, category, subcategory, productBrand].join(' | ');
+      // Texto normalizado (sin acentos) para la búsqueda por varias palabras.
+      // La marca va APARTE: solo cuenta si se escribe completa (ver productMatchesSearch).
+      product._searchBase = normalizeSearchText([description, code, reference, category, subcategory].join(' | '));
+      product._searchBrand = normalizeSearchText(productBrand).trim();
       return product;
+  }
+
+  // Búsqueda por varias palabras: un producto coincide solo si TODAS las
+  // palabras aparecen en su descripción, código, referencia, categoría o
+  // subcategoría (sin importar el orden ni los acentos). Un número debe
+  // coincidir completo (el 4 no coincide con 14 ni 24) y, si va seguido de una
+  // palabra (ej. "4 circuito"), esa palabra debe ir pegada a él. La MARCA no
+  // se busca por parte: solo coincide si se escribe completa tal como está
+  // (ej. "truper" o "sherwin williams"; "tru" no trae productos de Truper).
+  // Misma regla que catalogo.html, usada por la barra de búsqueda y el modal.
+  function normalizeSearchText(text) {
+      return String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function productMatchesSearch(product, searchTerm) {
+      const terms = normalizeSearchText(searchTerm).split(/\s+/).filter(Boolean);
+      if (terms.length === 0) return true;
+      if (product._searchBase === undefined) buildSearchIndex(product);
+      const text = product._searchBase;
+
+      // Palabras que forman la marca completa (en orden y exactas) → cubiertas por la marca
+      const cubiertoPorMarca = new Array(terms.length).fill(false);
+      const marcaPalabras = product._searchBrand ? product._searchBrand.split(/\s+/) : [];
+      if (marcaPalabras.length) {
+          for (let i = 0; i + marcaPalabras.length <= terms.length; i++) {
+              if (marcaPalabras.every((w, k) => terms[i + k] === w)) {
+                  for (let k = 0; k < marcaPalabras.length; k++) cubiertoPorMarca[i + k] = true;
+              }
+          }
+      }
+
+      // Marca de varias palabras (ej. "sherwin williams"): basta con escribir la primera palabra ("sherwin")
+      if (marcaPalabras.length > 1) {
+          terms.forEach((t, i) => {
+              if (t === marcaPalabras[0]) cubiertoPorMarca[i] = true;
+          });
+      }
+
+      const esNumero = t => /^[0-9]+$/.test(t);
+      const escapar = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return terms.every((t, i) => {
+          if (cubiertoPorMarca[i]) return true;
+          if (!esNumero(t)) return text.includes(t);
+          const siguiente = terms[i + 1];
+          const patron = (siguiente && !esNumero(siguiente))
+              ? '(^|[^0-9])' + t + '[\\s\\-]*' + escapar(siguiente)
+              : '(^|[^0-9])' + t + '([^0-9]|$)';
+          return new RegExp(patron).test(text);
+      });
   }
 
   function indexProductList(list) {
@@ -3053,8 +3106,7 @@
         // Usar el índice precalculado (evita recalcular minúsculas/marca de
         // todos los productos en cada tecla, que era la causa de la lentitud)
         const filteredProducts = productList.filter(product => {
-            if (!product._searchIndex) buildSearchIndex(product);
-            return product._searchIndex.includes(searchTerm);
+            return productMatchesSearch(product, searchTerm);
         });
         
         // Ordenar por categoría, subcategoría y precio (igual que el catálogo)
@@ -3066,16 +3118,10 @@
             const priceCompare = (a.Price || 0) - (b.Price || 0);
             if (priceCompare !== 0) return priceCompare;
 
-            // A igual categoría, subcategoría (mismo nombre/calibre) y
-            // precio, en "Tornillos y Fijaciones" se ordena por tamaño
-            // (de menor a mayor), como se ven en un tiquete (igual que catálogo).
-            if (String(a.Category || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
-                const tagA = getLastWordTag(a.Description, a.Category);
-                const tagB = getLastWordTag(b.Description, b.Category);
-                return compareTagsForSort(tagA, tagB);
-            }
-
-            return 0;
+            // A igual categoría, subcategoría y precio, en TODAS las
+            // categorías se ordena por tamaño (de menor a mayor) según los
+            // números del nombre (igual que catálogo).
+            return compareProductsBySize(a, b);
         });
         
         searchResults.classList.add('active');
@@ -3457,11 +3503,11 @@
         const tableBody = document.getElementById('invoice-items');
         tableBody.innerHTML = '';
         
-        // Mantener los productos de la factura siempre ordenados
-        // alfabéticamente por descripción.
-        products.sort((a, b) =>
-            (a.description || '').localeCompare(b.description || '', 'es', { sensitivity: 'base' })
-        );
+        // Mantener los productos de la factura siempre ordenados igual que
+        // en el catálogo: categoría, subcategoría y precio; y a igual
+        // categoría, subcategoría y precio, por tamaño de menor a mayor
+        // (en todas las categorías).
+        sortInvoiceProducts(products);
         
         products.forEach((product, index) => {
             const row = document.createElement('tr');
@@ -4334,8 +4380,60 @@
         const isTornillosYFijaciones = normalizedCategory === 'TORNILLOS Y FIJACIONES';
         const isPlomeria = normalizedCategory === 'PLOMERIA';
         const isConstruccion = normalizedCategory === 'CONSTRUCCION';
-        if (!isTornillosYFijaciones && !isPlomeria && !isConstruccion) {
+        const isHerramientas = normalizedCategory === 'HERRAMIENTAS';
+        if (!isTornillosYFijaciones && !isPlomeria && !isConstruccion && !isHerramientas) {
             return parts[parts.length - 1].toUpperCase();
+        }
+
+        // PLOMERÍA: si el nombre contiene una medida en fracción de
+        // pulgada (ej. "CODO PVC 3/4 45° PRESION" -> "3/4"), esa es la
+        // etiqueta. Se admiten medidas mixtas ("1-1/2" o "1 1/2") y
+        // fracciones con largo ("1/2X20"). Si no hay ninguna fracción,
+        // se continúa con el comportamiento normal (última palabra
+        // válida) más abajo.
+        if (isPlomeria) {
+            // También se reconocen medidas enteras ("CODO PVC 2 90° PRESION"
+            // -> "2"). Un entero solo cuenta como medida si es una palabra
+            // numérica sola (opcionalmente con comillas de pulgada), no va
+            // pegado a letras/símbolos (como "90°" o "100PZ") ni viene
+            // justo después de SDR/SCH/CED/CLASE (que indican espesor, no
+            // diámetro). Se toma la PRIMERA medida (fracción o entero)
+            // que aparezca, de izquierda a derecha.
+            for (let i = 0; i < parts.length; i++) {
+                const word = parts[i];
+                const prev = i > 0 ? parts[i - 1] : '';
+                const next = i + 1 < parts.length ? parts[i + 1] : '';
+                const next2 = i + 2 < parts.length ? parts[i + 2] : '';
+
+                // Medida compuesta pegada: "3X2" (3" por 2"), "3X2-1/2",
+                // "2X1-1/2", "4X3". La etiqueta es la medida completa.
+                if (/^\d+(?:-\d+\/\d+|\/\d+)?[Xx]\d+(?:-\d+\/\d+|\/\d+|\.\d+)?["”]?$/.test(word)) {
+                    return word.toUpperCase();
+                }
+
+                // Medida compuesta separada por espacios: "3 X 2" -> "3X2"
+                if (/^\d+(?:-\d+\/\d+|\/\d+)?["”]?$/.test(word) &&
+                    /^[Xx]$/.test(next) &&
+                    /^\d+(?:-\d+\/\d+|\/\d+|\.\d+)?["”]?$/.test(next2)) {
+                    return (word + 'X' + next2).toUpperCase();
+                }
+
+                if (/^\d+(?:-\d+)?\/\d+/.test(word)) {
+                    if (/^\d+$/.test(prev)) {
+                        return (prev + ' ' + word).toUpperCase();
+                    }
+                    return word.toUpperCase();
+                }
+                if (/^\d+["”]?$/.test(word)) {
+                    if (/^(SDR|SCH|CED|CLASE|CL)$/i.test(prev)) continue;
+                    if (/^(°|GRADOS?)$/i.test(next)) continue;
+                    // Medida mixta escrita con espacio: "1 1/2"
+                    if (/^\d+\/\d+/.test(next)) {
+                        return (word + ' ' + next).toUpperCase();
+                    }
+                    return word.toUpperCase();
+                }
+            }
         }
 
         // Para "Tornillos y Fijaciones" y "Plomería" el verdadero valor de medida no
@@ -4455,6 +4553,94 @@
         return 0;
     }
     
+    // Extrae TODOS los valores numéricos del nombre, en el orden en que
+    // aparecen, resolviendo fracciones y medidas mixtas. Ejemplo:
+    //   'HOJA DISCO LIJA 5" #120 VELCRO' -> [5, 120]
+    //   'HOJA DISCO LIJA 5" #80 VELCRO'  -> [5, 80]
+    //   'TUBO 1-1/2 X 20'                -> [1.5, 20]
+    function parseDescriptionNumbers(description) {
+        const tokens = String(description || '').match(/\d+[\s-]\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?/g) || [];
+        return tokens.map(t => {
+            const m = t.match(/^(\d+)[\s-](\d+)\/(\d+)$/);
+            if (m) return parseFloat(m[1]) + parseFloat(m[2]) / parseFloat(m[3]);
+            if (t.includes('/')) return fractionToDecimal(t);
+            return parseFloat(t);
+        });
+    }
+
+    // Desempate de productos con la misma categoría, subcategoría y precio,
+    // válido para TODAS las categorías: primero por la medida final
+    // (etiqueta) y, si empatan, comparando uno a uno los números del nombre
+    // (de menor a mayor). Así "#80" va antes que "#120" (igual que catálogo).
+    function compareProductsBySize(a, b) {
+        const tagCompare = compareTagsForSort(
+            getLastWordTag(a.Description, a.Category),
+            getLastWordTag(b.Description, b.Category)
+        );
+        if (tagCompare !== 0) return tagCompare;
+
+        const na = parseDescriptionNumbers(a.Description);
+        const nb = parseDescriptionNumbers(b.Description);
+        const len = Math.max(na.length, nb.length);
+        for (let i = 0; i < len; i++) {
+            if (na[i] === undefined) return -1;
+            if (nb[i] === undefined) return 1;
+            if (na[i] !== nb[i]) return na[i] - nb[i];
+        }
+        return 0;
+    }
+
+    // Obtiene los datos de catálogo (categoría y subcategoría) de un
+    // producto de la factura, buscándolo por código y luego por descripción
+    // (igual lógica que findProductCost). Si no está en la lista cargada,
+    // la subcategoría se extrae del nombre.
+    function getInvoiceItemSortInfo(item) {
+        const description = item.description || '';
+        let found = null;
+        if (typeof productList !== 'undefined' && productList && productList.length > 0) {
+            const code = item.code ? item.code.toString().trim().toLowerCase() : '';
+            if (code) {
+                found = productList.find(p => p.Code && p.Code.toString().toLowerCase() === code) || null;
+            }
+            if (!found && description.trim() !== '') {
+                const desc = description.toLowerCase();
+                found = productList.find(p => p.Description && p.Description.toLowerCase() === desc) || null;
+            }
+        }
+        const category = found ? (found.Category || 'Sin Categoría') : 'Sin Categoría';
+        const subcategory = found
+            ? (found.Subcategory || '')
+            : extractSubcategoryFromName(description, category);
+        return {
+            Description: description,
+            Category: category,
+            Subcategory: subcategory,
+            Price: parseFloat(item.price) || 0
+        };
+    }
+
+    // Ordena los productos de la factura (en el mismo arreglo) con la regla
+    // del catálogo: categoría, subcategoría, precio y, a igual los tres,
+    // tamaño de menor a mayor (medida final del nombre y luego los números
+    // del nombre uno a uno). Si todo empata, se conserva el orden previo.
+    function sortInvoiceProducts(list) {
+        const decorated = list.map((item, i) => ({ item, i, info: getInvoiceItemSortInfo(item) }));
+        decorated.sort((x, y) => {
+            const a = x.info, b = y.info;
+            const catCompare = (a.Category || '').localeCompare(b.Category || '', 'es', { sensitivity: 'base' });
+            if (catCompare !== 0) return catCompare;
+            const subCompare = compareSubcategory(a.Subcategory || '', b.Subcategory || '');
+            if (subCompare !== 0) return subCompare;
+            const priceCompare = a.Price - b.Price;
+            if (priceCompare !== 0) return priceCompare;
+            const sizeCompare = compareProductsBySize(a, b);
+            if (sizeCompare !== 0) return sizeCompare;
+            return x.i - y.i;
+        });
+        decorated.forEach((d, i) => { list[i] = d.item; });
+        return list;
+    }
+
     function loadInvoiceFromFile(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -4844,23 +5030,9 @@
     // Filtra una lista de productos por un término, usando los mismos
     // campos (descripción, código, referencia, categoría, marca, subcategoría).
     function filterProductsByTerm(list, term) {
-        const t = (term || '').toLowerCase().trim();
+        const t = (term || '').trim();
         if (!t) return list.slice();
-        return list.filter(product => {
-            const description = (product.Description || '').toLowerCase();
-            const code = (product.Code || '').toString().toLowerCase();
-            const reference = (product.Reference || '').toString().toLowerCase();
-            const category = (product.Category || '').toLowerCase();
-            const productBrand = getProductBrand(product).toLowerCase();
-            const subcategory = (product.Subcategory || '').toLowerCase();
-
-            return description.includes(t) ||
-                   code.includes(t) ||
-                   reference.includes(t) ||
-                   category.includes(t) ||
-                   productBrand.includes(t) ||
-                   subcategory.includes(t);
-        });
+        return list.filter(product => productMatchesSearch(product, t));
     }
 
     function openSearchModal(searchTerm) {
@@ -4970,16 +5142,10 @@
             const priceCompare = (a.Price || 0) - (b.Price || 0);
             if (priceCompare !== 0) return priceCompare;
 
-            // A igual categoría, subcategoría (mismo nombre/calibre) y
-            // precio, en "Tornillos y Fijaciones" se ordena por tamaño
-            // (de menor a mayor), como se ven en un tiquete (igual que catálogo).
-            if (String(a.Category || '').trim().toUpperCase() === 'TORNILLOS Y FIJACIONES') {
-                const tagA = getLastWordTag(a.Description, a.Category);
-                const tagB = getLastWordTag(b.Description, b.Category);
-                return compareTagsForSort(tagA, tagB);
-            }
-
-            return 0;
+            // A igual categoría, subcategoría y precio, en TODAS las
+            // categorías se ordena por tamaño (de menor a mayor) según los
+            // números del nombre (igual que catálogo).
+            return compareProductsBySize(a, b);
         });
         
         // Actualizar contador (badge en la barra de búsqueda)
