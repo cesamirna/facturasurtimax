@@ -199,7 +199,7 @@
                registrarse con normalidad. */
             background-color: #ffffff;
             border-radius: 18px;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.10);
         }
 
         /* Ocultar la etiqueta "Filtrar por:" cuando la barra es flotante */
@@ -549,8 +549,8 @@
         .stats-bar {
             background: white;
             border-radius: 12px;
-            padding: 15px 25px;
-            margin-bottom: 14px;
+  padding: 10px 25px;
+  margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -581,6 +581,55 @@
             color: var(--primary-color);
             font-weight: 700;
             font-size: 18px;
+        }
+
+        .view-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #5f6368;
+            cursor: pointer;
+            box-shadow: none;
+  margin-right: -14px;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .view-toggle-btn:hover,
+        .view-toggle-btn:focus-visible {
+            background: transparent;
+  color: #4b5054;
+  outline: none;
+  box-shadow: none;
+  transform: translateY(-1px);
+        }
+
+        .view-toggle-btn:active {
+            transform: translateY(0) scale(0.96);
+        }
+
+        .view-toggle-btn svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+        }
+
+
+        .view-toggle-btn .view-icon {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .view-toggle-btn .view-icon.active {
+            display: inline-flex;
         }
         
         /* Grid de productos - 4 columnas */
@@ -1096,16 +1145,17 @@
             /* Centrada exactamente en el medio (vertical) de la barra y
                fuera del flujo, así no aumenta su alto original. */
             position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            border-radius: 8px;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  border-radius: 8px;
+  min-height: 32px;
             line-height: 1;
             cursor: pointer;
             user-select: none;
-            color: var(--gray-700);
-            transition: all 0.3s ease;
-            touch-action: manipulation;
+  color: var(--gray-700);
+  transition: none;
+  touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -1117,14 +1167,10 @@
             pointer-events: none;
         }
 
-        .category-toggle:hover {
-            transform: translateY(calc(-50% - 2px));
-        }
-
-        .category-toggle .arrow-up { display: none; }
-        .category-header.cards-collapsed .category-toggle .arrow-down { display: none; }
-        .category-header.cards-collapsed .category-toggle .arrow-up { display: block; }
-        .category-header.cards-collapsed .category-toggle { color: var(--danger-color); }
+        .category-toggle .minus-icon { display: none; }
+        .category-header.cards-collapsed .category-toggle .plus-icon { display: none; }
+        .category-header.cards-collapsed .category-toggle .minus-icon { display: block; }
+        .category-header.cards-collapsed .category-toggle { color: var(--gray-700); }
         
         /* Tickets de existencias (barra de estadísticas): Agotado / Consultar / Disponible.
            Usan los mismos colores que el badge de existencia de las tarjetas. */
@@ -1354,9 +1400,10 @@
                 gap: 10px;
             }
 
-            body.list-view .product-card {
-                flex-direction: row;
-                align-items: center;
+        body.list-view .product-card {
+            overflow: visible;
+            flex-direction: row;
+            align-items: center;
                 flex-wrap: wrap;
                 min-height: unset;
                 padding: 10px 16px;
@@ -1371,22 +1418,19 @@
                 display: none;
             }
 
-            body.list-view .product-thumb {
-                position: static;
-                order: 7;
-                width: 52px;
-                height: 52px;
-                flex-shrink: 0;
-                box-shadow: none;
-            }
+        body.list-view .product-thumb {
+            position: static;
+            order: 7;
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            box-shadow: none;
+        }
 
-            /* Cuando el producto no tiene imagen (la miniatura se elimina del
-               DOM al fallar la carga), reservamos su ancho + separación en el
-               lado derecho de la tarjeta para que el nombre no crezca de más
-               y arrastre marca, costo, cotizar y precio fuera de su columna. */
-            body.list-view .product-card:not(:has(.product-thumb)) {
-                padding-right: calc(16px + 52px + 14px);
-            }
+        /* Cuando el producto no tiene imagen, conserva el ancho de la miniatura y su separación para mantener alineadas las filas. */
+        body.list-view .product-card:not(:has(.product-thumb)) {
+            padding-right: calc(16px + 52px + 14px);
+        }
 
             body.list-view .product-category,
             body.list-view .product-subcategory {
@@ -1574,7 +1618,18 @@
             }
         }
         
+        @media (max-width: 1024px) {
+            #view-toggle-btn {
+                display: none;
+            }
+        }
+
         @media (max-width: 600px) {
+            /* La vista se mantiene en cuadrícula en pantallas pequeñas. */
+            #view-toggle-btn {
+                display: none;
+            }
+
             /* En teléfono el encabezado deja de ser fijo para no ocupar tanto espacio */
             .header {
                 position: static;
@@ -1670,7 +1725,6 @@
            medianas (hasta 1280px) se ocultan sus botones (y la regleta),
            ya que esas funciones no aplican ahí. */
         @media (max-width: 1280px) {
-            #view-toggle-btn,
             #ruler-toggle-btn,
             .bolt-gauge-wrapper,
             body.ruler-gauge-active .bolt-gauge-wrapper {
@@ -1889,7 +1943,7 @@
                agrupación (categoría/subcategoría) que se ve en pantalla.
                Se fuerzan siempre 4 columnas (ignorando los breakpoints
                responsivos de 3/2/1 columnas) y se corta la página justo
-               después de cada 4ª tarjeta para que cada hoja de
+               despu������s de cada 4ª tarjeta para que cada hoja de
                11.5in x 12in contenga exactamente una fila de 4 tarjetas.
                ============================================================ */
             .products-grid {
@@ -1961,16 +2015,7 @@
                         </svg>
                         <!--Calculadora-->
                     </a>
-                    <button type="button" id="view-toggle-btn" class="action-btn dark" onclick="toggleViewMode()" title="Cambiar a vista de lista">
-                        <svg id="icon-eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8a13 13 0 0 1-1.66 2.043C11.879 11.332 10.12 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                        </svg>
-                        <svg id="icon-eye-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="display:none;">
-                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-1.79.234l1.192 1.192A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486zm-2.943 1.299.712.712q-.933.309-2.128.309c-5 0-8-5.5-8-5.5s.939-1.721 2.641-3.238l.712.712A13 13 0 0 0 1.172 8q.086.13.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5a6 6 0 0 0 2.416-.963z"/>
-                            <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"/>
-                        </svg>
-                    </button>
+
                     <button type="button" id="ruler-toggle-btn" class="action-btn dark" onclick="toggleRulerGauge()" title="Mostrar regleta calibradora (solo en Tornillos y Fijaciones)">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
                             <!-- Icono de tornillo: cabeza, cuerpo roscado y punta -->
@@ -2021,7 +2066,7 @@
                 <div class="stat-item">
                     <span class="stat-label">Existencias:</span>
                     <span class="stock-tags" id="stock-filter-tags">
-                        <span class="stock-tag stock-out" data-stock="stock-out" role="button" tabindex="0" title="Agotado" aria-label="Agotado"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></span>
+                        <span class="stock-tag stock-out" data-stock="stock-out" role="button" tabindex="0" title="0 UDS" aria-label="0 UDS"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/></svg></span>
                         <span class="stock-tag stock-consult" data-stock="stock-consult" role="button" tabindex="0" title="Consultar" aria-label="Consultar"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/></svg></span>
                         <span class="stock-tag stock-available" data-stock="stock-available" role="button" tabindex="0" title="Disponible" aria-label="Disponible"><svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.6"/><path fill="#ffffff" d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/></svg></span>
                     </span>
@@ -2039,6 +2084,18 @@
                     <span class="stat-value" id="total-categories">0</span>
                 </div>
             </div>
+            <button type="button" id="view-toggle-btn" class="view-toggle-btn" onclick="toggleViewMode()" title="Cambiar a vista de lista" aria-label="Cambiar a vista de lista">
+                <span id="grid-view-icon" class="view-icon active" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.2">
+                        <rect x="3" y="3" width="5" height="5" rx="0.5"/><rect x="10" y="3" width="5" height="5" rx="0.5"/><rect x="3" y="10" width="5" height="5" rx="0.5"/><rect x="10" y="10" width="5" height="5" rx="0.5"/>
+                    </svg>
+                </span>
+                <span id="list-view-icon" class="view-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                        <path d="M7 5h8M7 9h8M7 13h8"/><circle cx="3.5" cy="5" r=".8" fill="currentColor" stroke="none"/><circle cx="3.5" cy="9" r=".8" fill="currentColor" stroke="none"/><circle cx="3.5" cy="13" r=".8" fill="currentColor" stroke="none"/>
+                    </svg>
+                </span>
+            </button>
         </div>
 
         <div id="catalog-content">
@@ -2361,8 +2418,8 @@
             toggle.setAttribute('role', 'button');
             toggle.setAttribute('title', 'Ocultar / mostrar productos de la categoría');
             toggle.innerHTML =
-                '<svg class="arrow-down" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/></svg>' +
-                '<svg class="arrow-up" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708z"/></svg>';
+  '<svg class="plus-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"><path d="M9 3v12M3 9h12"/></svg>' +
+            '<svg class="minus-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9h12"/></svg>';
             categoryHeader.appendChild(label);
             categoryHeader.appendChild(toggle);
             return categoryHeader;
@@ -2600,7 +2657,7 @@
 
             e.preventDefault();
 
-            // Acumular la letra en el buffer de escritura. Si pasa más de
+            // Acumular la letra en el buffer de escritura. Si pasa m��s de
             // 600ms sin pulsar otra tecla, se asume que es una búsqueda
             // nueva y el buffer se reinicia.
             clearTimeout(typeaheadTimeout);
@@ -3075,7 +3132,7 @@
                     Impuesto: parseFloat(impuestoRaw),
                     // Existencia del producto: admite "Cantidad", "Unidades",
                     // "Existencia" o "Stock" (en cualquier capitalización).
-                    // > 0 => Disponible, 0 => Agotado, < 0 => Consulta.
+                    // > 0 => Disponible, 0 => "0 UDS", < 0 => Consulta.
                     Quantity: parseFloat(
                         product.Quantity ?? product.Cantidad ?? product.cantidad ??
                         product.Unidades ?? product.unidades ??
@@ -3938,7 +3995,7 @@
 
         // Crear tarjeta de producto
         // Determina el estado de existencia del producto según su cantidad/unidades:
-        // > 0 => Unidades, ej. "4 UDS" (verde), 0 => Agotado (rojo), < 0 => Consulta (naranja).
+        // > 0 => Unidades, ej. "4 UDS" (verde), 0 => "0 UDS" (rojo), < 0 => Consulta (naranja).
         function getStockStatus(quantity) {
             const qty = parseFloat(quantity);
             const value = isNaN(qty) ? 0 : qty;
@@ -3947,7 +4004,7 @@
                 const units = Number.isInteger(value) ? value : parseFloat(value.toFixed(2));
                 return { label: units + ' UDS', className: 'stock-available' };
             } else if (value === 0) {
-                return { label: 'Agotado', className: 'stock-out' };
+                return { label: '0 UDS', className: 'stock-out' };
             }
             // Cantidad negativa: se muestra el exceso por debajo de cero (ej: -3 UDS)
             const negUnits = Number.isInteger(value) ? value : parseFloat(value.toFixed(2));
@@ -4173,18 +4230,18 @@
             }
         }
 
-        // Muestra el ojo abierto en modo tarjeta y el ojo cerrado en modo lista
+        // Resalta el icono de la vista activa y deja visible el control único.
         function updateViewToggleIcon(isListView) {
-            const openEye = document.getElementById('icon-eye-open');
-            const closedEye = document.getElementById('icon-eye-closed');
+            const gridIcon = document.getElementById('grid-view-icon');
+            const listIcon = document.getElementById('list-view-icon');
             const btn = document.getElementById('view-toggle-btn');
-            if (!openEye || !closedEye) return;
-            openEye.style.display = isListView ? 'none' : 'block';
-            closedEye.style.display = isListView ? 'block' : 'none';
+            if (!gridIcon || !listIcon) return;
+            gridIcon.classList.toggle('active', !isListView);
+            listIcon.classList.toggle('active', isListView);
             if (btn) {
-                // Amarillo mientras la vista de lista está activa (igual que la regleta)
-                btn.classList.toggle('active', isListView);
-                btn.title = isListView ? 'Cambiar a vista de tarjetas' : 'Cambiar a vista de lista';
+                const nextView = isListView ? 'cuadrícula' : 'lista';
+                btn.title = `Cambiar a vista de ${nextView}`;
+                btn.setAttribute('aria-label', `Cambiar a vista de ${nextView}`);
             }
         }
 
