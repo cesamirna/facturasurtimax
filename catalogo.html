@@ -3076,7 +3076,7 @@
             const isTornillosYFijaciones = String(category || "").trim().toUpperCase() === "TORNILLOS Y FIJACIONES";
             const firstWordUpper = words[0].toUpperCase();
             const secondWordUpper = (words[1] || "").toUpperCase();
-            const isSinSubdivision = firstWordUpper.startsWith("CLAVO") || firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO") || firstWordUpper.startsWith("ALCAYATA");
+            const isSinSubdivision = firstWordUpper.startsWith("GANCHO") || firstWordUpper.startsWith("TARUGO") || firstWordUpper.startsWith("ALCAYATA");
             const isTuercaHex = firstWordUpper.startsWith("TUERCA") && secondWordUpper.startsWith("HEX");
             const isTorHex = firstWordUpper.startsWith("TOR") && secondWordUpper.startsWith("HEX");
             // NOTA: la lógica de "última palabra descriptiva -> tomar el valor
