@@ -79,6 +79,23 @@
             font-weight: 700;
             text-shadow: none;
         }
+
+        .logo-section .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .logo-section .brand-text h1 {
+            font-size: 14px;
+            letter-spacing: .3px;
+        }
+
+        .logo-section .brand-text small {
+            font-size: 12px;
+            color: #b9b9b9;
+            margin-top: 3px;
+        }
         
         .header-actions {
             display: flex;
@@ -1895,7 +1912,8 @@
             }
 
             /*.logo-section,*/
-            .logo-section h1 {
+            .logo-section h1,
+            .logo-section .brand-text small {
             color: var(--primary-dark);
             }
 
@@ -1986,7 +2004,11 @@
         <div class="header-content">
             <div class="header-top">
                 <div class="logo-section">
-                    <img src="icon/icon.png" width="30" height="30"><h1>Catálogo de Precios</h1>
+                    <img src="icon/icon.png" width="40" height="40">
+                    <div class="brand-text">
+                        <h1>SURTIMAX</h1>
+                        <small>Catálogo de precios</small>
+                    </div>
                     
                 </div>
 
