@@ -800,10 +800,13 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Mostrar la imagen completa SOLO al pasar el mouse sobre la miniatura
-           de la esquina (ya no basta con pasar el mouse por toda la tarjeta) */
-        .product-card.has-image:has(.product-thumb:hover) .product-bg-image {
+        /* Mostrar la imagen completa SOLO al hacer clic en la miniatura
+           de la esquina (clic otra vez en la imagen, fuera o Esc para cerrar) */
+        .product-card.has-image.show-full .product-bg-image {
             opacity: 1;
+            pointer-events: auto;
+            cursor: default;
+            z-index: 3;
         }
 
         /* Asegurar que toda la info quede por encima de la imagen 
@@ -819,20 +822,20 @@
             transition: opacity 0.3s ease;
         }*/
 
-        /* Al pasar el mouse SOBRE LA MINIATURA: ocultar toda la info (solo si la tarjeta tiene imagen) */
-        .product-card.has-image:has(.product-thumb:hover) > .badges-container,
-        .product-card.has-image:has(.product-thumb:hover) > .quote-row,
-        .product-card.has-image:has(.product-thumb:hover) > .product-category,
-        .product-card.has-image:has(.product-thumb:hover) > .product-subcategory,
-        .product-card.has-image:has(.product-thumb:hover) > .product-brand,
-        .product-card.has-image:has(.product-thumb:hover) > .product-name,
-        .product-card.has-image:has(.product-thumb:hover) > .product-code,
-        .product-card.has-image:has(.product-thumb:hover) > .price-section {
+        /* Al hacer CLIC en la miniatura: ocultar toda la info (solo si la tarjeta tiene imagen) */
+        .product-card.has-image.show-full > .badges-container,
+        .product-card.has-image.show-full > .quote-row,
+        .product-card.has-image.show-full > .product-category,
+        .product-card.has-image.show-full > .product-subcategory,
+        .product-card.has-image.show-full > .product-brand,
+        .product-card.has-image.show-full > .product-name,
+        .product-card.has-image.show-full > .product-code,
+        .product-card.has-image.show-full > .price-section {
             opacity: 0;
         }
 
         /* El botón "Cotizar" también deja de recibir clics mientras se muestra la imagen completa */
-        .product-card.has-image:has(.product-thumb:hover) > .quote-row {
+        .product-card.has-image.show-full > .quote-row {
             pointer-events: none;
         }
 
@@ -842,28 +845,54 @@
             position: absolute;
             bottom: 12px;
             right: 12px;
-            width: 64px;
-            height: 64px;
+            width: 84px;
+            height: 84px;
             object-fit: contain;
             background-color: white;
-            border: 1px solid var(--secondary-color);
+            border: none;
             border-radius: 8px;
             padding: 4px;
-            box-shadow: 0 2px 6px rgba(82, 82, 82, 0.12);
+            box-shadow: none;
             z-index: 2;
             pointer-events: auto;
             cursor: pointer;
             transition: opacity 0.3s ease, transform 0.2s ease;
         }
 
-        .product-thumb:hover {
-            transform: scale(1.08);
-        }
-
         /* Ocultar la miniatura mientras se muestra la imagen completa
            (se activa al pasar el mouse sobre la propia miniatura) */
-        .product-card.has-image:has(.product-thumb:hover) .product-thumb {
+        .product-card.has-image.show-full .product-thumb {
             opacity: 0;
+        }
+
+        /* Icono de "ver imagen" (ojo translúcido) en el centro de la miniatura.
+           Solo estético: aparece al pasar el mouse sobre la miniatura (modo tarjeta). */
+        body:not(.list-view) .product-card:has(.product-thumb)::after {
+            content: "";
+            position: absolute;
+            /* centro de la miniatura: 12px + 84px/2 = 54px desde la esquina; icono de 36px */
+            right: 36px;
+            bottom: 36px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.35);
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/></svg>");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 22px 22px;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        body:not(.list-view) .product-card.has-image:not(.show-full):has(.product-thumb:hover)::after {
+            opacity: 1;
+            transform: scale(1);
         }
         
 
@@ -873,6 +902,19 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 12px;
+        }
+
+        /* Producto SIN costo: la fila de badges (costo, margen, ganancia) queda
+           vacía, así que no deja hueco arriba. La categoría y la marca suben
+           solas, y la existencia / "Cotizar" (posición absoluta) suben con
+           ellas, manteniendo la misma separación que cuando sí hay costo.
+           Solo modo tarjeta; en lista no aplica. */
+        body:not(.list-view) .product-card.no-cost .badges-container {
+            margin-bottom: 0;
+        }
+
+        body:not(.list-view) .product-card.no-cost .quote-row {
+            top: 14px;
         }
 
         /* Grupo de badges "% margen" y "+$ ganancia": en tarjeta se corre
@@ -957,20 +999,26 @@
             font-size: 12px;
             color: var(--success-color);
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
         .product-name {
             font-size: 15px;
             font-weight: 600;
             color: var(--text-color);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             line-height: 1.3;
             display: -webkit-box;
             -webkit-line-clamp: 2;
+            line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            overflow-wrap: anywhere;
+            text-overflow: ellipsis;
             flex-grow: 1;
+            flex-shrink: 0;
+            min-height: calc(1.3em * 2);
+            max-height: calc(1.3em * 2);
         }
         
         .product-code {
@@ -990,11 +1038,13 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--primary-dark);
-            margin-bottom: 4px;
+            margin-bottom: 0;
+            line-height: 1.15;
         }
         
         .price-tax {
-            font-size: 15px;
+            font-size: 14px;
+            line-height: 1.2;
             color: var(--text-light);
         }
         
@@ -1469,6 +1519,9 @@
                 flex: 1 1 220px;
                 min-width: 0;
                 -webkit-line-clamp: 1;
+                line-clamp: 1;
+                min-height: 0;
+                max-height: none;
                 margin-bottom: 0;
                 white-space: nowrap;
                 overflow: hidden;
@@ -1560,18 +1613,18 @@
             /* Evitar que al pasar el mouse sobre la miniatura se oculte
                la información del producto (comportamiento pensado solo
                para el modo tarjeta) */
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .badges-container,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .quote-row,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-category,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-subcategory,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-brand,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-name,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .product-code,
-            body.list-view .product-card.has-image:has(.product-thumb:hover) > .price-section {
+            body.list-view .product-card.has-image.show-full > .badges-container,
+            body.list-view .product-card.has-image.show-full > .quote-row,
+            body.list-view .product-card.has-image.show-full > .product-category,
+            body.list-view .product-card.has-image.show-full > .product-subcategory,
+            body.list-view .product-card.has-image.show-full > .product-brand,
+            body.list-view .product-card.has-image.show-full > .product-name,
+            body.list-view .product-card.has-image.show-full > .product-code,
+            body.list-view .product-card.has-image.show-full > .price-section {
                 opacity: 1;
             }
 
-            body.list-view .product-card.has-image:has(.product-thumb:hover) .product-thumb {
+            body.list-view .product-card.has-image.show-full .product-thumb {
                 opacity: 1;
             }
         }
@@ -2749,18 +2802,140 @@
         // tal como está (ej. "truper" o "sherwin williams"; "tru" no trae los
         // productos de Truper). Descripción, código, referencia y categoría
         // sí se buscan por partes. Misma regla que index.html.
-        function productMatchesSearch(product, searchTerm) {
-            const terms = normalizeSearchText(searchTerm).split(/\s+/).filter(Boolean);
-            if (terms.length === 0) return true;
-            if (product._searchBase === undefined) {
-                product._searchBase = normalizeSearchText([
-                    product.Description,
-                    product.Code,
-                    product.Reference,
-                    product.Category
-                ].join(' | '));
-                product._searchBrand = normalizeSearchText(getProductBrand(product)).trim();
+        //
+        // VARIAS MARCAS: si se escriben dos o más marcas completas (ej.
+        // "tornillo harden truper"), el producto puede ser de CUALQUIERA de
+        // esas marcas (comparar marcas), y las demás palabras ("tornillo")
+        // siguen acotando como siempre.
+
+        // Índice de marcas (normalizadas) del catálogo; se reconstruye solo
+        // cuando cambia la lista de productos.
+        function getRealBrandNormalized(p) {
+            const raw = (p.Brand && String(p.Brand).trim()) || '';
+            const b = normalizeSearchText(raw).trim();
+            return (!b || b === 'sin marca') ? '' : b;
+        }
+
+        let _brandIndexCache = { list: null, size: -1, full: null, firstWord: null, maxWords: 1 };
+        function getBrandIndex() {
+            if (_brandIndexCache.list === productList && _brandIndexCache.size === productList.length) {
+                return _brandIndexCache;
             }
+            const full = new Set();
+            const firstWord = new Map(); // primera palabra de marcas de varias palabras → marcas
+            let maxWords = 1;
+            productList.forEach(p => {
+                // Solo marcas REALES (columna Marca del Excel). Antes también
+                // contaban las "marcas" inventadas con la primera palabra del
+                // nombre (BROCA, PINTURA, METAL...), y al escribir dos de esas
+                // palabras la búsqueda mostraba TODOS los productos de ambas
+                // en vez de acotar.
+                const b = getRealBrandNormalized(p);
+                if (!b || full.has(b)) return;
+                full.add(b);
+                const w = b.split(/\s+/);
+                if (w.length > maxWords) maxWords = w.length;
+                if (w.length > 1) {
+                    if (!firstWord.has(w[0])) firstWord.set(w[0], []);
+                    firstWord.get(w[0]).push(b);
+                }
+            });
+            _brandIndexCache = { list: productList, size: productList.length, full, firstWord, maxWords };
+            return _brandIndexCache;
+        }
+
+        // La primera palabra de una marca de varias palabras (ej. "sherwin") solo
+        // cuenta como marca si NO es también una palabra común de las descripciones
+        // de productos de otras marcas. Así palabras como "blanco" o "metal" no se
+        // toman como marca solo porque alguna marca empieza con ellas.
+        let _firstWordOnlyCache = { list: null, size: -1, map: new Map() };
+        function isBrandOnlyFirstWord(w) {
+            if (_firstWordOnlyCache.list !== productList || _firstWordOnlyCache.size !== productList.length) {
+                _firstWordOnlyCache = { list: productList, size: productList.length, map: new Map() };
+            }
+            const m = _firstWordOnlyCache.map;
+            if (m.has(w)) return m.get(w);
+            const usadaComoPalabra = productList.some(p => {
+                prepareSearchFields(p);
+                const b = p._searchBrand;
+                const empiezaConLaMarca = b && b.split(/\s+/)[0] === w;
+                return !empiezaConLaMarca && p._searchBase.includes(w);
+            });
+            m.set(w, !usadaComoPalabra);
+            return !usadaComoPalabra;
+        }
+
+        // Separa lo escrito en: marcas completas reconocidas + palabras restantes.
+        let _brandSelCache = { key: null, value: null, list: null };
+        function getBrandSelection(terms) {
+            const key = terms.join(' ');
+            if (_brandSelCache.key === key && _brandSelCache.list === productList) return _brandSelCache.value;
+            const idx = getBrandIndex();
+            const brands = new Set();
+            const rest = [];
+            let i = 0;
+            while (i < terms.length) {
+                let matched = 0;
+                for (let n = Math.min(idx.maxWords, terms.length - i); n >= 1; n--) {
+                    if (idx.full.has(terms.slice(i, i + n).join(' '))) { matched = n; break; }
+                }
+                if (matched) {
+                    brands.add(terms.slice(i, i + matched).join(' '));
+                    i += matched;
+                } else if (idx.firstWord.has(terms[i]) && isBrandOnlyFirstWord(terms[i])) {
+                    // Marca de varias palabras: basta con su primera palabra ("sherwin")
+                    idx.firstWord.get(terms[i]).forEach(b => brands.add(b));
+                    i++;
+                } else {
+                    rest.push(terms[i]);
+                    i++;
+                }
+            }
+            const value = { brands, rest };
+            _brandSelCache = { key, value, list: productList };
+            return value;
+        }
+
+        // ¿Cada palabra aparece en el texto del producto? (números completos, etc.)
+        // Una palabra de texto solo coincide si aparece AL INICIO de una palabra
+        // del producto (no en medio de otra). Así "metal" no coincide con
+        // "bimetal" ni "blanco" con "desblanqueador". Se aceptan terminaciones
+        // (ej. "broca" encuentra "brocas") para no romper plurales ni la
+        // escritura parcial mientras se teclea.
+        const _wordStartRegexCache = new Map();
+        function wordStartMatch(term, text) {
+            // Coincidencia en cualquier parte del texto (así "metal" también
+            // encuentra "bimetal").
+            return text.includes(term);
+        }
+
+        // Separa lo escrito en palabras: las comas, puntos y comas y barras
+        // verticales también separan (ej. "pintura, sherwin, blanco").
+        function splitSearchTerms(searchTerm) {
+            return normalizeSearchText(searchTerm)
+                .replace(/[,;|]+/g, ' ')
+                .split(/\s+/)
+                .filter(Boolean);
+        }
+
+        function termsMatchText(terms, text) {
+            const esNumero = t => /^[0-9]+$/.test(t);
+            const escapar = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return terms.every((t, i) => {
+                if (!esNumero(t)) return wordStartMatch(t, text);
+                // Número: debe ser un número completo (el 4 no coincide con 14 ni con 24)
+                // y, si va seguido de una palabra (ej. "4 circuito"), esa palabra debe ir pegada a él.
+                const siguiente = terms[i + 1];
+                const patron = (siguiente && !esNumero(siguiente))
+                    ? '(^|[^0-9])' + t + '[\\s\\-]*' + escapar(siguiente)
+                    : '(^|[^0-9])' + t + '([^0-9]|$)';
+                return new RegExp(patron).test(text);
+            });
+        }
+
+        // Coincidencia ESTRICTA: TODAS las palabras deben cumplirse en el mismo
+        // producto (una palabra puede quedar cubierta por la marca del producto).
+        function productMatchesStrict(product, terms) {
             const text = product._searchBase;
 
             // Palabras que forman la marca completa (en orden y exactas) → cubiertas por la marca
@@ -2785,7 +2960,7 @@
             const escapar = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             return terms.every((t, i) => {
                 if (cubiertoPorMarca[i]) return true;
-                if (!esNumero(t)) return text.includes(t);
+                if (!esNumero(t)) return wordStartMatch(t, text);
                 // Número: debe ser un número completo (el 4 no coincide con 14 ni con 24)
                 // y, si va seguido de una palabra (ej. "4 circuito"), esa palabra debe ir pegada a él.
                 const siguiente = terms[i + 1];
@@ -2794,6 +2969,57 @@
                     : '(^|[^0-9])' + t + '([^0-9]|$)';
                 return new RegExp(patron).test(text);
             });
+        }
+
+        function prepareSearchFields(product) {
+            if (product._searchBase === undefined) {
+                product._searchBase = normalizeSearchText([
+                    product.Description,
+                    product.Code,
+                    product.Reference,
+                    product.Category
+                ].join(' | '));
+                product._searchBrand = getRealBrandNormalized(product);
+            }
+        }
+
+        // MODO "VARIAS MARCAS" (O entre marcas): solo se activa cuando se
+        // escribieron 2+ marcas Y la búsqueda normal (todas las palabras en el
+        // mismo producto) no encuentra NINGÚN producto. Antes se activaba siempre
+        // que dos palabras coincidían con nombres de marca, y palabras comunes
+        // que también son marca (ej. "blanco", "metal") hacían aparecer productos
+        // que no coincidían ("broca total metal" mostraba brocas de concreto).
+        let _multiBrandModeCache = { key: null, list: null, value: false };
+        function isMultiBrandMode(terms) {
+            const key = terms.join(' ');
+            if (_multiBrandModeCache.key === key && _multiBrandModeCache.list === productList) {
+                return _multiBrandModeCache.value;
+            }
+            let value = false;
+            if (getBrandSelection(terms).brands.size >= 2) {
+                value = !productList.some(p => {
+                    prepareSearchFields(p);
+                    return productMatchesStrict(p, terms);
+                });
+            }
+            _multiBrandModeCache = { key, list: productList, value };
+            return value;
+        }
+
+        function productMatchesSearch(product, searchTerm) {
+            const terms = splitSearchTerms(searchTerm);
+            if (terms.length === 0) return true;
+            prepareSearchFields(product);
+
+            // Varias marcas escritas (y sin resultados con la búsqueda normal):
+            // el producto coincide si es de cualquiera de ellas y cumple las demás palabras.
+            if (isMultiBrandMode(terms)) {
+                const sel = getBrandSelection(terms);
+                return sel.brands.has(getRealBrandNormalized(product)) &&
+                    termsMatchText(sel.rest, product._searchBase);
+            }
+
+            return productMatchesStrict(product, terms);
         }
 
         // ============================================================
@@ -3190,9 +3416,12 @@
         // recorre el catálogo completo en vez de un subconjunto pequeño).
         function getProductBrand(product) {
             if (product._brand !== undefined) return product._brand;
-            product._brand = (product.Brand && product.Brand !== "Sin Marca" && product.Brand.trim() !== "")
-                ? product.Brand
-                : extractBrandFromName(product.Description);
+            // La marca se toma SOLO de la columna Marca del Excel. Si el
+            // producto no tiene marca registrada, queda como "Sin Marca"
+            // (ya no se inventa con la primera palabra del nombre).
+            product._brand = (product.Brand && String(product.Brand).trim() !== "")
+                ? String(product.Brand).trim()
+                : "Sin Marca";
             return product._brand;
         }
 
@@ -4067,7 +4296,7 @@
                 : '';
 
             return `
-                <div class="product-card" data-code="${safeCode}" data-description="${safeDescription}" data-category="${escapeForAttribute(product.Category)}" data-subcategory="${escapeForAttribute(product.Subcategory)}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" data-quantity="${product.Quantity}">
+                <div class="product-card${cost > 0 ? '' : ' no-cost'}" data-code="${safeCode}" data-description="${safeDescription}" data-category="${escapeForAttribute(product.Category)}" data-subcategory="${escapeForAttribute(product.Subcategory)}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" data-quantity="${product.Quantity}">
                     ${imageTag}
                     ${thumbTag}
                     <div class="badges-container">
@@ -4863,6 +5092,57 @@
                 updateRulerToggleIcon(false);
             }
             setupBoltGaugeTooltip();
+        })();
+    </script>
+    <script>
+        // Imagen completa del producto (modo tarjeta):
+        //  - clic en la miniatura: se muestra la imagen completa dentro de la tarjeta
+        //  - clic en la imagen, clic fuera de la tarjeta o Esc: se cierra
+        (function () {
+            function closeAll(except) {
+                document.querySelectorAll('.product-card.show-full').forEach(function (c) {
+                    if (c !== except) c.classList.remove('show-full');
+                });
+            }
+
+            document.addEventListener('click', function (e) {
+                if (document.body.classList.contains('list-view')) return;
+
+                var thumb = e.target.closest('.product-thumb');
+
+                // Clic sobre el ícono de ojo (dibujado sobre la miniatura):
+                // si el clic cae dentro del área de la miniatura, cuenta como clic en ella.
+                if (!thumb) {
+                    var hostCard = e.target.closest('.product-card');
+                    var hostThumb = hostCard && hostCard.querySelector('.product-thumb');
+                    if (hostThumb) {
+                        var r = hostThumb.getBoundingClientRect();
+                        if (e.clientX >= r.left && e.clientX <= r.right &&
+                            e.clientY >= r.top && e.clientY <= r.bottom) {
+                            thumb = hostThumb;
+                        }
+                    }
+                }
+
+                if (thumb) {
+                    var card = thumb.closest('.product-card');
+                    closeAll(card);
+                    card.classList.toggle('show-full');
+                    e.stopPropagation();
+                    return;
+                }
+
+                var openCard = e.target.closest('.product-card.show-full');
+                if (openCard && e.target.closest('.product-bg-image')) {
+                    openCard.classList.remove('show-full');
+                    return;
+                }
+                closeAll(openCard);
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeAll(null);
+            });
         })();
     </script>
 </body>
