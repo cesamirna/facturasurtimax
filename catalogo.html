@@ -649,6 +649,85 @@
             display: inline-flex;
         }
         
+        /* Contenedor de los botones de la derecha de la barra de estadísticas (vista + orden) */
+        .stats-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-right: -14px;
+        }
+
+        .stats-actions .view-toggle-btn {
+            margin-right: 0;
+        }
+
+        /* Botón de vista (cuadrícula / lista): sin fondo amarillo al pasar el cursor. */
+        #view-toggle-btn {
+            border: 1px solid transparent;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        /* Botón de orden alfabético: misma estética que los tickets de
+           existencias (.stock-tag): círculo relleno gris oscuro con el símbolo
+           en blanco, esquinas de 8px, fondo suave, transición y leve elevación
+           al pasar el mouse. Al pasar el mouse o activarlo, el círculo se
+           vuelve amarillo con fondo amarillo suave. */
+        #sort-toggle-btn {
+            width: auto;
+            height: auto;
+            padding: 5px 8px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            line-height: 1;
+            background-color: rgba(64, 64, 64, 0.04);
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+        }
+
+        /* Sin efecto de encogimiento al hacer clic: mantiene la misma posición
+           y tamaño que al pasar el mouse */
+        #sort-toggle-btn:active {
+            transform: translateY(-1px);
+        }
+
+        #sort-toggle-btn .view-icon {
+            width: auto;
+            height: auto;
+        }
+
+        #sort-toggle-btn svg {
+            display: block;
+            width: 18px;
+            height: 18px;
+            overflow: visible;
+        }
+
+        #sort-toggle-btn .sort-glyph {
+            stroke: #ffffff;
+            transition: stroke 0.3s ease;
+        }
+
+        /* Al pasar el cursor: fondo (sombra) con el amarillo de la paleta
+           (el mismo del carrito); el círculo se mantiene gris oscuro */
+        #sort-toggle-btn:hover,
+        #sort-toggle-btn:focus-visible {
+            background-color: var(--yellow-color);
+            border-color: var(--yellow-color);
+            color: var(--gray-700);
+        }
+
+        /* Activado (después de hacer clic): solo la sombra/fondo queda en
+           amarillo. El icono (círculo gris oscuro con flechas blancas)
+           conserva su apariencia original. */
+        #sort-toggle-btn.active,
+        #sort-toggle-btn.active:hover,
+        #sort-toggle-btn.active:focus-visible {
+            background-color: var(--yellow-color);
+            border-color: var(--yellow-color);
+            color: var(--gray-700);
+        }
+
         /* Grid de productos - 4 columnas */
         .products-grid {
             display: grid;
@@ -2151,14 +2230,15 @@
                     <span class="stat-value" id="total-products">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Mostrando:</span>
-                    <span class="stat-value" id="showing-products">0</span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-label">Categorías:</span>
                     <span class="stat-value" id="total-categories">0</span>
                 </div>
+                <div class="stat-item">
+                    <span class="stat-label">Mostrando:</span>
+                    <span class="stat-value" id="showing-products">0</span>
+                </div>
             </div>
+            <div class="stats-actions">
             <button type="button" id="view-toggle-btn" class="view-toggle-btn" onclick="toggleViewMode()" title="Cambiar a vista de lista" aria-label="Cambiar a vista de lista">
                 <span id="grid-view-icon" class="view-icon active" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18" stroke="currentColor" stroke-width="1.2">
@@ -2171,6 +2251,18 @@
                     </svg>
                 </span>
             </button>
+            <button type="button" id="sort-toggle-btn" class="view-toggle-btn" onclick="toggleSortMode()" title="Ordenar alfabéticamente (A-Z)" aria-label="Ordenar alfabéticamente (A-Z)" aria-pressed="false">
+                <span class="view-icon active" aria-hidden="true">
+                    <svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="7.6"/>
+                        <g class="sort-glyph" fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5.6 11.5V4.5M3.8 6.3 5.6 4.5l1.8 1.8"/>
+                            <path d="M10.4 4.5v7M8.6 9.7l1.8 1.8 1.8-1.8"/>
+                        </g>
+                    </svg>
+                </span>
+            </button>
+            </div>
         </div>
 
         <div id="catalog-content">
@@ -2288,21 +2380,213 @@
         // filtro (antes "Todas las categorías" se sentía lento porque
         // reordenaba miles de productos en cada clic, mientras que elegir una
         // categoría puntual solo reordenaba un subconjunto pequeño).
+        // Modo de orden del catálogo: 'default' (por precio y tamaño) o 'alpha'
+        // (alfabético por nombre, con los números y tamaños comparados como números).
+        let sortMode = 'default';
+        try {
+            if (localStorage.getItem('catalogSortMode') === 'alpha') sortMode = 'alpha';
+        } catch (e) { /* sin acceso a localStorage: se queda en el orden por defecto */ }
+
+        // Reconoce medidas dentro del nombre: enteros, decimales (1.5 o 1,5),
+        // fracciones (1/4, 3 / 8) y medidas mixtas (1-1/2, 1 1/2).
+        // OJO: la medida mixta con espacio ("1 1/2") NO debe tomar un número que
+        // viene pegado a letras o a otro dígito, porque en "SDR11 1/2X20" el
+        // "11" es parte del código SDR11 y la medida real es solo "1/2".
+        const SIZE_TOKEN_RE = /(\d+-\d+\s*\/\s*\d+|(?<![A-Za-z\d])\d+ \d+\s*\/\s*\d+|\d+\s*\/\s*\d+|\d+(?:[.,]\d+)?)/;
+
+        // Convierte una medida reconocida en uno o más números.
+        // Ojo: "1 1/2" es una pulgada y media, pero "90 1/2" (ej. CODO 90 1/2) es el
+        // ángulo 90 y la medida 1/2; por eso un entero grande separado por espacio
+        // de una fracción NO se suma a ella.
+        function parseSizeToken(part) {
+            let m = part.match(/^(\d+)([\s-])(\d+)\s*\/\s*(\d+)$/);
+            if (m) {
+                const whole = parseFloat(m[1]);
+                const den = parseFloat(m[4]);
+                const frac = den ? parseFloat(m[3]) / den : 0;
+                if (m[2] === ' ' && whole > 24) return [whole, frac];
+                return [whole + frac];
+            }
+            m = part.match(/^(\d+)\s*\/\s*(\d+)$/);
+            if (m) {
+                const den = parseFloat(m[2]);
+                return [den ? parseFloat(m[1]) / den : 0];
+            }
+            return [parseFloat(part.replace(',', '.'))];
+        }
+
+        // Divide el nombre en partes de texto y partes numéricas (fracciones incluidas),
+        // guardadas en caché.
+        const _naturalTokensCache = new WeakMap();
+        function getNaturalTokens(product) {
+            let tokens = _naturalTokensCache.get(product);
+            if (tokens) return tokens;
+            const parts = String(product.Description || '').split(SIZE_TOKEN_RE);
+            tokens = [];
+            parts.forEach((part, i) => {
+                if (i % 2 === 1) {
+                    parseSizeToken(part).forEach(n => tokens.push({ n }));
+                } else {
+                    const text = part.replace(/\s+/g, ' ').trim();
+                    if (text) tokens.push({ t: text });
+                }
+            });
+            _naturalTokensCache.set(product, tokens);
+            return tokens;
+        }
+
+        // Clave de orden como texto simple: las palabras van en minúsculas sin acentos y
+        // cada número se escribe con ceros a la izquierda, así comparar dos claves con
+        // < / > equivale al orden alfabético con números (1/8 < 1/4 < 1 < 2 < 10) y es
+        // muchísimo más rápido que comparar parte por parte.
+        const _alphaKeyCache = new WeakMap();
+        function getAlphaKey(product) {
+            let key = _alphaKeyCache.get(product);
+            if (key !== undefined) return key;
+            key = getNaturalTokens(product).map(tok => {
+                if (tok.n !== undefined) {
+                    return '\u0001' + String(Math.round(tok.n * 1000000)).padStart(14, '0');
+                }
+                return tok.t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') + ' ';
+            }).join('');
+            _alphaKeyCache.set(product, key);
+            return key;
+        }
+
+        // Orden alfabético "natural": las palabras se comparan alfabéticamente y los
+        // números como números (1/4 < 1/2 < 1 < 2 < 10), así "BROCA 1/8" va antes que
+        // "BROCA 1/4", y "#80" antes que "#120".
+        function compareAlphaNatural(a, b) {
+            const ta = getNaturalTokens(a);
+            const tb = getNaturalTokens(b);
+            const len = Math.min(ta.length, tb.length);
+            for (let i = 0; i < len; i++) {
+                const x = ta[i], y = tb[i];
+                if (x.n !== undefined && y.n !== undefined) {
+                    if (x.n !== y.n) return x.n - y.n;
+                } else if (x.t !== undefined && y.t !== undefined) {
+                    const c = x.t.localeCompare(y.t, "es", { sensitivity: "base" });
+                    if (c !== 0) return c;
+                } else {
+                    return x.n !== undefined ? -1 : 1; // el número va antes que el texto
+                }
+            }
+            return ta.length - tb.length;
+        }
+
+        // Comparador de texto en español, mucho más rápido que localeCompare con opciones.
+        const _esCollator = new Intl.Collator("es", { sensitivity: "base" });
+
+        // Órdenes ya calculados (por defecto y alfabético). Cambiar de modo solo
+        // copia uno de ellos, sin volver a ordenar miles de productos.
+        let _sortCache = { src: null, size: -1, byDefault: null, alpha: null };
+
+        // Ordena la lista completa UNA SOLA VEZ (categoría, subcategoría y precio).
+        // Las categorías/subcategorías se ordenan una vez y cada producto solo
+        // compara su posición (antes se repetían miles de comparaciones de texto).
         function sortProductList() {
-            productList.sort((a, b) => {
-                const catCompare = a.Category.localeCompare(b.Category, "es", { sensitivity: "base" });
-                if (catCompare !== 0) return catCompare;
-                const subCompare = compareSubcategory(a.Subcategory, b.Subcategory);
-                if (subCompare !== 0) return subCompare;
-                const priceCompare = (a.Price || 0) - (b.Price || 0);
+            const catRank = new Map();
+            [...new Set(productList.map(p => p.Category))]
+                .sort((x, y) => _esCollator.compare(x, y))
+                .forEach((c, i) => catRank.set(c, i));
+
+            const subRank = new Map();
+            catRank.forEach((_, cat) => {
+                [...new Set(productList.filter(p => p.Category === cat).map(p => p.Subcategory))]
+                    .sort(compareSubcategory)
+                    .forEach((sub, i) => subRank.set(cat + '\u0000' + sub, i));
+            });
+
+            const decorated = productList.map(p => ({
+                p,
+                c: catRank.get(p.Category),
+                s: subRank.get(p.Category + '\u0000' + p.Subcategory)
+            }));
+
+            decorated.sort((x, y) => {
+                if (x.c !== y.c) return x.c - y.c;
+                if (x.s !== y.s) return x.s - y.s;
+                const priceCompare = (x.p.Price || 0) - (y.p.Price || 0);
                 if (priceCompare !== 0) return priceCompare;
 
                 // A igual categoría, subcategoría y precio, en TODAS las
                 // categorías se ordena por tamaño (de menor a mayor) según
                 // la medida que aparece en el nombre, en vez de dejar el
                 // orden en que vienen en el Excel.
-                return compareProductsBySize(a, b);
+                return compareProductsBySize(x.p, y.p);
             });
+
+            // Se escribe sobre la misma lista (misma referencia que usa el resto del código)
+            decorated.forEach((d, i) => { productList[i] = d.p; });
+
+            _sortCache = { src: productList, size: productList.length, byDefault: productList.slice(), alpha: null };
+            if (sortMode === 'alpha') applySortMode();
+        }
+
+        // Alfabético dentro de cada subcategoría, a partir del orden por defecto
+        // (que ya deja cada subcategoría junta). Solo se calcula la primera vez.
+        function buildAlphaOrder(list) {
+            const result = [];
+            let i = 0;
+            while (i < list.length) {
+                let j = i + 1;
+                while (j < list.length &&
+                       list[j].Category === list[i].Category &&
+                       list[j].Subcategory === list[i].Subcategory) j++;
+                const group = list.slice(i, j).map(p => ({ p, k: getAlphaKey(p) }));
+                group.sort((x, y) => {
+                    if (x.k !== y.k) return x.k < y.k ? -1 : 1;
+                    const sizeCompare = compareProductsBySize(x.p, y.p);
+                    if (sizeCompare !== 0) return sizeCompare;
+                    return (x.p.Price || 0) - (y.p.Price || 0);
+                });
+                for (const item of group) result.push(item.p);
+                i = j;
+            }
+            return result;
+        }
+
+        // Coloca en productList el orden del modo actual usando los órdenes en caché.
+        function applySortMode() {
+            const valid = _sortCache.src === productList && _sortCache.size === productList.length;
+            if (!valid) { sortProductList(); return; }
+            let order;
+            if (sortMode === 'alpha') {
+                if (!_sortCache.alpha) _sortCache.alpha = buildAlphaOrder(_sortCache.byDefault);
+                order = _sortCache.alpha;
+            } else {
+                order = _sortCache.byDefault;
+            }
+            for (let i = 0; i < order.length; i++) productList[i] = order[i];
+        }
+
+        // Botón de orden: alterna entre el orden por defecto y el alfabético.
+        function toggleSortMode() {
+            sortMode = sortMode === 'alpha' ? 'default' : 'alpha';
+            try {
+                localStorage.setItem('catalogSortMode', sortMode);
+            } catch (e) {
+                console.error('No se pudo guardar el modo de orden:', e);
+            }
+            updateSortToggleButton();
+            if (productList.length > 0) {
+                // El icono se actualiza primero y el reordenamiento va justo después
+                setTimeout(() => {
+                    applySortMode();
+                    filterProducts();
+                }, 0);
+            }
+        }
+
+        function updateSortToggleButton() {
+            const btn = document.getElementById('sort-toggle-btn');
+            if (!btn) return;
+            const isAlpha = sortMode === 'alpha';
+            btn.classList.toggle('active', isAlpha);
+            btn.setAttribute('aria-pressed', isAlpha ? 'true' : 'false');
+            const label = isAlpha ? 'Quitar orden alfabético (volver al orden por precio)' : 'Ordenar alfabéticamente (A-Z)';
+            btn.title = label;
+            btn.setAttribute('aria-label', label);
         }
 
         // Inicialización
@@ -3277,13 +3561,12 @@
         //   'HOJA DISCO LIJA 5" #80 VELCRO'  -> [5, 80]
         //   'TUBO 1-1/2 X 20'                -> [1.5, 20]
         function parseDescriptionNumbers(description) {
-            const tokens = String(description || '').match(/\d+[\s-]\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?/g) || [];
-            return tokens.map(t => {
-                let m = t.match(/^(\d+)[\s-](\d+)\/(\d+)$/);
-                if (m) return parseFloat(m[1]) + parseFloat(m[2]) / parseFloat(m[3]);
-                if (t.includes('/')) return fractionToDecimal(t);
-                return parseFloat(t);
+            const parts = String(description || '').split(SIZE_TOKEN_RE);
+            const numbers = [];
+            parts.forEach((part, i) => {
+                if (i % 2 === 1) parseSizeToken(part).forEach(n => numbers.push(n));
             });
+            return numbers;
         }
 
         // Desempate de productos con la misma categoría, subcategoría y
@@ -3513,6 +3796,39 @@
             return null;
         }
 
+        // Compara dos textos palabra por palabra (alfabético, sin importar acentos) y
+        // las medidas que contienen (enteros, decimales, fracciones, 1-1/2...) como
+        // números completos. Un número va antes que el texto en la misma posición.
+        function compareNaturalStrings(a, b) {
+            const tokenize = (str) => {
+                const tokens = [];
+                String(str).split(SIZE_TOKEN_RE).forEach((part, i) => {
+                    if (i % 2 === 1) {
+                        parseSizeToken(part).forEach(n => tokens.push({ n }));
+                    } else {
+                        const text = part.replace(/\s+/g, ' ').trim();
+                        if (text) tokens.push({ t: text });
+                    }
+                });
+                return tokens;
+            };
+            const ta = tokenize(a);
+            const tb = tokenize(b);
+            const len = Math.min(ta.length, tb.length);
+            for (let i = 0; i < len; i++) {
+                const x = ta[i], y = tb[i];
+                if (x.n !== undefined && y.n !== undefined) {
+                    if (x.n !== y.n) return x.n - y.n;
+                } else if (x.t !== undefined && y.t !== undefined) {
+                    const c = x.t.localeCompare(y.t, "es", { sensitivity: "base" });
+                    if (c !== 0) return c;
+                } else {
+                    return x.n !== undefined ? -1 : 1;
+                }
+            }
+            return ta.length - tb.length;
+        }
+
         // Comparador para subcategorías y etiquetas: si ambos valores son
         // numéricos (incluyendo medidas en pulgadas con fracción como 2-1/2)
         // los compara como números (para que 80 quede antes que 100, y 2-1/2
@@ -3543,13 +3859,11 @@
             if (tokenA && !tokenB) return -1; // los números van antes que el texto
             if (!tokenA && tokenB) return 1;  // el texto va después de los números
 
-            const prefA = parseSubcategoryPrefixedNumber(strA);
-            const prefB = parseSubcategoryPrefixedNumber(strB);
-            if (prefA && prefB && prefA.prefix.toLowerCase() === prefB.prefix.toLowerCase()) {
-                return prefA.num - prefB.num;
-            }
-
-            return strA.localeCompare(strB, "es", { sensitivity: "base" });
+            // Texto con números (y fracciones) dentro, ej. "Codo 1" vs "Codo 3/4" o
+            // "Tornillo Hex 1/4-20x1" vs "Tornillo Hex 1/4-20x3/4": las palabras se
+            // comparan alfabéticamente y las medidas como números COMPLETOS
+            // (3/4 = 0.75, así que va antes que 1).
+            return compareNaturalStrings(strA, strB);
         }
 
         // Poblar filtros con todos los productos
@@ -4495,6 +4809,8 @@
                 btn.setAttribute('aria-label', `Cambiar a vista de ${nextView}`);
             }
         }
+
+        updateSortToggleButton();
 
         // Al cargar la página, restaurar la preferencia de vista guardada
         // (si no hay ninguna guardada, se queda en modo tarjeta por defecto)
