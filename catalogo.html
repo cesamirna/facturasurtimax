@@ -764,11 +764,22 @@
            de la tarjeta (categoría, marca, nombre, etc.) */
         .quote-row {
             position: absolute;
-            top: 52px;
-            right: 14px;
-            left: 20px;
+            /* Debajo de la miniatura de la imagen, en la esquina inferior derecha */
+            top: auto;
+            bottom: 13px;
+            right: 16px;
+            left: auto;
+            width: 96px;
             height: 24px;
             z-index: 3;
+            /* Existencia y botón de cotizar lado a lado (el icono a la derecha) */
+            display: flex;
+            align-items: center;
+            /* El icono queda siempre en el mismo sitio (alineado con el borde
+               derecho del badge de ganancia); la existencia crece hacia la izquierda
+               si el número es largo, sin empujar el icono. */
+            justify-content: flex-end;
+            gap: 0;
         }
 
         /* Badge de existencia (Disponible / Agotado / Consulta): visible por
@@ -776,15 +787,19 @@
            con position:absolute) para que no haya salto de layout al
            intercambiarse con el hover. */
         .stock-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
+            position: static;
+            order: 1;
+            flex-shrink: 0;
             width: auto;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 4px 12px;
-            border-radius: 6px;
+            /* Cinta pegada al círculo de cotizar: la existencia se mete 12px
+               por detrás del círculo, que queda por encima. */
+            height: 24px;
+            padding: 0 20px 0 12px;
+            margin-right: -12px;
+            border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -816,10 +831,6 @@
 
         /* Mostrar el botón "Cotizar" y ocultar el badge de existencia
            solo cuando el mouse está sobre la tarjeta */
-        .product-card:hover .stock-badge {
-            opacity: 0;
-        }
-
         .product-card:hover .quote-tab {
             opacity: 1;
             pointer-events: auto;
@@ -830,38 +841,72 @@
            Superpuesta al badge de existencia; oculta hasta que se pasa el
            mouse por la tarjeta. */
         .quote-tab {
-            position: absolute;
-            top: 0;
-            right: 0;
+            position: relative;
+            z-index: 1;
+            order: 2;
+            flex-shrink: 0;
             width: auto;
+            height: auto;
+            /* Solo el círculo gris oscuro con el carrito en blanco:
+               sin recuadro ni sombra de color de fondo. */
+            padding: 0;
             border: none;
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            border-radius: 6px;
+            background: transparent;
+            border-radius: 50%;
+            line-height: 1;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 4px 12px;
+            color: var(--gray-700);
             font-family: inherit;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            line-height: 1.4;
-            text-transform: uppercase;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.25s ease, transform 0.3s ease;
         }
+
+        /* El relleno del círculo sigue el color de existencia */
+        .quote-tab.stock-available { color: #2e7d32; }
+        .quote-tab.stock-out       { color: var(--danger-color); }
+        .quote-tab.stock-consult   { color: #e65100; }
 
         .quote-tab:hover {
-            background-color: #c8e6c9;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
         }
 
-        .quote-tab span {
-            white-space: nowrap;
+        /* Relleno del círculo menos intenso (el carrito blanco no cambia) */
+        .quote-tab svg circle {
+            fill-opacity: 0.9;
+            transition: fill-opacity 0.3s ease;
+        }
+
+        .quote-tab:hover svg circle {
+            fill-opacity: 1;
+        }
+
+        .quote-tab svg {
+            display: block;
+            width: 24px;
+            height: 24px;
+            overflow: visible;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        /* Mismo margen del borde que el botón de cotizar / existencia (13px
+           abajo): los badges de costo y margen/ganancia quedan a 13px del
+           borde superior de la tarjeta (en pantalla; al imprimir no aplica). */
+        @media screen {
+            body:not(.list-view) .product-card {
+                padding-top: 14px;
+            }
+
+            /* El precio con ITBMS y el "Sin ITBMS (7%)": 14px del borde inferior
+               (padding de 20px - 6px) y 16px del borde izquierdo (el
+               margin-left de -4px ya aplicado a toda la info de la tarjeta). */
+            body:not(.list-view) .price-section {
+                margin-bottom: -6px;
+            }
         }
 
         /* Imagen del producto: oculta por defecto, se muestra al pasar el mouse */
@@ -922,11 +967,17 @@
            tal como estaba siempre */
         .product-thumb {
             position: absolute;
-            bottom: 12px;
+            bottom: 43px;
+            /* El borde visible de la imagen queda a 16px, igual que el icono
+               de cotizar (.quote-row a 16px). La caja se corre 4px más a la
+               derecha para compensar el padding de 4px, y la imagen se pega
+               al lado derecho de la caja (object-position) para que las
+               imágenes no cuadradas no dejen un hueco a ese lado. */
             right: 12px;
             width: 84px;
             height: 84px;
             object-fit: contain;
+            object-position: right center;
             background-color: white;
             border: none;
             border-radius: 8px;
@@ -949,9 +1000,9 @@
         body:not(.list-view) .product-card:has(.product-thumb)::after {
             content: "";
             position: absolute;
-            /* centro de la miniatura: 12px + 84px/2 = 54px desde la esquina; icono de 36px */
+            /* centro de la miniatura: 12px + 84px/2 = 54px desde el borde; icono de 36px -> 54 - 18 = 36px */
             right: 36px;
-            bottom: 36px;
+            bottom: 67px;
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -992,9 +1043,6 @@
             margin-bottom: 0;
         }
 
-        body:not(.list-view) .product-card.no-cost .quote-row {
-            top: 14px;
-        }
 
         /* Grupo de badges "% margen" y "+$ ganancia": en tarjeta se corre
            un poco más a la derecha, 6px más adentro que el padding normal
@@ -1650,6 +1698,7 @@
                    desplaza fuera del área visible de la fila (que tiene
                    overflow:hidden) y no se ve nada. */
                 top: auto;
+                bottom: auto;
                 right: auto;
                 left: auto;
                 opacity: 1;
@@ -1660,15 +1709,17 @@
                 text-align: center;
             }
 
-            /* En la lista, el badge y el botón "Cotizar" quedan centrados
-               en la misma columna de 100px (en vez de pegados a la derecha
-               como en la tarjeta) */
-            body.list-view .stock-badge,
-            body.list-view .quote-tab {
-                left: 0;
-                right: 0;
-                margin: 0 auto;
-                width: fit-content;
+            /* En lista: igual que en la tarjeta, la existencia (cinta con las
+               UDS) y el icono de cotizar se ven siempre juntos, con el icono
+               a la derecha de la columna y la cinta metida 12px por detrás
+               del círculo. Se usan los mismos estilos de .stock-badge y
+               .quote-tab del modo tarjeta (sin intercambio al pasar el mouse). */
+            body.list-view .quote-row {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 0;
+                text-align: left;
             }
 
             body.list-view .price-section {
@@ -1706,6 +1757,12 @@
             body.list-view .product-card.has-image.show-full .product-thumb {
                 opacity: 1;
             }
+        }
+
+        /* Sin transiciones mientras se cambia entre tarjeta y lista */
+        body.switching-view .product-card,
+        body.switching-view .product-card * {
+            transition: none !important;
         }
 
         /* Responsive */
@@ -2079,6 +2136,51 @@
 
             .category-toggle {
                 display: none !important;
+            }
+
+            /* Al imprimir no se muestra la existencia ni el botón de cotizar,
+               así que la miniatura baja y se alinea con la zona del precio
+               (su parte inferior queda al nivel de "Sin ITBMS (7%)") y con el
+               borde derecho de la tarjeta. */
+            body:not(.list-view) .product-thumb {
+                bottom: 10px;
+                right: 16px;
+            }
+
+            /* Al imprimir, la información mantiene los mismos márgenes que en
+               pantalla: 14px arriba (la categoría queda a 14px del borde, ya
+               que los badges de costo no se imprimen) y 14px abajo ("Sin
+               ITBMS (7%)"). La fila de badges queda vacía, así que no debe
+               dejar hueco arriba. */
+            body:not(.list-view) .product-card {
+                padding-top: 14px;
+            }
+
+            body:not(.list-view) .badges-container {
+                margin-bottom: 0;
+            }
+
+            body:not(.list-view) .price-section {
+                margin-bottom: -6px;
+            }
+
+            /* Rendimiento al imprimir: lo siguiente no se ve en papel pero
+               obliga al navegador a procesarlo por cada tarjeta.
+               - .product-bg-image: imagen completa (opacity 0) que se
+                 rasterizaría a resolución de impresión en cada tarjeta.
+               - ::after: icono del ojo con backdrop-filter, que hace que
+                 el navegador convierta la página en bitmaps (muy lento).
+               - transiciones/animaciones: innecesarias en papel. */
+            .product-bg-image,
+            body:not(.list-view) .product-card::after {
+                display: none !important;
+            }
+
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+                animation: none !important;
             }
 
             .stock-tags,
@@ -4599,14 +4701,14 @@
             // Si el producto no tiene código, no se intenta mostrar imagen.
             // Si la imagen no existe en la carpeta "imagenes", se oculta automáticamente (onerror).
             const imageTag = refCode
-                ? `<img class="product-bg-image" loading="lazy" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
+                ? `<img class="product-bg-image" loading="lazy" decoding="async" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onload="handleImageLoad(this)" onerror="handleImageError(this)">`
                 : '';
 
             // Miniatura en la esquina inferior derecha (solo si hay imagen),
             // tal como estaba siempre. Si ninguna extensión existe, se
             // oculta automáticamente (onerror).
             const thumbTag = refCode
-                ? `<img class="product-thumb" loading="lazy" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
+                ? `<img class="product-thumb" loading="lazy" decoding="async" src="imagenes/${encodeURIComponent(refCode)}.jpg" alt="" data-ref="${escapeForAttribute(refCode)}" onerror="handleThumbError(this)">`
                 : '';
 
             return `
@@ -4626,8 +4728,8 @@
 
                     <div class="quote-row">
                         <span class="stock-badge ${stockStatus.className}">${stockStatus.label}</span>
-                        <button type="button" class="quote-tab" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" onclick="handleProductClick(this)">
-                            <span>COTIZAR</span>
+                        <button type="button" class="quote-tab ${stockStatus.className}" data-code="${safeCode}" data-description="${safeDescription}" data-price="${price}" data-cost="${cost}" data-exempt="${isExempt}" onclick="handleProductClick(this)" title="Cotizar" aria-label="Cotizar">
+                            <svg shape-rendering="geometricPrecision" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.6"/><g transform="translate(3.9 3.3) scale(0.55)"><path fill="#ffffff" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/></g></svg>
                         </button>
                     </div>
                     
@@ -4786,7 +4888,15 @@
         // Alternar entre vista de tarjetas (cuadrícula) y vista de lista.
         // El modo tarjeta es el predeterminado (no se agrega ninguna clase).
         function toggleViewMode() {
+            // Al cambiar de vista se desactivan las transiciones por un instante,
+            // para que los elementos (como el icono de cotizar) no se vean
+            // desvanecerse poco a poco al pasar de tarjeta a lista.
+            document.body.classList.add('switching-view');
             const isListView = document.body.classList.toggle('list-view');
+            void document.body.offsetHeight; // aplicar los estilos sin transición
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                document.body.classList.remove('switching-view');
+            }));
             updateViewToggleIcon(isListView);
             try {
                 localStorage.setItem('catalogViewMode', isListView ? 'list' : 'grid');
